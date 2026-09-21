@@ -20,6 +20,22 @@
   },
   "home": {
     "title": "Welcome to Apartments770",
-    "body": "The homepage is still under construction — the region picker and search form will appear here soon."
+    "about": "Apartments770 connects property owners with travelers looking for short-term rentals in the Crown Heights and The Ohel areas of New York. Pick a region, dates, and number of guests to find the right apartment."
+  },
+  "searchForm": {
+    "region": "Region",
+    "checkin": "Check-in date",
+    "checkout": "Check-out date",
+    "guests": "Number of guests",
+    "submit": "Search"
+  },
+  "search": {
+    "title": "Search results — coming soon",
+    "body": "The results page is still under construction. Here's what you searched for:",
+    "region": "Region",
+    "checkin": "Check-in",
+    "checkout": "Check-out",
+    "guests": "Guests",
+    "missingParams": "No search details were received. Go back to the homepage and try again."
   }
 }
