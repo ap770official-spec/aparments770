@@ -1,0 +1,25 @@
+{
+  "site": {
+    "name": "Apartments770"
+  },
+  "header": {
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "switchLanguage": "Switch language"
+  },
+  "nav": {
+    "about": "About",
+    "articles": "Articles",
+    "listProperty": "List your property",
+    "recommendations": "Our recommendations",
+    "contact": "Contact us"
+  },
+  "comingSoon": {
+    "title": "Coming soon",
+    "body": "This page is still under construction."
+  },
+  "home": {
+    "title": "Welcome to Apartments770",
+    "body": "The homepage is still under construction — the region picker and search form will appear here soon."
+  }
+}

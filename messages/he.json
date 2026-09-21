@@ -1,0 +1,25 @@
+{
+  "site": {
+    "name": "Apartments770"
+  },
+  "header": {
+    "openMenu": "פתח תפריט",
+    "closeMenu": "סגור תפריט",
+    "switchLanguage": "החלף שפה"
+  },
+  "nav": {
+    "about": "עלינו",
+    "articles": "מאמרים",
+    "listProperty": "פרסום דירה",
+    "recommendations": "ההמלצות שלנו",
+    "contact": "יצירת קשר"
+  },
+  "comingSoon": {
+    "title": "בקרוב",
+    "body": "העמוד הזה עדיין בבנייה."
+  },
+  "home": {
+    "title": "ברוכים הבאים ל-Apartments770",
+    "body": "עמוד הבית עדיין בבנייה — כאן יופיעו בקרוב בורר האזור וטופס החיפוש."
+  }
+}
