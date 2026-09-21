@@ -75,5 +75,16 @@
     "mikvah": "Mikvah",
     "bakery": "Bakery",
     "subway": "Subway"
+  },
+  "auth": {
+    "loginTitle": "Property owner login",
+    "loginBody": "Sign in to list and manage your apartments.",
+    "continueWithGoogle": "Continue with Google",
+    "errorGeneric": "Something went wrong signing in. Please try again."
+  },
+  "dashboard": {
+    "title": "Owner dashboard",
+    "loggedInAs": "Logged in as {email}",
+    "logout": "Log out"
   }
 }

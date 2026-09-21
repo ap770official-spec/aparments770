@@ -75,5 +75,16 @@
     "mikvah": "מקווה",
     "bakery": "בייקרי",
     "subway": "סאבווי"
+  },
+  "auth": {
+    "loginTitle": "כניסת בעלי דירות",
+    "loginBody": "התחברו כדי לפרסם ולנהל את הדירות שלכם.",
+    "continueWithGoogle": "המשך עם Google",
+    "errorGeneric": "משהו השתבש בהתחברות. נסה שוב."
+  },
+  "dashboard": {
+    "title": "אזור בעל הדירה",
+    "loggedInAs": "מחובר בתור {email}",
+    "logout": "התנתקות"
   }
 }
