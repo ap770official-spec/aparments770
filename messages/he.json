@@ -91,6 +91,9 @@
   "dashboard": {
     "title": "אזור בעל הדירה",
     "loggedInAs": "מחובר בתור {email}",
-    "logout": "התנתקות"
+    "logout": "התנתקות",
+    "myProperties": "הדירות שלי",
+    "noProperties": "עדיין לא פרסמת אף דירה.",
+    "perNight": "$ ללילה"
   }
 }

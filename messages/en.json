@@ -91,6 +91,9 @@
   "dashboard": {
     "title": "Owner dashboard",
     "loggedInAs": "Logged in as {email}",
-    "logout": "Log out"
+    "logout": "Log out",
+    "myProperties": "My properties",
+    "noProperties": "You haven't listed any apartments yet.",
+    "perNight": "per night"
   }
 }

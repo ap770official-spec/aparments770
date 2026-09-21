@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
 
 export type PropertyPhoto = {
@@ -58,6 +59,25 @@ export async function searchProperties({
 
   if (error) {
     throw new Error(`Failed to search properties: ${error.message}`);
+  }
+
+  return data ?? [];
+}
+
+export async function getOwnerProperties(
+  supabase: SupabaseClient,
+  ownerId: string,
+): Promise<PropertySummary[]> {
+  const { data, error } = await supabase
+    .from("properties")
+    .select(
+      "id, address, price_per_night, bedrooms, beds, max_guests, property_photos(url, sort_order)",
+    )
+    .eq("owner_id", ownerId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to load your properties: ${error.message}`);
   }
 
   return data ?? [];
