@@ -80,7 +80,13 @@
     "loginTitle": "Property owner login",
     "loginBody": "Sign in to list and manage your apartments.",
     "continueWithGoogle": "Continue with Google",
-    "errorGeneric": "Something went wrong signing in. Please try again."
+    "errorGeneric": "Something went wrong signing in. Please try again.",
+    "orDivider": "or",
+    "emailLabel": "Email address",
+    "sendCode": "Send verification code",
+    "codeSentTo": "We sent a 6-digit code to {email}",
+    "codeLabel": "Verification code",
+    "verifyCode": "Verify and sign in"
   },
   "dashboard": {
     "title": "Owner dashboard",

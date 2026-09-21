@@ -80,7 +80,13 @@
     "loginTitle": "כניסת בעלי דירות",
     "loginBody": "התחברו כדי לפרסם ולנהל את הדירות שלכם.",
     "continueWithGoogle": "המשך עם Google",
-    "errorGeneric": "משהו השתבש בהתחברות. נסה שוב."
+    "errorGeneric": "משהו השתבש בהתחברות. נסה שוב.",
+    "orDivider": "או",
+    "emailLabel": "כתובת מייל",
+    "sendCode": "שלח קוד אימות",
+    "codeSentTo": "שלחנו קוד בן 6 ספרות ל-{email}",
+    "codeLabel": "קוד אימות",
+    "verifyCode": "אימות והתחברות"
   },
   "dashboard": {
     "title": "אזור בעל הדירה",
