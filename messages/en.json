@@ -30,12 +30,50 @@
     "submit": "Search"
   },
   "search": {
-    "title": "Search results — coming soon",
-    "body": "The results page is still under construction. Here's what you searched for:",
-    "region": "Region",
+    "title": "Search results",
+    "resultsFor": "Apartments in {region}, for {guests} guests",
+    "missingParams": "No search details were received. Go back to the homepage and try again.",
+    "noResults": "No apartments matched this search right now.",
+    "perNight": "per night",
+    "viewDetails": "View details"
+  },
+  "property": {
+    "perNight": "per night",
     "checkin": "Check-in",
     "checkout": "Check-out",
-    "guests": "Guests",
-    "missingParams": "No search details were received. Go back to the homepage and try again."
+    "maxGuests": "Max guests",
+    "minNights": "Min nights",
+    "bedrooms": "Bedrooms",
+    "beds": "Beds",
+    "toilets": "Toilets",
+    "bathtubs": "Bathtubs",
+    "amenitiesTitle": "Amenities",
+    "contactWhatsApp": "Contact on WhatsApp",
+    "whatsappMessage": "Hi, I'm interested in the apartment at {address}, from {checkin} to {checkout}, for {guests} guests.",
+    "whatsappMessageGeneric": "Hi, I'm interested in the apartment at {address}.",
+    "notFound": "This apartment wasn't found, or is no longer available."
+  },
+  "amenityCategories": {
+    "general": "Amenities",
+    "shabbat_kosher": "Shabbat & kosher features",
+    "proximity": "Nearby"
+  },
+  "amenities": {
+    "dryer": "Dryer",
+    "balcony_yard": "Balcony/yard",
+    "iron": "Iron",
+    "storage_closets": "Storage closets",
+    "crib": "Crib",
+    "elevator": "Elevator",
+    "shabbat_elevator": "Shabbat elevator",
+    "non_electric_lock": "Non-electric lock",
+    "hotplate": "Hotplate",
+    "shabbat_clock": "Shabbat clock",
+    "kosher_kitchen": "Kosher kitchen",
+    "sukkah": "Sukkah",
+    "supermarket": "Supermarket",
+    "mikvah": "Mikvah",
+    "bakery": "Bakery",
+    "subway": "Subway"
   }
 }

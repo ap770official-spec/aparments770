@@ -2,6 +2,11 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getActiveRegions } from "@/lib/regions";
 import SearchForm from "@/components/SearchForm";
 
+// Regions come from Supabase and can change (admin adds one) without a
+// redeploy - render this per-request instead of baking the list in at
+// build time.
+export const dynamic = "force-dynamic";
+
 export default async function HomePage({
   params,
 }: {

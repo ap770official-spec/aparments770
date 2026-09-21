@@ -30,12 +30,50 @@
     "submit": "חפש"
   },
   "search": {
-    "title": "תוצאות חיפוש — בקרוב",
-    "body": "דף התוצאות עדיין בבנייה. אלה הפרטים שחיפשת:",
-    "region": "אזור",
-    "checkin": "כניסה",
-    "checkout": "יציאה",
-    "guests": "אורחים",
-    "missingParams": "לא התקבלו פרטי חיפוש. חזור לעמוד הבית ונסה שוב."
+    "title": "תוצאות חיפוש",
+    "resultsFor": "דירות באזור {region}, ל-{guests} אורחים",
+    "missingParams": "לא התקבלו פרטי חיפוש. חזור לעמוד הבית ונסה שוב.",
+    "noResults": "לא נמצאו דירות זמינות לפי החיפוש הזה כרגע.",
+    "perNight": "ללילה",
+    "viewDetails": "לפרטים נוספים"
+  },
+  "property": {
+    "perNight": "$ ללילה",
+    "checkin": "צ'ק-אין",
+    "checkout": "צ'ק-אאוט",
+    "maxGuests": "מקסימום אורחים",
+    "minNights": "מינימום לילות",
+    "bedrooms": "חדרי שינה",
+    "beds": "מיטות",
+    "toilets": "שירותים",
+    "bathtubs": "אמבטיות",
+    "amenitiesTitle": "שירותים",
+    "contactWhatsApp": "יצירת קשר בוואטסאפ",
+    "whatsappMessage": "שלום, אני מתעניין/ת בדירה בכתובת {address}, מתאריך {checkin} עד {checkout}, עבור {guests} אורחים.",
+    "whatsappMessageGeneric": "שלום, אני מתעניין/ת בדירה בכתובת {address}.",
+    "notFound": "הדירה לא נמצאה, או שאינה זמינה יותר."
+  },
+  "amenityCategories": {
+    "general": "שירותים נוספים",
+    "shabbat_kosher": "שירותי שבת וכשרות",
+    "proximity": "קרבה לשירותים"
+  },
+  "amenities": {
+    "dryer": "מייבש כביסה",
+    "balcony_yard": "מרפסת/חצר",
+    "iron": "מגהץ",
+    "storage_closets": "ארונות אחסון",
+    "crib": "מיטת תינוק",
+    "elevator": "מעלית",
+    "shabbat_elevator": "מעלית שבת",
+    "non_electric_lock": "מנעול ללא חשמל",
+    "hotplate": "פלטה",
+    "shabbat_clock": "שעון שבת",
+    "kosher_kitchen": "מטבח כשר",
+    "sukkah": "סוכה",
+    "supermarket": "סופרמרקט",
+    "mikvah": "מקווה",
+    "bakery": "בייקרי",
+    "subway": "סאבווי"
   }
 }
