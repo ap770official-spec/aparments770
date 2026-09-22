@@ -17,7 +17,7 @@ export default async function OwnerLoginPage({
     <div className="mx-auto max-w-sm px-4 py-16">
       <div className="text-center">
         <h1 className="text-2xl font-semibold">{t("loginTitle")}</h1>
-        <p className="mt-2 text-black/70 dark:text-white/70">
+        <p className="mt-2 text-black/70">
           {t("loginBody")}
         </p>
       </div>
@@ -26,10 +26,10 @@ export default async function OwnerLoginPage({
         <GoogleLoginButton next={`/${locale}/owner/dashboard`} />
       </div>
 
-      <div className="my-6 flex items-center gap-3 text-sm text-black/50 dark:text-white/50">
-        <span className="h-px flex-1 bg-black/10 dark:bg-white/15" />
+      <div className="my-6 flex items-center gap-3 text-sm text-black/50">
+        <span className="h-px flex-1 bg-black/10" />
         {t("orDivider")}
-        <span className="h-px flex-1 bg-black/10 dark:bg-white/15" />
+        <span className="h-px flex-1 bg-black/10" />
       </div>
 
       <EmailOtpForm next="/owner/dashboard" />

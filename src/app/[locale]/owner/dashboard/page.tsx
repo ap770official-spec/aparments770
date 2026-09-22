@@ -36,7 +36,7 @@ export default async function OwnerDashboardPage({
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
         <LogoutButton />
       </div>
-      <p className="mt-4 text-black/70 dark:text-white/70">
+      <p className="mt-4 text-black/70">
         {t("loggedInAs", { email: user!.email ?? "" })}
       </p>
 
@@ -52,7 +52,7 @@ export default async function OwnerDashboardPage({
         </div>
 
         {properties.length === 0 ? (
-          <p className="mt-2 text-black/70 dark:text-white/70">
+          <p className="mt-2 text-black/70">
             {t("noProperties")}
           </p>
         ) : (
@@ -62,7 +62,7 @@ export default async function OwnerDashboardPage({
               return (
                 <li
                   key={property.id}
-                  className="overflow-hidden rounded-lg border border-black/10 dark:border-white/15"
+                  className="overflow-hidden rounded-lg border border-black/10"
                 >
                   {media ? (
                     media.media_type === "video" ? (
@@ -80,14 +80,14 @@ export default async function OwnerDashboardPage({
                       />
                     )
                   ) : (
-                    <div className="h-32 w-full bg-black/5 dark:bg-white/10" />
+                    <div className="h-32 w-full bg-black/5" />
                   )}
                   <div className="p-3">
                     <p className="font-medium">{property.address}</p>
-                    <p className="text-sm text-black/70 dark:text-white/70">
+                    <p className="text-sm text-black/70">
                       ${property.price_per_night} {t("perNight")}
                     </p>
-                    <span className="mt-1 inline-block rounded-full border border-black/10 px-2 py-0.5 text-xs dark:border-white/15">
+                    <span className="mt-1 inline-block rounded-full border border-black/10 px-2 py-0.5 text-xs">
                       {t(`status.${property.approval_status}`)}
                     </span>
 

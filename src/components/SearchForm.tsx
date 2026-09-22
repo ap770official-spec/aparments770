@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type FormEvent,
+  type MouseEvent as ReactMouseEvent,
 } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -88,6 +89,11 @@ export default function SearchForm({
     }
   }
 
+  function openCalendar(event: ReactMouseEvent<HTMLButtonElement>) {
+    triggerRef.current = event.currentTarget;
+    setIsCalendarOpen(true);
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!range?.from || !range?.to) return;
@@ -99,32 +105,45 @@ export default function SearchForm({
       guests: String(guests),
     });
 
-    router.push(`/search?${params.toString()}`);
+    router.push(`/?${params.toString()}`);
   }
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-8 grid gap-4 rounded-lg border border-black/10 p-4 sm:grid-cols-2 dark:border-white/15"
+      className="mt-8 grid gap-4 rounded-lg border border-black/10 p-4 sm:grid-cols-2"
     >
-      <div ref={fieldRef} className="relative flex flex-col gap-1 text-sm sm:col-span-2">
-        <span id="search-dates-label">{t("dates")}</span>
-        <button
-          ref={triggerRef}
-          type="button"
-          onClick={() => setIsCalendarOpen((open) => !open)}
-          aria-haspopup="dialog"
-          aria-expanded={isCalendarOpen}
-          aria-labelledby="search-dates-label"
-          className="rounded-full border border-black/15 bg-transparent px-4 py-2 text-start dark:border-white/20"
-        >
-          {range?.from && range?.to
-            ? `${t("checkin")}: ${toISODate(range.from)} · ${t("checkout")}: ${toISODate(range.to)}`
-            : t("placeholder")}
-        </button>
+      <div ref={fieldRef} className="relative flex gap-2 sm:col-span-2">
+        <div className="flex flex-1 flex-col gap-1 text-sm">
+          <span id="search-checkin-label">{t("checkin")}</span>
+          <button
+            type="button"
+            onClick={openCalendar}
+            aria-haspopup="dialog"
+            aria-expanded={isCalendarOpen}
+            aria-labelledby="search-checkin-label"
+            className="rounded-full border border-black/15 bg-transparent px-4 py-2 text-start"
+          >
+            {range?.from ? toISODate(range.from) : t("checkin")}
+          </button>
+        </div>
+
+        <div className="flex flex-1 flex-col gap-1 text-sm">
+          <span id="search-checkout-label">{t("checkout")}</span>
+          <button
+            type="button"
+            onClick={openCalendar}
+            aria-haspopup="dialog"
+            aria-expanded={isCalendarOpen}
+            aria-labelledby="search-checkout-label"
+            className="rounded-full border border-black/15 bg-transparent px-4 py-2 text-start"
+          >
+            {range?.to ? toISODate(range.to) : t("checkout")}
+          </button>
+        </div>
 
         {isCalendarOpen && (
-          <div className="absolute top-full z-10 mt-1 rounded-md border border-black/15 bg-background p-2 shadow-lg dark:border-white/20">
+          <div className="absolute top-full z-10 mt-1 rounded-md border border-black/15 bg-background p-2 shadow-lg">
             <DayPicker
               mode="range"
               selected={range}
@@ -143,7 +162,7 @@ export default function SearchForm({
                 },
               }}
             />
-            <p className="text-xs text-black/60 dark:text-white/60">
+            <p className="text-xs text-black/60">
               {!range?.from ? t("selectCheckin") : t("selectCheckout")}
             </p>
           </div>
@@ -158,7 +177,7 @@ export default function SearchForm({
           value={guests}
           onChange={(e) => setGuests(Number(e.target.value))}
           required
-          className="rounded-full border border-black/15 bg-transparent px-4 py-2 dark:border-white/20"
+          className="rounded-full border border-black/15 bg-transparent px-4 py-2"
         />
       </label>
 

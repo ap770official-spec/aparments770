@@ -26,7 +26,7 @@ export default async function SearchPage({
     return (
       <div className="mx-auto max-w-5xl px-4 py-12">
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
-        <p className="mt-2 text-black/70 dark:text-white/70">
+        <p className="mt-2 text-black/70">
           {t("missingParams")}
         </p>
       </div>
@@ -50,13 +50,13 @@ export default async function SearchPage({
     <div className="mx-auto max-w-5xl px-4 py-12">
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
       {region && (
-        <p className="mt-1 text-black/70 dark:text-white/70">
+        <p className="mt-1 text-black/70">
           {t("resultsFor", { region: regionLabel(region, locale), guests })}
         </p>
       )}
 
       {properties.length === 0 ? (
-        <p className="mt-6 text-black/70 dark:text-white/70">
+        <p className="mt-6 text-black/70">
           {t("noResults")}
         </p>
       ) : (

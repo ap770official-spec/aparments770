@@ -23,8 +23,6 @@
     "about": "Apartments770 connects property owners with travelers looking for short-term rentals in the Crown Heights and The Ohel areas of New York. Pick a region, dates, and number of guests to find the right apartment."
   },
   "searchForm": {
-    "dates": "Dates",
-    "placeholder": "Choose dates",
     "checkin": "Check-in date",
     "checkout": "Check-out date",
     "selectCheckin": "Select a check-in date",
