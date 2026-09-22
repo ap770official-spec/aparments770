@@ -63,9 +63,7 @@ export default function PropertyForm({
     (a) => a.amenity_key,
   );
 
-  const [regionId, setRegionId] = useState(
-    initialProperty?.region_id ?? regions[0]?.id ?? "",
-  );
+  const regionId = initialProperty?.region_id ?? regions[0]?.id ?? "";
   const [location, setLocation] = useState<{
     lat: number;
     lng: number;
@@ -241,22 +239,6 @@ export default function PropertyForm({
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
 
       <div className="mt-6 grid gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          {t("region")}
-          <select
-            value={regionId}
-            onChange={(e) => setRegionId(e.target.value)}
-            required
-            className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
-          >
-            {regions.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name_he} / {r.name_en}
-              </option>
-            ))}
-          </select>
-        </label>
-
         <div className="flex flex-col gap-1 text-sm">
           {t("locationLabel")}
           <LocationPicker
