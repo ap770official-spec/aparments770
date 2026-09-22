@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { approveProperty, logoutAdmin, rejectProperty } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +22,7 @@ export default async function AdminPropertiesPage() {
   const { data: properties, error } = await supabase
     .from("properties")
     .select(
-      "id, address, price_per_night, approval_status, created_at, owners(full_name), regions(name_he)",
+      "id, address, price_per_night, approval_status, created_at, phone_country_code, phone_number, owners(full_name), regions(name_he)",
     )
     .order("created_at", { ascending: false });
 
@@ -56,6 +58,7 @@ export default async function AdminPropertiesPage() {
                 <th className="p-2 text-start">בעלים</th>
                 <th className="p-2 text-start">מחיר</th>
                 <th className="p-2 text-start">סטטוס</th>
+                <th className="p-2 text-start">טלפון</th>
                 <th className="p-2 text-start">פעולות</th>
               </tr>
             </thead>
@@ -65,7 +68,14 @@ export default async function AdminPropertiesPage() {
                   key={property.id}
                   className="border-b border-black/5 dark:border-white/10"
                 >
-                  <td className="p-2">{property.address}</td>
+                  <td className="p-2">
+                    <Link
+                      href={`/admin/properties/${property.id}`}
+                      className="underline underline-offset-2"
+                    >
+                      {property.address}
+                    </Link>
+                  </td>
                   <td className="p-2">
                     {(
                       property.regions as unknown as { name_he: string } | null
@@ -82,6 +92,27 @@ export default async function AdminPropertiesPage() {
                   <td className="p-2">
                     {STATUS_LABELS[property.approval_status] ??
                       property.approval_status}
+                  </td>
+                  <td className="p-2">
+                    <div className="flex gap-2">
+                      <a
+                        href={`tel:${property.phone_country_code}${property.phone_number}`}
+                        className="underline underline-offset-2"
+                      >
+                        טלפון
+                      </a>
+                      <a
+                        href={buildWhatsAppLink({
+                          countryCode: property.phone_country_code,
+                          phoneNumber: property.phone_number,
+                        })}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline underline-offset-2"
+                      >
+                        וואטסאפ
+                      </a>
+                    </div>
                   </td>
                   <td className="p-2">
                     <div className="flex gap-2">

@@ -5,8 +5,10 @@ export function buildWhatsAppLink({
 }: {
   countryCode: string;
   phoneNumber: string;
-  message: string;
+  message?: string;
 }): string {
   const digitsOnly = `${countryCode}${phoneNumber}`.replace(/[^\d]/g, "");
-  return `https://wa.me/${digitsOnly}?text=${encodeURIComponent(message)}`;
+  return message
+    ? `https://wa.me/${digitsOnly}?text=${encodeURIComponent(message)}`
+    : `https://wa.me/${digitsOnly}`;
 }

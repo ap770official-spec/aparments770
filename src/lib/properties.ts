@@ -117,6 +117,44 @@ export async function getPropertyById(
   return data;
 }
 
+export type AdminPropertyDetail = PropertyDetail & {
+  approval_status: ApprovalStatus;
+  created_at: string;
+  regions: { name_he: string } | null;
+  owners: { full_name: string | null } | null;
+};
+
+/**
+ * Full property record for the admin detail view - no approval_status
+ * filter (admins need to see pending/rejected listings too), and
+ * includes the owner's name and phone for direct contact. Must be
+ * called with the service-role client (bypasses RLS by design).
+ */
+export async function getAdminPropertyById(
+  supabase: SupabaseClient,
+  id: string,
+): Promise<AdminPropertyDetail | null> {
+  const { data, error } = await supabase
+    .from("properties")
+    .select(
+      `id, address, price_per_night, bedrooms, beds, toilets, bathtubs,
+       max_guests, min_nights, checkin_time, checkout_time, approval_status,
+       availability_mode, phone_country_code, phone_number, created_at,
+       description_he, description_en,
+       property_photos(url, sort_order, media_type),
+       property_amenities(category, amenity_key),
+       regions(name_he), owners(full_name)`,
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load property: ${error.message}`);
+  }
+
+  return data as AdminPropertyDetail | null;
+}
+
 export type PropertyForDuplication = {
   region_id: string;
   address: string;
