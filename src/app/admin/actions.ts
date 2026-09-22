@@ -138,3 +138,22 @@ export async function rejectProperty(propertyId: string) {
   if (error) throw new Error(error.message);
   revalidatePath("/admin/properties");
 }
+
+/**
+ * Permanently deletes a property. Cascades to its amenities and
+ * photo/video rows (on delete cascade in the schema) - but not the
+ * actual files in Cloudinary, which are left orphaned. Fine for now
+ * at this scale; would need a Cloudinary API call to also remove
+ * those if that ever becomes worth doing.
+ */
+export async function deleteProperty(propertyId: string) {
+  await requireAdmin();
+  const supabase = createAdminSupabaseClient();
+  const { error } = await supabase
+    .from("properties")
+    .delete()
+    .eq("id", propertyId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/properties");
+  redirect("/admin/properties");
+}

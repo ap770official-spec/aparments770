@@ -3,8 +3,9 @@ import { redirect } from "next/navigation";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
-import { approveProperty, logoutAdmin, rejectProperty } from "../actions";
+import { approveProperty, deleteProperty, logoutAdmin, rejectProperty } from "../actions";
 import { geocodeLegacyProperties, geocodeRegions } from "../geocode-actions";
+import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 
 export const dynamic = "force-dynamic";
 
@@ -175,6 +176,14 @@ export default async function AdminPropertiesPage() {
                           </button>
                         </form>
                       )}
+                      <form action={deleteProperty.bind(null, property.id)}>
+                        <ConfirmSubmitButton
+                          confirmMessage={`למחוק לצמיתות את הדירה ב-${property.address}? לא ניתן לבטל.`}
+                          className="rounded-md border border-red-600 px-3 py-1 text-red-600"
+                        >
+                          מחק
+                        </ConfirmSubmitButton>
+                      </form>
                     </div>
                   </td>
                 </tr>

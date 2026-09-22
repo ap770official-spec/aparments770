@@ -4,7 +4,8 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAdminPropertyById } from "@/lib/properties";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
-import { approveProperty, rejectProperty } from "../../actions";
+import { approveProperty, deleteProperty, rejectProperty } from "../../actions";
+import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import he from "../../../../../messages/he.json";
 
 export const dynamic = "force-dynamic";
@@ -98,6 +99,14 @@ export default async function AdminPropertyDetailPage({
             </button>
           </form>
         )}
+        <form action={deleteProperty.bind(null, property.id)}>
+          <ConfirmSubmitButton
+            confirmMessage={`למחוק לצמיתות את הדירה ב-${property.address}? לא ניתן לבטל.`}
+            className="rounded-md border border-red-600 px-3 py-1 text-red-600"
+          >
+            מחק דירה
+          </ConfirmSubmitButton>
+        </form>
       </div>
 
       <section className="mt-8">
