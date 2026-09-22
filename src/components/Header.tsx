@@ -26,7 +26,7 @@ export default function Header() {
   ] as const;
 
   return (
-    <header className="border-b border-black/10 dark:border-white/15">
+    <header className="border-b border-black/10">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
         <Link
           href="/"
@@ -67,7 +67,7 @@ export default function Header() {
             onClick={() => setIsMenuOpen((open) => !open)}
             aria-expanded={isMenuOpen}
             aria-label={isMenuOpen ? t("closeMenu") : t("openMenu")}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-black/10 text-xl leading-none dark:border-white/15"
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-black/10 text-xl leading-none"
           >
             {isMenuOpen ? "✕" : "☰"}
           </button>
@@ -75,14 +75,14 @@ export default function Header() {
       </div>
 
       {isMenuOpen && (
-        <nav className="border-t border-black/10 dark:border-white/15">
+        <nav className="border-t border-black/10">
           <ul className="mx-auto flex max-w-5xl flex-col gap-1 px-4 py-3">
             {navItems.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="block rounded-md px-2 py-2 hover:bg-black/5 dark:hover:bg-white/10"
+                  className="block rounded-md px-2 py-2 hover:bg-black/5"
                 >
                   {item.label}
                 </Link>

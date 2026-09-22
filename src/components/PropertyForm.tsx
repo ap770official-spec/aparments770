@@ -218,7 +218,7 @@ export default function PropertyForm({
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center">
         <h1 className="text-2xl font-semibold">{t("successTitle")}</h1>
-        <p className="mt-2 text-black/70 dark:text-white/70">
+        <p className="mt-2 text-black/70">
           {t("successBody")}
         </p>
         <Link
@@ -258,7 +258,7 @@ export default function PropertyForm({
               max={30}
               value={bedrooms}
               onChange={(e) => setBedrooms(Number(e.target.value))}
-              className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+              className="rounded-md border border-black/15 bg-transparent px-3 py-2"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
@@ -269,7 +269,7 @@ export default function PropertyForm({
               max={30}
               value={beds}
               onChange={(e) => setBeds(Number(e.target.value))}
-              className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+              className="rounded-md border border-black/15 bg-transparent px-3 py-2"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
@@ -280,7 +280,7 @@ export default function PropertyForm({
               max={30}
               value={toilets}
               onChange={(e) => setToilets(Number(e.target.value))}
-              className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+              className="rounded-md border border-black/15 bg-transparent px-3 py-2"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
@@ -291,7 +291,7 @@ export default function PropertyForm({
               max={30}
               value={bathtubs}
               onChange={(e) => setBathtubs(Number(e.target.value))}
-              className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+              className="rounded-md border border-black/15 bg-transparent px-3 py-2"
             />
           </label>
         </div>
@@ -305,7 +305,7 @@ export default function PropertyForm({
             required
             value={pricePerNight}
             onChange={(e) => setPricePerNight(e.target.value)}
-            className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+            className="rounded-md border border-black/15 bg-transparent px-3 py-2"
           />
         </label>
 
@@ -318,7 +318,7 @@ export default function PropertyForm({
               placeholder="+1"
               value={phoneCountryCode}
               onChange={(e) => setPhoneCountryCode(e.target.value)}
-              className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+              className="rounded-md border border-black/15 bg-transparent px-3 py-2"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
@@ -328,7 +328,7 @@ export default function PropertyForm({
               required
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+              className="rounded-md border border-black/15 bg-transparent px-3 py-2"
             />
           </label>
         </div>
@@ -340,7 +340,7 @@ export default function PropertyForm({
               type="time"
               value={checkinTime}
               onChange={(e) => setCheckinTime(e.target.value)}
-              className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+              className="rounded-md border border-black/15 bg-transparent px-3 py-2"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
@@ -349,7 +349,7 @@ export default function PropertyForm({
               type="time"
               value={checkoutTime}
               onChange={(e) => setCheckoutTime(e.target.value)}
-              className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+              className="rounded-md border border-black/15 bg-transparent px-3 py-2"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
@@ -359,7 +359,7 @@ export default function PropertyForm({
               min={1}
               value={maxGuests}
               onChange={(e) => setMaxGuests(e.target.value)}
-              className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+              className="rounded-md border border-black/15 bg-transparent px-3 py-2"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
@@ -369,7 +369,7 @@ export default function PropertyForm({
               min={1}
               value={minNights}
               onChange={(e) => setMinNights(e.target.value)}
-              className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+              className="rounded-md border border-black/15 bg-transparent px-3 py-2"
             />
           </label>
         </div>
@@ -380,7 +380,7 @@ export default function PropertyForm({
             value={descriptionHe}
             onChange={(e) => setDescriptionHe(e.target.value)}
             rows={3}
-            className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+            className="rounded-md border border-black/15 bg-transparent px-3 py-2"
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
@@ -389,7 +389,7 @@ export default function PropertyForm({
             value={descriptionEn}
             onChange={(e) => setDescriptionEn(e.target.value)}
             rows={3}
-            className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+            className="rounded-md border border-black/15 bg-transparent px-3 py-2"
           />
         </label>
 
@@ -425,7 +425,7 @@ export default function PropertyForm({
           </h2>
           {AMENITY_GROUPS.map((group) => (
             <div key={group.category} className="mt-3">
-              <p className="text-sm font-medium text-black/60 dark:text-white/60">
+              <p className="text-sm font-medium text-black/60">
                 {tCategory(group.category)}
               </p>
               <div className="mt-1 flex flex-wrap gap-3">
@@ -458,7 +458,7 @@ export default function PropertyForm({
               className="text-sm"
             />
           </label>
-          <p className="mt-1 text-xs text-black/50 dark:text-white/50">
+          <p className="mt-1 text-xs text-black/50">
             {t("mediaHint")}
           </p>
 

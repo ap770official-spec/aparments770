@@ -114,43 +114,43 @@ export default async function PropertyPage({
       <h1 className="mt-6 text-2xl font-semibold">{property.address}</h1>
       <p className="mt-1 text-xl font-semibold">
         ${property.price_per_night}{" "}
-        <span className="text-sm font-normal text-black/60 dark:text-white/60">
+        <span className="text-sm font-normal text-black/60">
           {t("perNight")}
         </span>
       </p>
 
       {description && (
-        <p className="mt-4 text-black/70 dark:text-white/70">
+        <p className="mt-4 text-black/70">
           {description}
         </p>
       )}
 
       <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-4">
         <div>
-          <dt className="text-black/60 dark:text-white/60">
+          <dt className="text-black/60">
             {t("bedrooms")}
           </dt>
           <dd className="font-medium">{property.bedrooms}</dd>
         </div>
         <div>
-          <dt className="text-black/60 dark:text-white/60">{t("beds")}</dt>
+          <dt className="text-black/60">{t("beds")}</dt>
           <dd className="font-medium">{property.beds}</dd>
         </div>
         <div>
-          <dt className="text-black/60 dark:text-white/60">
+          <dt className="text-black/60">
             {t("toilets")}
           </dt>
           <dd className="font-medium">{property.toilets}</dd>
         </div>
         <div>
-          <dt className="text-black/60 dark:text-white/60">
+          <dt className="text-black/60">
             {t("bathtubs")}
           </dt>
           <dd className="font-medium">{property.bathtubs}</dd>
         </div>
         {property.checkin_time && (
           <div>
-            <dt className="text-black/60 dark:text-white/60">
+            <dt className="text-black/60">
               {t("checkin")}
             </dt>
             <dd className="font-medium">{property.checkin_time}</dd>
@@ -158,7 +158,7 @@ export default async function PropertyPage({
         )}
         {property.checkout_time && (
           <div>
-            <dt className="text-black/60 dark:text-white/60">
+            <dt className="text-black/60">
               {t("checkout")}
             </dt>
             <dd className="font-medium">{property.checkout_time}</dd>
@@ -166,7 +166,7 @@ export default async function PropertyPage({
         )}
         {property.max_guests !== null && (
           <div>
-            <dt className="text-black/60 dark:text-white/60">
+            <dt className="text-black/60">
               {t("maxGuests")}
             </dt>
             <dd className="font-medium">{property.max_guests}</dd>
@@ -174,7 +174,7 @@ export default async function PropertyPage({
         )}
         {property.min_nights !== null && (
           <div>
-            <dt className="text-black/60 dark:text-white/60">
+            <dt className="text-black/60">
               {t("minNights")}
             </dt>
             <dd className="font-medium">{property.min_nights}</dd>
@@ -187,14 +187,14 @@ export default async function PropertyPage({
           <h2 className="text-lg font-semibold">{t("amenitiesTitle")}</h2>
           {amenitiesByCategory.map((group) => (
             <div key={group.category} className="mt-3">
-              <p className="text-sm font-medium text-black/60 dark:text-white/60">
+              <p className="text-sm font-medium text-black/60">
                 {tCategory(group.category)}
               </p>
               <ul className="mt-1 flex flex-wrap gap-2">
                 {group.items.map((item) => (
                   <li
                     key={item.amenity_key}
-                    className="rounded-full border border-black/10 px-3 py-1 text-sm dark:border-white/15"
+                    className="rounded-full border border-black/10 px-3 py-1 text-sm"
                   >
                     {tAmenity(item.amenity_key)}
                   </li>
@@ -209,7 +209,7 @@ export default async function PropertyPage({
         <div className="mt-8">
           <h2 className="text-lg font-semibold">{t("locationTitle")}</h2>
           {walking && landmark && (
-            <p className="mt-1 text-sm text-black/70 dark:text-white/70">
+            <p className="mt-1 text-sm text-black/70">
               {t("walkingTime", {
                 minutes: walking.minutes,
                 landmark: locale === "he" ? landmark.name_he : landmark.name_en,

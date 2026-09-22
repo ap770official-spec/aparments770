@@ -61,7 +61,7 @@ export default function EmailOtpForm({ next }: { next: string }) {
   if (step === "code") {
     return (
       <form onSubmit={handleVerifyCode} className="flex flex-col gap-3">
-        <p className="text-sm text-black/70 dark:text-white/70">
+        <p className="text-sm text-black/70">
           {t("codeSentTo", { email })}
         </p>
         <label className="flex flex-col gap-1 text-start text-sm">
@@ -73,7 +73,7 @@ export default function EmailOtpForm({ next }: { next: string }) {
             required
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            className="rounded-md border border-black/15 bg-transparent px-3 py-2 tracking-widest dark:border-white/20"
+            className="rounded-md border border-black/15 bg-transparent px-3 py-2 tracking-widest"
           />
         </label>
         {error && <p className="text-sm text-red-600">{error}</p>}
@@ -97,14 +97,14 @@ export default function EmailOtpForm({ next }: { next: string }) {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+          className="rounded-md border border-black/15 bg-transparent px-3 py-2"
         />
       </label>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         type="submit"
         disabled={loading}
-        className="rounded-md border border-black/15 px-4 py-2 disabled:opacity-60 dark:border-white/20"
+        className="rounded-md border border-black/15 px-4 py-2 disabled:opacity-60"
       >
         {t("sendCode")}
       </button>

@@ -19,7 +19,7 @@ export default function LogoutButton() {
     <button
       type="button"
       onClick={handleClick}
-      className="rounded-md border border-black/15 px-4 py-2 text-sm dark:border-white/20"
+      className="rounded-md border border-black/15 px-4 py-2 text-sm"
     >
       {t("logout")}
     </button>

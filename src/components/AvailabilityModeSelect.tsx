@@ -43,7 +43,7 @@ export default function AvailabilityModeSelect({
         value={mode}
         onChange={handleChange}
         disabled={saving}
-        className="rounded-md border border-black/15 bg-transparent px-2 py-1 text-xs dark:border-white/20"
+        className="rounded-md border border-black/15 bg-transparent px-2 py-1 text-xs"
       >
         {MODES.map((m) => (
           <option key={m} value={m}>
