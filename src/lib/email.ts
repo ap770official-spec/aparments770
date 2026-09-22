@@ -1,4 +1,4 @@
-const FROM_ADDRESS = "onboarding@resend.dev";
+const FROM_ADDRESS = "noreply@apartments770.com";
 
 /**
  * Sends an app-triggered email via Resend's REST API directly (no SDK
