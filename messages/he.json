@@ -24,6 +24,7 @@
   },
   "searchForm": {
     "dates": "תאריכים",
+    "placeholder": "בחרו תאריכים",
     "checkin": "תאריך כניסה",
     "checkout": "תאריך יציאה",
     "selectCheckin": "בחרו תאריך כניסה",

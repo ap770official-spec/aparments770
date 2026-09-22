@@ -24,6 +24,7 @@
   },
   "searchForm": {
     "dates": "Dates",
+    "placeholder": "Choose dates",
     "checkin": "Check-in date",
     "checkout": "Check-out date",
     "selectCheckin": "Select a check-in date",
