@@ -66,10 +66,17 @@ export default function PropertyForm({
   const [regionId, setRegionId] = useState(
     initialProperty?.region_id ?? regions[0]?.id ?? "",
   );
-  const [address, setAddress] = useState(initialProperty?.address ?? "");
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+  const [location, setLocation] = useState<{
+    lat: number;
+    lng: number;
+    address: string;
+  } | null>(
     initialProperty?.lat != null && initialProperty?.lng != null
-      ? { lat: initialProperty.lat, lng: initialProperty.lng }
+      ? {
+          lat: initialProperty.lat,
+          lng: initialProperty.lng,
+          address: initialProperty.address,
+        }
       : null,
   );
   const [bedrooms, setBedrooms] = useState(initialProperty?.bedrooms ?? 0);
@@ -149,7 +156,7 @@ export default function PropertyForm({
     event.preventDefault();
     setError(null);
 
-    if (!location) {
+    if (!location || !location.address) {
       setError(t("errorNoLocation"));
       return;
     }
@@ -173,7 +180,7 @@ export default function PropertyForm({
       await createProperty(supabase, {
         ownerId,
         regionId,
-        address,
+        address: location.address,
         lat: location.lat,
         lng: location.lng,
         bedrooms,
@@ -250,22 +257,12 @@ export default function PropertyForm({
           </select>
         </label>
 
-        <label className="flex flex-col gap-1 text-sm">
-          {t("address")}
-          <input
-            type="text"
-            required
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
-          />
-        </label>
-
         <div className="flex flex-col gap-1 text-sm">
           {t("locationLabel")}
           <LocationPicker
             initialLat={location?.lat}
             initialLng={location?.lng}
+            initialAddress={location?.address}
             onChange={setLocation}
           />
         </div>

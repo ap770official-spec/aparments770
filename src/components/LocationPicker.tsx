@@ -11,33 +11,58 @@ type Suggestion = {
   lng: number;
 };
 
+type Position = { lat: number; lng: number; address: string };
+
 const NYC_CENTER: [number, number] = [-73.95, 40.67];
 
 /**
+ * Reverse geocoding: turns a dragged/clicked point into a real
+ * address, so the address the owner's listing is saved with always
+ * matches the pin - not a free-text field that can drift from the
+ * actual marked location (which is exactly what happened with the
+ * legacy test listings before this component existed).
+ */
+async function reverseGeocode(lat: number, lng: number): Promise<string> {
+  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  if (!token) return "";
+
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&limit=1`;
+  const res = await fetch(url);
+  if (!res.ok) return "";
+  const data = await res.json();
+  return data.features?.[0]?.place_name ?? "";
+}
+
+/**
  * Address search + draggable-pin map for pinpointing a property's
- * exact location, independent of whatever the owner typed in the
- * free-text address field - that field stays for display, this is
- * what actually feeds lat/lng into the DB and the public map.
+ * exact location. The resolved address (from the search result, or
+ * reverse-geocoded from wherever the pin ends up) is the only source
+ * of truth for the listing's address - there's no separate free-text
+ * field the owner can leave out of sync with the actual pin.
  */
 export default function LocationPicker({
   initialLat,
   initialLng,
+  initialAddress,
   onChange,
 }: {
   initialLat?: number | null;
   initialLng?: number | null;
-  onChange: (position: { lat: number; lng: number }) => void;
+  initialAddress?: string | null;
+  onChange: (position: Position) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialAddress ?? "");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [resolving, setResolving] = useState(false);
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(
     initialLat != null && initialLng != null
       ? { lat: initialLat, lng: initialLng }
       : null,
   );
+  const [resolvedAddress, setResolvedAddress] = useState(initialAddress ?? "");
 
   useEffect(() => {
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -61,17 +86,24 @@ export default function LocationPicker({
       .addTo(map);
     markerRef.current = marker;
 
+    async function handleMove(lat: number, lng: number) {
+      setPosition({ lat, lng });
+      setResolving(true);
+      const address = await reverseGeocode(lat, lng);
+      setResolving(false);
+      setResolvedAddress(address);
+      setQuery(address);
+      onChange({ lat, lng, address });
+    }
+
     marker.on("dragend", () => {
       const { lat, lng } = marker.getLngLat();
-      setPosition({ lat, lng });
-      onChange({ lat, lng });
+      handleMove(lat, lng);
     });
 
     map.on("click", (e) => {
       marker.setLngLat(e.lngLat);
-      const { lat, lng } = e.lngLat;
-      setPosition({ lat, lng });
-      onChange({ lat, lng });
+      handleMove(e.lngLat.lat, e.lngLat.lng);
     });
 
     return () => {
@@ -110,7 +142,8 @@ export default function LocationPicker({
     setQuery(s.placeName);
     setSuggestions([]);
     setPosition({ lat: s.lat, lng: s.lng });
-    onChange({ lat: s.lat, lng: s.lng });
+    setResolvedAddress(s.placeName);
+    onChange({ lat: s.lat, lng: s.lng, address: s.placeName });
     mapRef.current?.flyTo({ center: [s.lng, s.lat], zoom: 15 });
     markerRef.current?.setLngLat([s.lng, s.lat]);
   }
@@ -142,9 +175,21 @@ export default function LocationPicker({
         )}
       </div>
       <p className="text-xs text-black/60 dark:text-white/60">
-        חפש כתובת ובחר מהרשימה, או לחץ/גרור את הסיכה על המפה לדיוק
+        חפש כתובת ובחר מהרשימה, או לחץ/גרור את הסיכה על המפה לדיוק - הכתובת
+        הסופית נקבעת לפי מיקום הסיכה, לא לפי מה שמוקלד כאן
       </p>
       <div ref={containerRef} className="h-64 w-full rounded-md" />
+      {resolving && (
+        <p className="text-sm text-black/60 dark:text-white/60">
+          מאתר כתובת לפי מיקום הסיכה...
+        </p>
+      )}
+      {!resolving && resolvedAddress && (
+        <p className="text-sm">
+          <span className="text-black/60 dark:text-white/60">כתובת שנקבעה: </span>
+          {resolvedAddress}
+        </p>
+      )}
       {!position && (
         <p className="text-sm text-red-600">יש לסמן מיקום על המפה</p>
       )}
