@@ -109,36 +109,76 @@ export default function SearchForm({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mt-8 grid gap-4 rounded-lg border border-black/10 p-4 sm:grid-cols-2"
-    >
-      <div ref={fieldRef} className="relative flex gap-2 sm:col-span-2">
-        <div className="flex flex-1 flex-col gap-1 text-sm">
-          <span id="search-checkin-label">{t("checkin")}</span>
+    <form onSubmit={handleSubmit} className="mt-8">
+      <div
+        ref={fieldRef}
+        className="relative flex flex-col divide-y divide-black/15 rounded-3xl border border-black/15 sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0 sm:rounded-full"
+      >
+        <div className="flex flex-1 flex-col gap-0.5 px-5 py-2 text-sm">
+          <span id="search-checkin-label" className="text-xs text-black/60">
+            {t("checkin")}
+          </span>
           <button
             type="button"
             onClick={openCalendar}
             aria-haspopup="dialog"
             aria-expanded={isCalendarOpen}
             aria-labelledby="search-checkin-label"
-            className="rounded-full border border-black/15 bg-transparent px-4 py-2 text-start"
+            className="bg-transparent text-start"
           >
             {range?.from ? toISODate(range.from) : t("checkin")}
           </button>
         </div>
 
-        <div className="flex flex-1 flex-col gap-1 text-sm">
-          <span id="search-checkout-label">{t("checkout")}</span>
+        <div className="flex flex-1 flex-col gap-0.5 px-5 py-2 text-sm">
+          <span id="search-checkout-label" className="text-xs text-black/60">
+            {t("checkout")}
+          </span>
           <button
             type="button"
             onClick={openCalendar}
             aria-haspopup="dialog"
             aria-expanded={isCalendarOpen}
             aria-labelledby="search-checkout-label"
-            className="rounded-full border border-black/15 bg-transparent px-4 py-2 text-start"
+            className="bg-transparent text-start"
           >
             {range?.to ? toISODate(range.to) : t("checkout")}
+          </button>
+        </div>
+
+        <label className="flex flex-1 flex-col gap-0.5 px-5 py-2 text-sm">
+          <span className="text-xs text-black/60">{t("guests")}</span>
+          <input
+            type="number"
+            min={1}
+            value={guests}
+            onChange={(e) => setGuests(Number(e.target.value))}
+            required
+            className="bg-transparent"
+          />
+        </label>
+
+        <div className="flex items-center justify-center p-2 sm:ps-1">
+          <button
+            type="submit"
+            disabled={!range?.from || !range?.to}
+            aria-label={t("submit")}
+            title={t("submit")}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground disabled:opacity-50"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
           </button>
         </div>
 
@@ -168,26 +208,6 @@ export default function SearchForm({
           </div>
         )}
       </div>
-
-      <label className="flex flex-col gap-1 text-sm">
-        {t("guests")}
-        <input
-          type="number"
-          min={1}
-          value={guests}
-          onChange={(e) => setGuests(Number(e.target.value))}
-          required
-          className="rounded-full border border-black/15 bg-transparent px-4 py-2"
-        />
-      </label>
-
-      <button
-        type="submit"
-        disabled={!range?.from || !range?.to}
-        className="rounded-full bg-brand px-4 py-2 text-brand-foreground disabled:opacity-50 sm:col-span-2 sm:self-end"
-      >
-        {t("submit")}
-      </button>
     </form>
   );
 }
