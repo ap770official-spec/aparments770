@@ -94,6 +94,35 @@
     "logout": "Log out",
     "myProperties": "My properties",
     "noProperties": "You haven't listed any apartments yet.",
-    "perNight": "per night"
+    "perNight": "per night",
+    "addProperty": "Add property",
+    "status": {
+      "pending_approval": "Pending approval",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
+  },
+  "propertyForm": {
+    "title": "List a new apartment",
+    "region": "Region",
+    "address": "Full address",
+    "pricePerNight": "Price per night (USD)",
+    "phoneCountryCode": "Country code",
+    "phoneNumber": "Phone number",
+    "descriptionHe": "Description in Hebrew",
+    "descriptionEn": "Description in English",
+    "descriptionSourceLang": "I wrote the description in:",
+    "descriptionSourceLangHe": "Hebrew",
+    "descriptionSourceLangEn": "English",
+    "mediaLabel": "Photos / video",
+    "mediaHint": "You can select several files at once. Images are compressed automatically.",
+    "removeMedia": "Remove",
+    "uploading": "Uploading files...",
+    "submit": "Publish apartment",
+    "submitting": "Submitting...",
+    "successTitle": "Apartment submitted!",
+    "successBody": "Your listing is waiting for manual approval before it appears on the site.",
+    "backToDashboard": "Back to dashboard",
+    "errorGeneric": "Something went wrong submitting the apartment. Please try again."
   }
 }

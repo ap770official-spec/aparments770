@@ -4,12 +4,15 @@ import { createPublicSupabaseClient } from "@/lib/supabase/public";
 export type PropertyPhoto = {
   url: string;
   sort_order: number;
+  media_type: "image" | "video";
 };
 
 export type PropertyAmenity = {
   category: "general" | "shabbat_kosher" | "proximity";
   amenity_key: string;
 };
+
+export type ApprovalStatus = "pending_approval" | "approved" | "rejected";
 
 export type PropertySummary = {
   id: string;
@@ -18,6 +21,7 @@ export type PropertySummary = {
   bedrooms: number;
   beds: number;
   max_guests: number | null;
+  approval_status: ApprovalStatus;
   property_photos: PropertyPhoto[];
 };
 
@@ -34,9 +38,12 @@ export type PropertyDetail = PropertySummary & {
   property_amenities: PropertyAmenity[];
 };
 
-export function mainPhotoUrl(photos: PropertyPhoto[]): string | null {
+const SUMMARY_COLUMNS =
+  "id, address, price_per_night, bedrooms, beds, max_guests, approval_status, property_photos(url, sort_order, media_type)";
+
+export function mainMedia(photos: PropertyPhoto[]): PropertyPhoto | null {
   if (photos.length === 0) return null;
-  return [...photos].sort((a, b) => a.sort_order - b.sort_order)[0].url;
+  return [...photos].sort((a, b) => a.sort_order - b.sort_order)[0];
 }
 
 export async function searchProperties({
@@ -49,9 +56,7 @@ export async function searchProperties({
   const supabase = createPublicSupabaseClient();
   const { data, error } = await supabase
     .from("properties")
-    .select(
-      "id, address, price_per_night, bedrooms, beds, max_guests, property_photos(url, sort_order)",
-    )
+    .select(SUMMARY_COLUMNS)
     .eq("region_id", regionId)
     .eq("approval_status", "approved")
     .or(`max_guests.is.null,max_guests.gte.${guests}`)
@@ -70,9 +75,7 @@ export async function getOwnerProperties(
 ): Promise<PropertySummary[]> {
   const { data, error } = await supabase
     .from("properties")
-    .select(
-      "id, address, price_per_night, bedrooms, beds, max_guests, property_photos(url, sort_order)",
-    )
+    .select(SUMMARY_COLUMNS)
     .eq("owner_id", ownerId)
     .order("created_at", { ascending: false });
 
@@ -91,10 +94,10 @@ export async function getPropertyById(
     .from("properties")
     .select(
       `id, address, price_per_night, bedrooms, beds, toilets, bathtubs,
-       max_guests, min_nights, checkin_time, checkout_time,
+       max_guests, min_nights, checkin_time, checkout_time, approval_status,
        phone_country_code, phone_number,
        description_he, description_en,
-       property_photos(url, sort_order),
+       property_photos(url, sort_order, media_type),
        property_amenities(category, amenity_key)`,
     )
     .eq("id", id)
@@ -106,4 +109,104 @@ export async function getPropertyById(
   }
 
   return data;
+}
+
+export type NewPropertyInput = {
+  ownerId: string;
+  regionId: string;
+  address: string;
+  bedrooms: number;
+  beds: number;
+  toilets: number;
+  bathtubs: number;
+  pricePerNight: number;
+  phoneCountryCode: string;
+  phoneNumber: string;
+  checkinTime: string | null;
+  checkoutTime: string | null;
+  maxGuests: number | null;
+  minNights: number | null;
+  descriptionHe: string | null;
+  descriptionEn: string | null;
+  descriptionSourceLang: "he" | "en" | null;
+  amenities: { category: string; amenityKey: string }[];
+  media: { url: string; mediaType: "image" | "video"; sortOrder: number }[];
+};
+
+/**
+ * Creates a property plus its amenities and photos. Runs as three
+ * sequential inserts (not one DB transaction) - acceptable for the
+ * MVP's traffic level; a partial failure here just leaves an
+ * incomplete-but-still-pending listing the owner can see and we can
+ * clean up manually, not a public-facing problem since new listings
+ * start as pending_approval.
+ */
+export async function createProperty(
+  supabase: SupabaseClient,
+  input: NewPropertyInput,
+): Promise<string> {
+  const { data: property, error: propertyError } = await supabase
+    .from("properties")
+    .insert({
+      owner_id: input.ownerId,
+      region_id: input.regionId,
+      address: input.address,
+      bedrooms: input.bedrooms,
+      beds: input.beds,
+      toilets: input.toilets,
+      bathtubs: input.bathtubs,
+      price_per_night: input.pricePerNight,
+      phone_country_code: input.phoneCountryCode,
+      phone_number: input.phoneNumber,
+      checkin_time: input.checkinTime,
+      checkout_time: input.checkoutTime,
+      max_guests: input.maxGuests,
+      min_nights: input.minNights,
+      description_he: input.descriptionHe,
+      description_en: input.descriptionEn,
+      description_source_lang: input.descriptionSourceLang,
+    })
+    .select("id")
+    .single();
+
+  if (propertyError || !property) {
+    throw new Error(
+      `Failed to create property: ${propertyError?.message ?? "unknown error"}`,
+    );
+  }
+
+  const propertyId = property.id as string;
+
+  if (input.amenities.length > 0) {
+    const { error: amenitiesError } = await supabase
+      .from("property_amenities")
+      .insert(
+        input.amenities.map((a) => ({
+          property_id: propertyId,
+          category: a.category,
+          amenity_key: a.amenityKey,
+        })),
+      );
+    if (amenitiesError) {
+      throw new Error(`Failed to save amenities: ${amenitiesError.message}`);
+    }
+  }
+
+  if (input.media.length > 0) {
+    const { error: photosError } = await supabase
+      .from("property_photos")
+      .insert(
+        input.media.map((m) => ({
+          property_id: propertyId,
+          url: m.url,
+          media_type: m.mediaType,
+          sort_order: m.sortOrder,
+        })),
+      );
+    if (photosError) {
+      throw new Error(`Failed to save photos: ${photosError.message}`);
+    }
+  }
+
+  return propertyId;
 }

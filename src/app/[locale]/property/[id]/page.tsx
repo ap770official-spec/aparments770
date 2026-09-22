@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getPropertyById } from "@/lib/properties";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 
 export const dynamic = "force-dynamic";
 
@@ -73,15 +74,25 @@ export default async function PropertyPage({
     <div className="mx-auto max-w-3xl px-4 py-12">
       {photos.length > 0 && (
         <div className="grid gap-2 sm:grid-cols-2">
-          {photos.map((photo) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={photo.url}
-              src={photo.url}
-              alt={property.address}
-              className="h-56 w-full rounded-lg object-cover"
-            />
-          ))}
+          {photos.map((photo) =>
+            photo.media_type === "video" ? (
+              <video
+                key={photo.url}
+                src={optimizedCloudinaryUrl(photo.url)}
+                className="h-56 w-full rounded-lg object-cover"
+                muted
+                controls
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={photo.url}
+                src={optimizedCloudinaryUrl(photo.url)}
+                alt={property.address}
+                className="h-56 w-full rounded-lg object-cover"
+              />
+            ),
+          )}
         </div>
       )}
 

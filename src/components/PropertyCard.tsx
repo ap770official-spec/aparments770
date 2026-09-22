@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { mainPhotoUrl, type PropertySummary } from "@/lib/properties";
+import { mainMedia, type PropertySummary } from "@/lib/properties";
+import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 
 export default function PropertyCard({
   property,
@@ -10,17 +11,26 @@ export default function PropertyCard({
   detailHref: string;
 }) {
   const t = useTranslations("search");
-  const photo = mainPhotoUrl(property.property_photos);
+  const media = mainMedia(property.property_photos);
 
   return (
     <li className="overflow-hidden rounded-lg border border-black/10 dark:border-white/15">
-      {photo ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={photo}
-          alt={property.address}
-          className="h-48 w-full object-cover"
-        />
+      {media ? (
+        media.media_type === "video" ? (
+          <video
+            src={optimizedCloudinaryUrl(media.url)}
+            className="h-48 w-full object-cover"
+            muted
+            controls
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={optimizedCloudinaryUrl(media.url)}
+            alt={property.address}
+            className="h-48 w-full object-cover"
+          />
+        )
       ) : (
         <div className="h-48 w-full bg-black/5 dark:bg-white/10" />
       )}

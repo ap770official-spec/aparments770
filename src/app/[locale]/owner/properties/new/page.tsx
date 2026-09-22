@@ -1,12 +1,12 @@
 import { setRequestLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getActiveRegions } from "@/lib/regions";
+import PropertyForm from "@/components/PropertyForm";
 
 export const dynamic = "force-dynamic";
 
-// Not a real page - just routes to the right next step depending on
-// whether the visitor is already a logged-in owner.
-export default async function ListPropertyPage({
+export default async function NewPropertyPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -19,8 +19,11 @@ export default async function ListPropertyPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  redirect({
-    href: user ? "/owner/properties/new" : "/owner/login",
-    locale,
-  });
+  if (!user) {
+    redirect({ href: "/owner/login", locale });
+  }
+
+  const regions = await getActiveRegions();
+
+  return <PropertyForm regions={regions} ownerId={user!.id} />;
 }

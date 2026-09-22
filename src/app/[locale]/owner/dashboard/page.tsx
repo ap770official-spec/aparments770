@@ -1,8 +1,9 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { redirect } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ensureOwnerRow } from "@/lib/owners";
-import { getOwnerProperties, mainPhotoUrl } from "@/lib/properties";
+import { getOwnerProperties, mainMedia } from "@/lib/properties";
+import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 import LogoutButton from "@/components/LogoutButton";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +40,15 @@ export default async function OwnerDashboardPage({
       </p>
 
       <div className="mt-8">
-        <h2 className="text-lg font-semibold">{t("myProperties")}</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">{t("myProperties")}</h2>
+          <Link
+            href="/owner/properties/new"
+            className="rounded-md bg-foreground px-4 py-2 text-sm text-background"
+          >
+            {t("addProperty")}
+          </Link>
+        </div>
 
         {properties.length === 0 ? (
           <p className="mt-2 text-black/70 dark:text-white/70">
@@ -48,19 +57,27 @@ export default async function OwnerDashboardPage({
         ) : (
           <ul className="mt-4 grid gap-4 sm:grid-cols-2">
             {properties.map((property) => {
-              const photo = mainPhotoUrl(property.property_photos);
+              const media = mainMedia(property.property_photos);
               return (
                 <li
                   key={property.id}
                   className="overflow-hidden rounded-lg border border-black/10 dark:border-white/15"
                 >
-                  {photo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={photo}
-                      alt={property.address}
-                      className="h-32 w-full object-cover"
-                    />
+                  {media ? (
+                    media.media_type === "video" ? (
+                      <video
+                        src={optimizedCloudinaryUrl(media.url)}
+                        className="h-32 w-full object-cover"
+                        muted
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={optimizedCloudinaryUrl(media.url)}
+                        alt={property.address}
+                        className="h-32 w-full object-cover"
+                      />
+                    )
                   ) : (
                     <div className="h-32 w-full bg-black/5 dark:bg-white/10" />
                   )}
@@ -69,6 +86,9 @@ export default async function OwnerDashboardPage({
                     <p className="text-sm text-black/70 dark:text-white/70">
                       ${property.price_per_night} {t("perNight")}
                     </p>
+                    <span className="mt-1 inline-block rounded-full border border-black/10 px-2 py-0.5 text-xs dark:border-white/15">
+                      {t(`status.${property.approval_status}`)}
+                    </span>
                   </div>
                 </li>
               );
