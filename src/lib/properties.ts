@@ -121,7 +121,11 @@ export type AdminPropertyDetail = PropertyDetail & {
   approval_status: ApprovalStatus;
   created_at: string;
   regions: { name_he: string } | null;
-  owners: { full_name: string | null } | null;
+  owners: {
+    full_name: string | null;
+    subscription_expires_at: string | null;
+    is_frozen: boolean;
+  } | null;
 };
 
 /**
@@ -143,7 +147,7 @@ export async function getAdminPropertyById(
        description_he, description_en,
        property_photos(url, sort_order, media_type),
        property_amenities(category, amenity_key),
-       regions(name_he), owners(full_name)`,
+       regions(name_he), owners(full_name, subscription_expires_at, is_frozen)`,
     )
     .eq("id", id)
     .maybeSingle();
