@@ -116,7 +116,7 @@ export default function SearchForm({
           aria-haspopup="dialog"
           aria-expanded={isCalendarOpen}
           aria-labelledby="search-dates-label"
-          className="rounded-md border border-black/15 bg-transparent px-3 py-2 text-start dark:border-white/20"
+          className="rounded-full border border-black/15 bg-transparent px-4 py-2 text-start dark:border-white/20"
         >
           {range?.from && range?.to
             ? `${t("checkin")}: ${toISODate(range.from)} · ${t("checkout")}: ${toISODate(range.to)}`
@@ -158,14 +158,14 @@ export default function SearchForm({
           value={guests}
           onChange={(e) => setGuests(Number(e.target.value))}
           required
-          className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+          className="rounded-full border border-black/15 bg-transparent px-4 py-2 dark:border-white/20"
         />
       </label>
 
       <button
         type="submit"
         disabled={!range?.from || !range?.to}
-        className="rounded-md bg-foreground px-4 py-2 text-background disabled:opacity-50 sm:col-span-2 sm:self-end"
+        className="rounded-full bg-brand px-4 py-2 text-brand-foreground disabled:opacity-50 sm:col-span-2 sm:self-end"
       >
         {t("submit")}
       </button>
