@@ -48,6 +48,8 @@
     "toilets": "שירותים",
     "bathtubs": "אמבטיות",
     "amenitiesTitle": "שירותים",
+    "locationTitle": "מיקום",
+    "walkingTime": "{minutes} דקות הליכה מ{landmark}",
     "contactWhatsApp": "יצירת קשר בוואטסאפ",
     "whatsappMessage": "שלום, אני מתעניין/ת בדירה בכתובת {address}, מתאריך {checkin} עד {checkout}, עבור {guests} אורחים.",
     "whatsappMessageGeneric": "שלום, אני מתעניין/ת בדירה בכתובת {address}.",
@@ -113,6 +115,7 @@
     "title": "פרסום דירה חדשה",
     "region": "אזור",
     "address": "כתובת מלאה",
+    "locationLabel": "מיקום מדויק על המפה",
     "pricePerNight": "מחיר ללילה (בדולר)",
     "phoneCountryCode": "קידומת",
     "phoneNumber": "מספר טלפון",
@@ -130,6 +133,7 @@
     "successTitle": "הדירה נשלחה בהצלחה!",
     "successBody": "הדירה שלך ממתינה לאישור ידני לפני שתופיע באתר.",
     "backToDashboard": "חזרה לדשבורד",
-    "errorGeneric": "משהו השתבש בשליחת הדירה. נסה שוב."
+    "errorGeneric": "משהו השתבש בשליחת הדירה. נסה שוב.",
+    "errorNoLocation": "יש לסמן את מיקום הדירה על המפה לפני השליחה."
   }
 }
