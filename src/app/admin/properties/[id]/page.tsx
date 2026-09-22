@@ -59,7 +59,7 @@ export default async function AdminPropertyDetailPage({
 
       <div className="mt-4 flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{property.address}</h1>
-        <span className="shrink-0 rounded-md border border-black/15 px-3 py-1 text-sm dark:border-white/20">
+        <span className="shrink-0 rounded-md border border-black/15 px-3 py-1 text-sm">
           {STATUS_LABELS[property.approval_status] ?? property.approval_status}
         </span>
       </div>
@@ -77,7 +77,7 @@ export default async function AdminPropertyDetailPage({
                 name="expiresAt"
                 defaultValue={defaultExpiryDate()}
                 required
-                className="rounded-md border border-black/15 px-2 py-1 text-sm dark:border-white/20"
+                className="rounded-md border border-black/15 px-2 py-1 text-sm"
               />
             </label>
             <button
@@ -92,7 +92,7 @@ export default async function AdminPropertyDetailPage({
           <form action={rejectProperty.bind(null, property.id)}>
             <button
               type="submit"
-              className="rounded-md border border-black/15 px-3 py-1 dark:border-white/20"
+              className="rounded-md border border-black/15 px-3 py-1"
             >
               דחה
             </button>
@@ -103,13 +103,13 @@ export default async function AdminPropertyDetailPage({
       <section className="mt-8">
         <h2 className="font-semibold">פרטי קשר</h2>
         <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-          <dt className="text-black/60 dark:text-white/60">בעל הדירה</dt>
+          <dt className="text-black/60">בעל הדירה</dt>
           <dd>{property.owners?.full_name ?? "—"}</dd>
-          <dt className="text-black/60 dark:text-white/60">טלפון</dt>
+          <dt className="text-black/60">טלפון</dt>
           <dd>
             {property.phone_country_code} {property.phone_number}
           </dd>
-          <dt className="text-black/60 dark:text-white/60">מנוי בתוקף עד</dt>
+          <dt className="text-black/60">מנוי בתוקף עד</dt>
           <dd>
             {property.owners?.subscription_expires_at
               ? new Date(property.owners.subscription_expires_at).toLocaleDateString(
@@ -122,7 +122,7 @@ export default async function AdminPropertyDetailPage({
         <div className="mt-3 flex gap-3">
           <a
             href={phoneHref}
-            className="rounded-md border border-black/15 px-3 py-1 text-sm dark:border-white/20"
+            className="rounded-md border border-black/15 px-3 py-1 text-sm"
           >
             חייג
           </a>
@@ -130,7 +130,7 @@ export default async function AdminPropertyDetailPage({
             href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-md border border-black/15 px-3 py-1 text-sm dark:border-white/20"
+            className="rounded-md border border-black/15 px-3 py-1 text-sm"
           >
             פתח וואטסאפ
           </a>
@@ -140,25 +140,25 @@ export default async function AdminPropertyDetailPage({
       <section className="mt-8">
         <h2 className="font-semibold">פרטי הדירה</h2>
         <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-          <dt className="text-black/60 dark:text-white/60">אזור</dt>
+          <dt className="text-black/60">אזור</dt>
           <dd>{property.regions?.name_he ?? "—"}</dd>
-          <dt className="text-black/60 dark:text-white/60">מחיר ללילה</dt>
+          <dt className="text-black/60">מחיר ללילה</dt>
           <dd>${property.price_per_night}</dd>
-          <dt className="text-black/60 dark:text-white/60">חדרי שינה</dt>
+          <dt className="text-black/60">חדרי שינה</dt>
           <dd>{property.bedrooms}</dd>
-          <dt className="text-black/60 dark:text-white/60">מיטות</dt>
+          <dt className="text-black/60">מיטות</dt>
           <dd>{property.beds}</dd>
-          <dt className="text-black/60 dark:text-white/60">שירותים</dt>
+          <dt className="text-black/60">שירותים</dt>
           <dd>{property.toilets}</dd>
-          <dt className="text-black/60 dark:text-white/60">אמבטיות</dt>
+          <dt className="text-black/60">אמבטיות</dt>
           <dd>{property.bathtubs}</dd>
-          <dt className="text-black/60 dark:text-white/60">מקסימום אורחים</dt>
+          <dt className="text-black/60">מקסימום אורחים</dt>
           <dd>{property.max_guests ?? "—"}</dd>
-          <dt className="text-black/60 dark:text-white/60">מינימום לילות</dt>
+          <dt className="text-black/60">מינימום לילות</dt>
           <dd>{property.min_nights ?? "—"}</dd>
-          <dt className="text-black/60 dark:text-white/60">צ&#39;ק-אין</dt>
+          <dt className="text-black/60">צ&#39;ק-אין</dt>
           <dd>{property.checkin_time ?? "—"}</dd>
-          <dt className="text-black/60 dark:text-white/60">צ&#39;ק-אאוט</dt>
+          <dt className="text-black/60">צ&#39;ק-אאוט</dt>
           <dd>{property.checkout_time ?? "—"}</dd>
         </dl>
       </section>
@@ -184,7 +184,7 @@ export default async function AdminPropertyDetailPage({
           <h2 className="font-semibold">שירותים</h2>
           {amenitiesByCategory.map((group) => (
             <div key={group.category} className="mt-3">
-              <h3 className="text-sm text-black/60 dark:text-white/60">
+              <h3 className="text-sm text-black/60">
                 {he.amenityCategories[
                   group.category as keyof typeof he.amenityCategories
                 ] ?? group.category}
@@ -193,7 +193,7 @@ export default async function AdminPropertyDetailPage({
                 {group.items.map((item) => (
                   <li
                     key={item.amenity_key}
-                    className="rounded-md border border-black/15 px-2 py-1 text-sm dark:border-white/20"
+                    className="rounded-md border border-black/15 px-2 py-1 text-sm"
                   >
                     {he.amenities[item.amenity_key as keyof typeof he.amenities] ??
                       item.amenity_key}
