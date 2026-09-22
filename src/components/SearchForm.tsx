@@ -1,6 +1,12 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   DayPicker,
@@ -34,6 +40,10 @@ export default function SearchForm({
   const region = regions[0]?.slug ?? "";
   const [range, setRange] = useState<DateRange | undefined>();
   const [guests, setGuests] = useState(1);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const fieldRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const holidayNameByDate = useMemo(() => {
     const map = new Map<string, string>();
@@ -47,6 +57,36 @@ export default function SearchForm({
     () => holidays.map((h) => new Date(`${h.date}T00:00:00`)),
     [holidays],
   );
+
+  useEffect(() => {
+    if (!isCalendarOpen) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!fieldRef.current?.contains(event.target as Node)) {
+        setIsCalendarOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsCalendarOpen(false);
+        triggerRef.current?.focus();
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isCalendarOpen]);
+
+  function handleRangeSelect(newRange: DateRange | undefined) {
+    setRange(newRange);
+    if (newRange?.from && newRange?.to) {
+      setIsCalendarOpen(false);
+    }
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -67,35 +107,47 @@ export default function SearchForm({
       onSubmit={handleSubmit}
       className="mt-8 grid gap-4 rounded-lg border border-black/10 p-4 sm:grid-cols-2 dark:border-white/15"
     >
-      <div className="flex flex-col gap-1 text-sm sm:col-span-2">
-        <span>{t("dates")}</span>
-        <div className="rounded-md border border-black/15 p-2 dark:border-white/20">
-          <DayPicker
-            mode="range"
-            selected={range}
-            onSelect={setRange}
-            resetOnSelect
-            locale={locale === "he" ? heLocale : enLocale}
-            dir={locale === "he" ? "rtl" : "ltr"}
-            modifiers={{ holiday: holidayDates }}
-            modifiersClassNames={{ holiday: "rdp-holiday" }}
-            components={{
-              DayButton: (props) => {
-                const holidayName = holidayNameByDate.get(
-                  toISODate(props.day.date),
-                );
-                return <DefaultDayButton {...props} title={holidayName} />;
-              },
-            }}
-          />
-        </div>
-        <p className="text-xs text-black/60 dark:text-white/60">
-          {!range?.from
-            ? t("selectCheckin")
-            : !range.to
-              ? t("selectCheckout")
-              : `${t("checkin")}: ${toISODate(range.from)} · ${t("checkout")}: ${toISODate(range.to)}`}
-        </p>
+      <div ref={fieldRef} className="relative flex flex-col gap-1 text-sm sm:col-span-2">
+        <span id="search-dates-label">{t("dates")}</span>
+        <button
+          ref={triggerRef}
+          type="button"
+          onClick={() => setIsCalendarOpen((open) => !open)}
+          aria-haspopup="dialog"
+          aria-expanded={isCalendarOpen}
+          aria-labelledby="search-dates-label"
+          className="rounded-md border border-black/15 bg-transparent px-3 py-2 text-start dark:border-white/20"
+        >
+          {range?.from && range?.to
+            ? `${t("checkin")}: ${toISODate(range.from)} · ${t("checkout")}: ${toISODate(range.to)}`
+            : t("placeholder")}
+        </button>
+
+        {isCalendarOpen && (
+          <div className="absolute top-full z-10 mt-1 rounded-md border border-black/15 bg-background p-2 shadow-lg dark:border-white/20">
+            <DayPicker
+              mode="range"
+              selected={range}
+              onSelect={handleRangeSelect}
+              resetOnSelect
+              locale={locale === "he" ? heLocale : enLocale}
+              dir={locale === "he" ? "rtl" : "ltr"}
+              modifiers={{ holiday: holidayDates }}
+              modifiersClassNames={{ holiday: "rdp-holiday" }}
+              components={{
+                DayButton: (props) => {
+                  const holidayName = holidayNameByDate.get(
+                    toISODate(props.day.date),
+                  );
+                  return <DefaultDayButton {...props} title={holidayName} />;
+                },
+              }}
+            />
+            <p className="text-xs text-black/60 dark:text-white/60">
+              {!range?.from ? t("selectCheckin") : t("selectCheckout")}
+            </p>
+          </div>
+        )}
       </div>
 
       <label className="flex flex-col gap-1 text-sm">
