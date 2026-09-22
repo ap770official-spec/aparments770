@@ -4,7 +4,7 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
-import { createProperty } from "@/lib/properties";
+import { createProperty, type PropertyForDuplication } from "@/lib/properties";
 import { uploadMediaToCloudinary } from "@/lib/cloudinary";
 import type { Region } from "@/lib/regions";
 
@@ -47,34 +47,62 @@ type PendingFile = {
 export default function PropertyForm({
   regions,
   ownerId,
+  initialProperty,
 }: {
   regions: Region[];
   ownerId: string;
+  initialProperty?: PropertyForDuplication;
 }) {
   const t = useTranslations("propertyForm");
   const tProperty = useTranslations("property");
   const tCategory = useTranslations("amenityCategories");
   const tAmenity = useTranslations("amenities");
 
-  const [regionId, setRegionId] = useState(regions[0]?.id ?? "");
-  const [address, setAddress] = useState("");
-  const [bedrooms, setBedrooms] = useState(0);
-  const [beds, setBeds] = useState(0);
-  const [toilets, setToilets] = useState(0);
-  const [bathtubs, setBathtubs] = useState(0);
-  const [pricePerNight, setPricePerNight] = useState("");
-  const [phoneCountryCode, setPhoneCountryCode] = useState("+1");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [checkinTime, setCheckinTime] = useState("");
-  const [checkoutTime, setCheckoutTime] = useState("");
-  const [maxGuests, setMaxGuests] = useState("");
-  const [minNights, setMinNights] = useState("");
-  const [descriptionHe, setDescriptionHe] = useState("");
-  const [descriptionEn, setDescriptionEn] = useState("");
+  const initialAmenityKeys = initialProperty?.property_amenities.map(
+    (a) => a.amenity_key,
+  );
+
+  const [regionId, setRegionId] = useState(
+    initialProperty?.region_id ?? regions[0]?.id ?? "",
+  );
+  const [address, setAddress] = useState(initialProperty?.address ?? "");
+  const [bedrooms, setBedrooms] = useState(initialProperty?.bedrooms ?? 0);
+  const [beds, setBeds] = useState(initialProperty?.beds ?? 0);
+  const [toilets, setToilets] = useState(initialProperty?.toilets ?? 0);
+  const [bathtubs, setBathtubs] = useState(initialProperty?.bathtubs ?? 0);
+  const [pricePerNight, setPricePerNight] = useState(
+    initialProperty ? String(initialProperty.price_per_night) : "",
+  );
+  const [phoneCountryCode, setPhoneCountryCode] = useState(
+    initialProperty?.phone_country_code ?? "+1",
+  );
+  const [phoneNumber, setPhoneNumber] = useState(
+    initialProperty?.phone_number ?? "",
+  );
+  const [checkinTime, setCheckinTime] = useState(
+    initialProperty?.checkin_time ?? "",
+  );
+  const [checkoutTime, setCheckoutTime] = useState(
+    initialProperty?.checkout_time ?? "",
+  );
+  const [maxGuests, setMaxGuests] = useState(
+    initialProperty?.max_guests ? String(initialProperty.max_guests) : "",
+  );
+  const [minNights, setMinNights] = useState(
+    initialProperty?.min_nights ? String(initialProperty.min_nights) : "",
+  );
+  const [descriptionHe, setDescriptionHe] = useState(
+    initialProperty?.description_he ?? "",
+  );
+  const [descriptionEn, setDescriptionEn] = useState(
+    initialProperty?.description_en ?? "",
+  );
   const [descriptionSourceLang, setDescriptionSourceLang] = useState<
     "he" | "en"
   >("he");
-  const [amenities, setAmenities] = useState<Set<string>>(new Set());
+  const [amenities, setAmenities] = useState<Set<string>>(
+    new Set(initialAmenityKeys ?? []),
+  );
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
 
   const [uploading, setUploading] = useState(false);

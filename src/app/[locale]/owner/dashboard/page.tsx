@@ -5,6 +5,7 @@ import { ensureOwnerRow } from "@/lib/owners";
 import { getOwnerProperties, mainMedia } from "@/lib/properties";
 import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 import LogoutButton from "@/components/LogoutButton";
+import AvailabilityModeSelect from "@/components/AvailabilityModeSelect";
 
 export const dynamic = "force-dynamic";
 
@@ -89,6 +90,18 @@ export default async function OwnerDashboardPage({
                     <span className="mt-1 inline-block rounded-full border border-black/10 px-2 py-0.5 text-xs dark:border-white/15">
                       {t(`status.${property.approval_status}`)}
                     </span>
+
+                    <AvailabilityModeSelect
+                      propertyId={property.id}
+                      initialMode={property.availability_mode}
+                    />
+
+                    <Link
+                      href={`/owner/properties/new?duplicate=${property.id}`}
+                      className="mt-2 inline-block text-xs underline underline-offset-2"
+                    >
+                      {t("duplicate")}
+                    </Link>
                   </div>
                 </li>
               );
