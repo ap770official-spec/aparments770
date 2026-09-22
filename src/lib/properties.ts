@@ -14,6 +14,11 @@ export type PropertyAmenity = {
 
 export type ApprovalStatus = "pending_approval" | "approved" | "rejected";
 
+export type AvailabilityMode =
+  | "fully_locked"
+  | "default_open_block_dates"
+  | "default_closed_open_dates";
+
 export type PropertySummary = {
   id: string;
   address: string;
@@ -22,6 +27,7 @@ export type PropertySummary = {
   beds: number;
   max_guests: number | null;
   approval_status: ApprovalStatus;
+  availability_mode: AvailabilityMode;
   property_photos: PropertyPhoto[];
 };
 
@@ -39,7 +45,7 @@ export type PropertyDetail = PropertySummary & {
 };
 
 const SUMMARY_COLUMNS =
-  "id, address, price_per_night, bedrooms, beds, max_guests, approval_status, property_photos(url, sort_order, media_type)";
+  "id, address, price_per_night, bedrooms, beds, max_guests, approval_status, availability_mode, property_photos(url, sort_order, media_type)";
 
 export function mainMedia(photos: PropertyPhoto[]): PropertyPhoto | null {
   if (photos.length === 0) return null;
@@ -95,7 +101,7 @@ export async function getPropertyById(
     .select(
       `id, address, price_per_night, bedrooms, beds, toilets, bathtubs,
        max_guests, min_nights, checkin_time, checkout_time, approval_status,
-       phone_country_code, phone_number,
+       availability_mode, phone_country_code, phone_number,
        description_he, description_en,
        property_photos(url, sort_order, media_type),
        property_amenities(category, amenity_key)`,
@@ -106,6 +112,57 @@ export async function getPropertyById(
 
   if (error) {
     throw new Error(`Failed to load property: ${error.message}`);
+  }
+
+  return data;
+}
+
+export type PropertyForDuplication = {
+  region_id: string;
+  address: string;
+  bedrooms: number;
+  beds: number;
+  toilets: number;
+  bathtubs: number;
+  price_per_night: number;
+  phone_country_code: string;
+  phone_number: string;
+  checkin_time: string | null;
+  checkout_time: string | null;
+  max_guests: number | null;
+  min_nights: number | null;
+  description_he: string | null;
+  description_en: string | null;
+  property_amenities: PropertyAmenity[];
+};
+
+/**
+ * Fetches a property's fields for prefilling the "new property" form
+ * when duplicating - restricted to the caller's own listings (checked
+ * via owner_id, on top of whatever RLS already enforces). Media isn't
+ * included: a duplicate should get its own fresh photos, not reuse
+ * another listing's.
+ */
+export async function getOwnerPropertyForDuplicate(
+  supabase: SupabaseClient,
+  id: string,
+  ownerId: string,
+): Promise<PropertyForDuplication | null> {
+  const { data, error } = await supabase
+    .from("properties")
+    .select(
+      `region_id, address, bedrooms, beds, toilets, bathtubs,
+       price_per_night, phone_country_code, phone_number,
+       checkin_time, checkout_time, max_guests, min_nights,
+       description_he, description_en,
+       property_amenities(category, amenity_key)`,
+    )
+    .eq("id", id)
+    .eq("owner_id", ownerId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load property to duplicate: ${error.message}`);
   }
 
   return data;

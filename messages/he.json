@@ -100,6 +100,13 @@
       "pending_approval": "ממתין לאישור",
       "approved": "מאושר",
       "rejected": "נדחה"
+    },
+    "duplicate": "שכפל",
+    "availabilityMode": {
+      "label": "מצב תפוסה",
+      "fully_locked": "נעילה מלאה",
+      "default_open_block_dates": "פתוח (סוגר תאריכים ידנית)",
+      "default_closed_open_dates": "סגור (פותח תאריכים ידנית)"
     }
   },
   "propertyForm": {

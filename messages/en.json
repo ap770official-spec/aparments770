@@ -100,6 +100,13 @@
       "pending_approval": "Pending approval",
       "approved": "Approved",
       "rejected": "Rejected"
+    },
+    "duplicate": "Duplicate",
+    "availabilityMode": {
+      "label": "Availability mode",
+      "fully_locked": "Fully locked",
+      "default_open_block_dates": "Open (block dates manually)",
+      "default_closed_open_dates": "Closed (open dates manually)"
     }
   },
   "propertyForm": {
