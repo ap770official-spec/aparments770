@@ -9,7 +9,7 @@ export default function SearchForm({ regions }: { regions: Region[] }) {
   const t = useTranslations("searchForm");
   const router = useRouter();
 
-  const [region, setRegion] = useState(regions[0]?.slug ?? "");
+  const region = regions[0]?.slug ?? "";
   const [checkin, setCheckin] = useState("");
   const [checkout, setCheckout] = useState("");
   const [guests, setGuests] = useState(1);
@@ -32,22 +32,6 @@ export default function SearchForm({ regions }: { regions: Region[] }) {
       onSubmit={handleSubmit}
       className="mt-8 grid gap-4 rounded-lg border border-black/10 p-4 sm:grid-cols-2 dark:border-white/15"
     >
-      <label className="flex flex-col gap-1 text-sm sm:col-span-2">
-        {t("region")}
-        <select
-          value={region}
-          onChange={(e) => setRegion(e.target.value)}
-          required
-          className="rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
-        >
-          {regions.map((r) => (
-            <option key={r.slug} value={r.slug}>
-              {r.name_he} / {r.name_en}
-            </option>
-          ))}
-        </select>
-      </label>
-
       <label className="flex flex-col gap-1 text-sm">
         {t("checkin")}
         <input
