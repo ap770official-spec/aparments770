@@ -3,19 +3,31 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --brand: #6e4e37;
+  --brand-foreground: #ffffff;
+  --accent-whatsapp: #256240;
+  --placeholder: #d8cfc0;
+  --ink: #1a1512;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-accent-whatsapp: var(--accent-whatsapp);
+  --color-placeholder: var(--placeholder);
+  --color-ink: var(--ink);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif-brand: var(--font-frank-ruhl);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --ink: #ededed;
   }
 }
 
@@ -25,10 +37,12 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.rdp-root {
-  --rdp-accent-color: var(--foreground);
-  --rdp-accent-background-color: color-mix(in srgb, var(--foreground) 12%, transparent);
-  --rdp-today-color: var(--foreground);
+/* Higher specificity than react-day-picker/style.css's own .rdp-root rule,
+   whose cascade position relative to this file depends on import order. */
+.rdp-root.rdp-root {
+  --rdp-accent-color: var(--brand);
+  --rdp-accent-background-color: color-mix(in srgb, var(--brand) 12%, transparent);
+  --rdp-today-color: var(--brand);
 }
 
 .rdp-holiday .rdp-day_button {
