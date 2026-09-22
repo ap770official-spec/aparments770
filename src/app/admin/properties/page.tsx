@@ -13,6 +13,12 @@ const STATUS_LABELS: Record<string, string> = {
   rejected: "נדחה",
 };
 
+function defaultExpiryDate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 365);
+  return d.toISOString().slice(0, 10);
+}
+
 export default async function AdminPropertiesPage() {
   if (!(await isAdminAuthenticated())) {
     redirect("/admin/login");
@@ -115,9 +121,19 @@ export default async function AdminPropertiesPage() {
                     </div>
                   </td>
                   <td className="p-2">
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {property.approval_status !== "approved" && (
-                        <form action={approveProperty.bind(null, property.id)}>
+                        <form
+                          action={approveProperty.bind(null, property.id)}
+                          className="flex items-center gap-1"
+                        >
+                          <input
+                            type="date"
+                            name="expiresAt"
+                            defaultValue={defaultExpiryDate()}
+                            required
+                            className="rounded-md border border-black/15 px-1 py-1 text-xs dark:border-white/20"
+                          />
                           <button
                             type="submit"
                             className="rounded-md bg-foreground px-3 py-1 text-background"

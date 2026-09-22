@@ -17,6 +17,12 @@ const STATUS_LABELS: Record<string, string> = {
 
 const AMENITY_CATEGORY_ORDER = ["general", "shabbat_kosher", "proximity"] as const;
 
+function defaultExpiryDate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 365);
+  return d.toISOString().slice(0, 10);
+}
+
 export default async function AdminPropertyDetailPage({
   params,
 }: {
@@ -58,9 +64,22 @@ export default async function AdminPropertyDetailPage({
         </span>
       </div>
 
-      <div className="mt-2 flex gap-3">
+      <div className="mt-2 flex flex-wrap items-center gap-3">
         {property.approval_status !== "approved" && (
-          <form action={approveProperty.bind(null, property.id)}>
+          <form
+            action={approveProperty.bind(null, property.id)}
+            className="flex items-center gap-2"
+          >
+            <label className="flex items-center gap-1 text-sm">
+              בתוקף עד
+              <input
+                type="date"
+                name="expiresAt"
+                defaultValue={defaultExpiryDate()}
+                required
+                className="rounded-md border border-black/15 px-2 py-1 text-sm dark:border-white/20"
+              />
+            </label>
             <button
               type="submit"
               className="rounded-md bg-foreground px-3 py-1 text-background"
@@ -89,6 +108,15 @@ export default async function AdminPropertyDetailPage({
           <dt className="text-black/60 dark:text-white/60">טלפון</dt>
           <dd>
             {property.phone_country_code} {property.phone_number}
+          </dd>
+          <dt className="text-black/60 dark:text-white/60">מנוי בתוקף עד</dt>
+          <dd>
+            {property.owners?.subscription_expires_at
+              ? new Date(property.owners.subscription_expires_at).toLocaleDateString(
+                  "en-GB",
+                )
+              : "לא הוגדר"}
+            {property.owners?.is_frozen && " (מוקפא)"}
           </dd>
         </dl>
         <div className="mt-3 flex gap-3">
