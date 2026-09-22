@@ -48,6 +48,8 @@
     "toilets": "Toilets",
     "bathtubs": "Bathtubs",
     "amenitiesTitle": "Amenities",
+    "locationTitle": "Location",
+    "walkingTime": "{minutes} min walk from {landmark}",
     "contactWhatsApp": "Contact on WhatsApp",
     "whatsappMessage": "Hi, I'm interested in the apartment at {address}, from {checkin} to {checkout}, for {guests} guests.",
     "whatsappMessageGeneric": "Hi, I'm interested in the apartment at {address}.",
@@ -113,6 +115,7 @@
     "title": "List a new apartment",
     "region": "Region",
     "address": "Full address",
+    "locationLabel": "Exact location on the map",
     "pricePerNight": "Price per night (USD)",
     "phoneCountryCode": "Country code",
     "phoneNumber": "Phone number",
@@ -130,6 +133,7 @@
     "successTitle": "Apartment submitted!",
     "successBody": "Your listing is waiting for manual approval before it appears on the site.",
     "backToDashboard": "Back to dashboard",
-    "errorGeneric": "Something went wrong submitting the apartment. Please try again."
+    "errorGeneric": "Something went wrong submitting the apartment. Please try again.",
+    "errorNoLocation": "Please pin the apartment's location on the map before submitting."
   }
 }

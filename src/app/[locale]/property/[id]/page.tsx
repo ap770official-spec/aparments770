@@ -2,6 +2,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getPropertyById } from "@/lib/properties";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
+import { getWalkingDirections } from "@/lib/mapbox";
+import Map from "@/components/Map";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +71,19 @@ export default async function PropertyPage({
       (a) => a.category === category,
     ),
   })).filter((group) => group.items.length > 0);
+
+  const hasPropertyLocation = property.lat != null && property.lng != null;
+  const landmark = property.regions;
+  const hasLandmarkLocation =
+    landmark?.landmark_lat != null && landmark?.landmark_lng != null;
+
+  const walking =
+    hasPropertyLocation && hasLandmarkLocation
+      ? await getWalkingDirections({
+          from: { lat: property.lat!, lng: property.lng! },
+          to: { lat: landmark!.landmark_lat!, lng: landmark!.landmark_lng! },
+        })
+      : null;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
@@ -187,6 +202,36 @@ export default async function PropertyPage({
               </ul>
             </div>
           ))}
+        </div>
+      )}
+
+      {hasPropertyLocation && (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold">{t("locationTitle")}</h2>
+          {walking && landmark && (
+            <p className="mt-1 text-sm text-black/70 dark:text-white/70">
+              {t("walkingTime", {
+                minutes: walking.minutes,
+                landmark: locale === "he" ? landmark.name_he : landmark.name_en,
+              })}
+            </p>
+          )}
+          <Map
+            className="mt-3 h-80 w-full rounded-lg"
+            markers={[
+              { lat: property.lat!, lng: property.lng!, color: "#171717" },
+              ...(hasLandmarkLocation
+                ? [
+                    {
+                      lat: landmark!.landmark_lat!,
+                      lng: landmark!.landmark_lng!,
+                      color: "#a16207",
+                      label: locale === "he" ? landmark!.name_he : landmark!.name_en,
+                    },
+                  ]
+                : []),
+            ]}
+          />
         </div>
       )}
 

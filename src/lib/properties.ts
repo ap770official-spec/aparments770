@@ -34,6 +34,8 @@ export type PropertySummary = {
 export type PropertyDetail = PropertySummary & {
   toilets: number;
   bathtubs: number;
+  lat: number | null;
+  lng: number | null;
   phone_country_code: string;
   phone_number: string;
   checkin_time: string | null;
@@ -42,6 +44,12 @@ export type PropertyDetail = PropertySummary & {
   description_he: string | null;
   description_en: string | null;
   property_amenities: PropertyAmenity[];
+  regions: {
+    name_he: string;
+    name_en: string;
+    landmark_lat: number | null;
+    landmark_lng: number | null;
+  } | null;
 };
 
 const SUMMARY_COLUMNS =
@@ -99,12 +107,13 @@ export async function getPropertyById(
   const { data, error } = await supabase
     .from("properties")
     .select(
-      `id, address, price_per_night, bedrooms, beds, toilets, bathtubs,
+      `id, address, lat, lng, price_per_night, bedrooms, beds, toilets, bathtubs,
        max_guests, min_nights, checkin_time, checkout_time, approval_status,
        availability_mode, phone_country_code, phone_number,
        description_he, description_en,
        property_photos(url, sort_order, media_type),
-       property_amenities(category, amenity_key)`,
+       property_amenities(category, amenity_key),
+       regions(name_he, name_en, landmark_lat, landmark_lng)`,
     )
     .eq("id", id)
     .eq("approval_status", "approved")
@@ -114,7 +123,7 @@ export async function getPropertyById(
     throw new Error(`Failed to load property: ${error.message}`);
   }
 
-  return data;
+  return data as unknown as PropertyDetail | null;
 }
 
 export type AdminPropertyDetail = PropertyDetail & {
@@ -162,6 +171,8 @@ export async function getAdminPropertyById(
 export type PropertyForDuplication = {
   region_id: string;
   address: string;
+  lat: number | null;
+  lng: number | null;
   bedrooms: number;
   beds: number;
   toilets: number;
@@ -193,7 +204,7 @@ export async function getOwnerPropertyForDuplicate(
   const { data, error } = await supabase
     .from("properties")
     .select(
-      `region_id, address, bedrooms, beds, toilets, bathtubs,
+      `region_id, address, lat, lng, bedrooms, beds, toilets, bathtubs,
        price_per_night, phone_country_code, phone_number,
        checkin_time, checkout_time, max_guests, min_nights,
        description_he, description_en,
@@ -214,6 +225,8 @@ export type NewPropertyInput = {
   ownerId: string;
   regionId: string;
   address: string;
+  lat: number;
+  lng: number;
   bedrooms: number;
   beds: number;
   toilets: number;
@@ -250,6 +263,8 @@ export async function createProperty(
       owner_id: input.ownerId,
       region_id: input.regionId,
       address: input.address,
+      lat: input.lat,
+      lng: input.lng,
       bedrooms: input.bedrooms,
       beds: input.beds,
       toilets: input.toilets,
