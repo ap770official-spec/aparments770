@@ -35,7 +35,22 @@ export default function Header() {
           Apartments770
         </Link>
 
+        <nav className="hidden items-center gap-5 text-sm md:flex">
+          {navItems.map((item) => (
+            <Link key={item.href} href={item.href} className="hover:underline">
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
         <div className="flex items-center gap-3">
+          <Link
+            href="/list-property"
+            className="hidden rounded-full border border-black/15 px-4 py-1.5 text-sm md:inline-block"
+          >
+            {t("landlordLogin")}
+          </Link>
+
           <div className="flex items-center gap-2 text-sm">
             {routing.locales.map((loc, index) => (
               <span key={loc} className="flex items-center gap-2">
@@ -67,7 +82,7 @@ export default function Header() {
             onClick={() => setIsMenuOpen((open) => !open)}
             aria-expanded={isMenuOpen}
             aria-label={isMenuOpen ? t("closeMenu") : t("openMenu")}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-black/10 text-xl leading-none"
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-black/10 text-xl leading-none md:hidden"
           >
             {isMenuOpen ? "✕" : "☰"}
           </button>
@@ -75,7 +90,7 @@ export default function Header() {
       </div>
 
       {isMenuOpen && (
-        <nav className="border-t border-black/10">
+        <nav className="border-t border-black/10 md:hidden">
           <ul className="mx-auto flex max-w-5xl flex-col gap-1 px-4 py-3">
             {navItems.map((item) => (
               <li key={item.href}>
@@ -88,6 +103,15 @@ export default function Header() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link
+                href="/list-property"
+                onClick={() => setIsMenuOpen(false)}
+                className="block rounded-md px-2 py-2 font-medium hover:bg-black/5"
+              >
+                {t("landlordLogin")}
+              </Link>
+            </li>
           </ul>
         </nav>
       )}
