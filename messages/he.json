@@ -3,8 +3,6 @@
     "name": "Apartments770"
   },
   "header": {
-    "openMenu": "פתח תפריט",
-    "closeMenu": "סגור תפריט",
     "switchLanguage": "החלף שפה",
     "landlordLogin": "בעל דירה / כניסה"
   },
@@ -13,7 +11,9 @@
     "articles": "מאמרים",
     "listProperty": "פרסום דירה",
     "recommendations": "ההמלצות שלנו",
-    "contact": "יצירת קשר"
+    "contact": "יצירת קשר",
+    "howItWorks": "איך זה עובד",
+    "faq": "שאלות נפוצות"
   },
   "comingSoon": {
     "title": "בקרוב",

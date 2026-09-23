@@ -3,8 +3,6 @@
     "name": "Apartments770"
   },
   "header": {
-    "openMenu": "Open menu",
-    "closeMenu": "Close menu",
     "switchLanguage": "Switch language",
     "landlordLogin": "Landlord / Sign in"
   },
@@ -13,7 +11,9 @@
     "articles": "Articles",
     "listProperty": "List your property",
     "recommendations": "Our recommendations",
-    "contact": "Contact us"
+    "contact": "Contact us",
+    "howItWorks": "How it works",
+    "faq": "FAQ"
   },
   "comingSoon": {
     "title": "Coming soon",
