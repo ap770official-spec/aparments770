@@ -3,16 +3,17 @@
     "name": "Apartments770"
   },
   "header": {
-    "openMenu": "Open menu",
-    "closeMenu": "Close menu",
-    "switchLanguage": "Switch language"
+    "switchLanguage": "Switch language",
+    "landlordLogin": "Landlord / Sign in"
   },
   "nav": {
     "about": "About",
     "articles": "Articles",
     "listProperty": "List your property",
     "recommendations": "Our recommendations",
-    "contact": "Contact us"
+    "contact": "Contact us",
+    "howItWorks": "How it works",
+    "faq": "FAQ"
   },
   "comingSoon": {
     "title": "Coming soon",
@@ -136,5 +137,10 @@
     "backToDashboard": "Back to dashboard",
     "errorGeneric": "Something went wrong submitting the apartment. Please try again.",
     "errorNoLocation": "Please pin the apartment's location on the map before submitting."
+  },
+  "footer": {
+    "contact": "Contact",
+    "terms": "Terms of use",
+    "copyright": "© Apartments770"
   }
 }
