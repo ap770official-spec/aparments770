@@ -79,6 +79,8 @@ const STEP_KEYS = [
 ] as const;
 const LAST_STEP = STEP_KEYS.length - 1;
 const PHOTO_SLOT_COUNT = 6;
+const BEDS_OPTIONS = Array.from({ length: 31 }, (_, i) => i);
+const TOILETS_BATHTUBS_OPTIONS = Array.from({ length: 9 }, (_, i) => i);
 
 type PendingFile = {
   file: File;
@@ -655,36 +657,45 @@ export default function PropertyForm({
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               <label className="flex flex-col gap-1 text-sm">
                 {tProperty("beds")}
-                <input
-                  type="number"
-                  min={0}
-                  max={30}
+                <select
                   value={beds}
                   onChange={(e) => setBeds(Number(e.target.value))}
                   className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                />
+                >
+                  {BEDS_OPTIONS.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 {tProperty("toilets")}
-                <input
-                  type="number"
-                  min={0}
-                  max={30}
+                <select
                   value={toilets}
                   onChange={(e) => setToilets(Number(e.target.value))}
                   className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                />
+                >
+                  {TOILETS_BATHTUBS_OPTIONS.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 {tProperty("bathtubs")}
-                <input
-                  type="number"
-                  min={0}
-                  max={30}
+                <select
                   value={bathtubs}
                   onChange={(e) => setBathtubs(Number(e.target.value))}
                   className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                />
+                >
+                  {TOILETS_BATHTUBS_OPTIONS.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 {tProperty("checkin")}
