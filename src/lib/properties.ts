@@ -8,9 +8,19 @@ export type PropertyPhoto = {
 };
 
 export type PropertyAmenity = {
-  category: "general" | "shabbat_kosher" | "proximity";
+  category:
+    | "kitchen"
+    | "climate"
+    | "bathroom"
+    | "safety"
+    | "family"
+    | "outdoor"
+    | "shabbat_kosher"
+    | "proximity";
   amenity_key: string;
 };
+
+export type PropertyType = "apartment" | "house" | "basement";
 
 export type ApprovalStatus = "pending_approval" | "approved" | "rejected";
 
@@ -24,6 +34,7 @@ export type PropertySummary = {
   address: string;
   lat: number | null;
   lng: number | null;
+  property_type: PropertyType;
   price_per_night: number;
   bedrooms: number;
   beds: number;
@@ -53,7 +64,7 @@ export type PropertyDetail = PropertySummary & {
 };
 
 const SUMMARY_COLUMNS =
-  "id, address, lat, lng, price_per_night, bedrooms, beds, max_guests, approval_status, availability_mode, property_photos(url, sort_order, media_type)";
+  "id, address, lat, lng, property_type, price_per_night, bedrooms, beds, max_guests, approval_status, availability_mode, property_photos(url, sort_order, media_type)";
 
 export function mainMedia(photos: PropertyPhoto[]): PropertyPhoto | null {
   if (photos.length === 0) return null;
@@ -132,7 +143,7 @@ export async function getPropertyById(
   const { data, error } = await supabase
     .from("properties")
     .select(
-      `id, address, lat, lng, price_per_night, bedrooms, beds, toilets, bathtubs,
+      `id, address, lat, lng, property_type, price_per_night, bedrooms, beds, toilets, bathtubs,
        max_guests, min_nights, checkin_time, checkout_time, approval_status,
        availability_mode, phone_country_code, phone_number,
        description_he, description_en,
@@ -175,7 +186,7 @@ export async function getAdminPropertyById(
   const { data, error } = await supabase
     .from("properties")
     .select(
-      `id, address, price_per_night, bedrooms, beds, toilets, bathtubs,
+      `id, address, property_type, price_per_night, bedrooms, beds, toilets, bathtubs,
        max_guests, min_nights, checkin_time, checkout_time, approval_status,
        availability_mode, phone_country_code, phone_number, created_at,
        description_he, description_en,
@@ -198,6 +209,8 @@ export type PropertyForDuplication = {
   address: string;
   lat: number | null;
   lng: number | null;
+  property_type: PropertyType;
+  address_notes: string | null;
   bedrooms: number;
   beds: number;
   toilets: number;
@@ -229,7 +242,7 @@ export async function getOwnerPropertyForDuplicate(
   const { data, error } = await supabase
     .from("properties")
     .select(
-      `region_id, address, lat, lng, bedrooms, beds, toilets, bathtubs,
+      `region_id, address, lat, lng, property_type, address_notes, bedrooms, beds, toilets, bathtubs,
        price_per_night, phone_country_code, phone_number,
        checkin_time, checkout_time, max_guests, min_nights,
        description_he, description_en,
@@ -252,6 +265,8 @@ export type NewPropertyInput = {
   address: string;
   lat: number;
   lng: number;
+  propertyType: PropertyType;
+  addressNotes: string | null;
   bedrooms: number;
   beds: number;
   toilets: number;
@@ -290,6 +305,8 @@ export async function createProperty(
       address: input.address,
       lat: input.lat,
       lng: input.lng,
+      property_type: input.propertyType,
+      address_notes: input.addressNotes,
       bedrooms: input.bedrooms,
       beds: input.beds,
       toilets: input.toilets,
