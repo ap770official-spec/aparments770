@@ -28,8 +28,8 @@ export default function SearchResultsView({
           type="button"
           onClick={() => setView("map")}
           aria-pressed={view === "map"}
-          className={`rounded-full border border-black/15 px-4 py-2 text-sm dark:border-white/20 ${
-            view === "map" ? "bg-foreground text-background" : ""
+          className={`rounded-full border border-black/15 px-4 py-2 text-sm ${
+            view === "map" ? "bg-brand text-brand-foreground" : ""
           }`}
         >
           {labels.mapView}
@@ -38,8 +38,8 @@ export default function SearchResultsView({
           type="button"
           onClick={() => setView("list")}
           aria-pressed={view === "list"}
-          className={`rounded-full border border-black/15 px-4 py-2 text-sm dark:border-white/20 ${
-            view === "list" ? "bg-foreground text-background" : ""
+          className={`rounded-full border border-black/15 px-4 py-2 text-sm ${
+            view === "list" ? "bg-brand text-brand-foreground" : ""
           }`}
         >
           {labels.listView}
