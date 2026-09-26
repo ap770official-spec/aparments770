@@ -7,16 +7,24 @@ import type { PropertySummary } from "@/lib/properties";
 
 export default function SearchResultsMap({
   properties,
-  detailHrefFor,
-  perNightLabel,
-  viewDetailsLabel,
+  landmark,
+  landmarkLabel,
+  selectedId,
+  onSelect,
 }: {
   properties: PropertySummary[];
-  detailHrefFor: (propertyId: string) => string;
-  perNightLabel: string;
-  viewDetailsLabel: string;
+  landmark?: { lat: number; lng: number } | null;
+  landmarkLabel?: string;
+  selectedId: string | null;
+  onSelect: (propertyId: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markerElsRef = useRef<Record<string, HTMLButtonElement>>({});
+  const onSelectRef = useRef(onSelect);
+  useEffect(() => {
+    onSelectRef.current = onSelect;
+  }, [onSelect]);
 
   const located = properties.filter(
     (p): p is PropertySummary & { lat: number; lng: number } =>
@@ -35,35 +43,65 @@ export default function SearchResultsMap({
       center: [located[0].lng, located[0].lat],
       zoom: 13,
     });
+    mapRef.current = map;
+
+    const bounds = new mapboxgl.LngLatBounds();
 
     for (const property of located) {
-      const popupNode = document.createElement("div");
-      popupNode.className = "text-sm";
-      popupNode.innerHTML = `
-        <p class="font-medium">${property.address}</p>
-        <p class="font-semibold">$${property.price_per_night} ${perNightLabel}</p>
-        <a href="${detailHrefFor(property.id)}" class="mt-1 inline-block underline underline-offset-2">${viewDetailsLabel}</a>
-      `;
+      const el = document.createElement("button");
+      el.type = "button";
+      el.dataset.propertyId = property.id;
+      el.className =
+        "rounded-full border border-black/15 bg-background px-3 py-1 text-sm font-semibold shadow-sm transition-colors hover:bg-brand hover:text-brand-foreground";
+      el.textContent = `$${property.price_per_night}`;
+      el.addEventListener("click", () => onSelectRef.current(property.id));
+      markerElsRef.current[property.id] = el;
 
-      new mapboxgl.Marker({ color: "#171717" })
+      new mapboxgl.Marker({ element: el, anchor: "bottom" })
         .setLngLat([property.lng, property.lat])
-        .setPopup(new mapboxgl.Popup({ offset: 16 }).setDOMContent(popupNode))
         .addTo(map);
+      bounds.extend([property.lng, property.lat]);
     }
 
-    if (located.length > 1) {
-      const bounds = new mapboxgl.LngLatBounds();
-      for (const property of located) bounds.extend([property.lng, property.lat]);
+    if (landmark) {
+      const el = document.createElement("div");
+      el.className = "flex flex-col items-center gap-1";
+      el.innerHTML = `
+        <div class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-background bg-brand text-brand-foreground shadow">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+            <path d="M12 3 3 10.5V21h6v-6h6v6h6V10.5L12 3Z"/>
+          </svg>
+        </div>
+        <span class="rounded-full bg-brand px-2 py-0.5 text-xs font-semibold text-brand-foreground">${landmarkLabel ?? "770"}</span>
+      `;
+      new mapboxgl.Marker({ element: el, anchor: "bottom" })
+        .setLngLat([landmark.lng, landmark.lat])
+        .addTo(map);
+      bounds.extend([landmark.lng, landmark.lat]);
+    }
+
+    if (located.length > 1 || landmark) {
       map.fitBounds(bounds, { padding: 60, maxZoom: 16 });
     }
 
-    return () => map.remove();
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      markerElsRef.current = {};
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [located.map((p) => p.id).join(",")]);
+  }, [located.map((p) => p.id).join(","), landmark?.lat, landmark?.lng]);
+
+  useEffect(() => {
+    for (const [id, el] of Object.entries(markerElsRef.current)) {
+      el.classList.toggle("bg-brand", id === selectedId);
+      el.classList.toggle("text-brand-foreground", id === selectedId);
+    }
+  }, [selectedId]);
 
   if (located.length === 0) {
     return null;
   }
 
-  return <div ref={containerRef} className="h-[28rem] w-full rounded-lg" />;
+  return <div ref={containerRef} className="h-full w-full rounded-lg" />;
 }

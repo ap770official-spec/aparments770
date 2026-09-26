@@ -70,6 +70,12 @@ export default async function HomePage({
           <SearchResultsView
             properties={properties}
             searchQuery={detailQuery.toString()}
+            landmark={
+              region?.landmark_lat != null && region?.landmark_lng != null
+                ? { lat: region.landmark_lat, lng: region.landmark_lng }
+                : null
+            }
+            landmarkLabel="770"
             labels={{
               listView: tSearch("listView"),
               mapView: tSearch("mapView"),

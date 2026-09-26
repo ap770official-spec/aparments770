@@ -8,10 +8,14 @@ import SearchResultsMap from "@/components/SearchResultsMap";
 export default function SearchResultsView({
   properties,
   searchQuery,
+  landmark,
+  landmarkLabel,
   labels,
 }: {
   properties: PropertySummary[];
   searchQuery: string;
+  landmark?: { lat: number; lng: number } | null;
+  landmarkLabel?: string;
   labels: {
     listView: string;
     mapView: string;
@@ -20,6 +24,7 @@ export default function SearchResultsView({
   };
 }) {
   const [view, setView] = useState<"list" | "map">("list");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   return (
     <div>
@@ -57,13 +62,27 @@ export default function SearchResultsView({
           ))}
         </ul>
       ) : (
-        <div className="mt-6">
-          <SearchResultsMap
-            properties={properties}
-            detailHrefFor={(id) => `/property/${id}?${searchQuery}`}
-            perNightLabel={labels.perNight}
-            viewDetailsLabel={labels.viewDetails}
-          />
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <div className="order-2 h-[32rem] lg:order-1 lg:h-[42rem]">
+            <SearchResultsMap
+              properties={properties}
+              landmark={landmark}
+              landmarkLabel={landmarkLabel}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+            />
+          </div>
+          <ul className="order-1 grid gap-4 lg:order-2 lg:h-[42rem] lg:auto-rows-min lg:overflow-y-auto lg:pe-1">
+            {properties.map((property) => (
+              <PropertyCard
+                key={property.id}
+                property={property}
+                detailHref={`/property/${property.id}?${searchQuery}`}
+                onMouseEnter={() => setSelectedId(property.id)}
+                className={selectedId === property.id ? "ring-2 ring-brand" : ""}
+              />
+            ))}
+          </ul>
         </div>
       )}
     </div>

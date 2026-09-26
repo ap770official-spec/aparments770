@@ -7,15 +7,22 @@ import FavoriteButton from "@/components/FavoriteButton";
 export default function PropertyCard({
   property,
   detailHref,
+  className,
+  onMouseEnter,
 }: {
   property: PropertySummary;
   detailHref: string;
+  className?: string;
+  onMouseEnter?: () => void;
 }) {
   const t = useTranslations("search");
   const media = mainMedia(property.property_photos);
 
   return (
-    <li className="relative overflow-hidden rounded-lg border border-black/10">
+    <li
+      onMouseEnter={onMouseEnter}
+      className={`relative overflow-hidden rounded-lg border border-black/10 ${className ?? ""}`}
+    >
       <FavoriteButton
         propertyId={property.id}
         className="absolute end-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-background/85 shadow"
