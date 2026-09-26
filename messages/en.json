@@ -38,6 +38,14 @@
     "perNight": "per night",
     "viewDetails": "View details"
   },
+  "favorites": {
+    "add": "Add to favorites",
+    "remove": "Remove from favorites",
+    "myFavorites": "Apartments I liked",
+    "empty": "You haven't favorited any apartments yet.",
+    "loading": "Loading...",
+    "close": "Close"
+  },
   "property": {
     "perNight": "per night",
     "checkin": "Check-in",

@@ -4,6 +4,7 @@ import { getUpcomingHebrewHolidays } from "@/lib/hebrewHolidays";
 import { searchProperties } from "@/lib/properties";
 import SearchForm from "@/components/SearchForm";
 import PropertyCard from "@/components/PropertyCard";
+import FavoritesButton from "@/components/FavoritesButton";
 
 // Regions come from Supabase and can change (admin adds one) without a
 // redeploy, and the results list now depends on searchParams too -
@@ -51,6 +52,7 @@ export default async function HomePage({
       <h1 className="font-serif-brand text-2xl font-semibold">{t("title")}</h1>
       <p className="mt-2 text-black/70">{t("about")}</p>
       <SearchForm regions={regions} holidays={holidays} />
+      <FavoritesButton />
 
       <div className="mt-10">
         {region && (

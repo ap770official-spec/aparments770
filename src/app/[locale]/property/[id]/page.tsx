@@ -4,6 +4,7 @@ import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 import { getWalkingDirections } from "@/lib/mapbox";
 import Map from "@/components/Map";
+import FavoriteButton from "@/components/FavoriteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -111,7 +112,10 @@ export default async function PropertyPage({
         </div>
       )}
 
-      <h1 className="mt-6 text-2xl font-semibold">{property.address}</h1>
+      <div className="mt-6 flex items-start justify-between gap-4">
+        <h1 className="text-2xl font-semibold">{property.address}</h1>
+        <FavoriteButton propertyId={property.id} />
+      </div>
       <p className="mt-1 text-xl font-semibold">
         ${property.price_per_night}{" "}
         <span className="text-sm font-normal text-black/60">

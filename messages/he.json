@@ -38,6 +38,14 @@
     "perNight": "ללילה",
     "viewDetails": "לפרטים נוספים"
   },
+  "favorites": {
+    "add": "הוסף למועדפים",
+    "remove": "הסר מהמועדפים",
+    "myFavorites": "הדירות שאהבתי",
+    "empty": "עדיין לא סימנת דירות מועדפות.",
+    "loading": "טוען...",
+    "close": "סגירה"
+  },
   "property": {
     "perNight": "$ ללילה",
     "checkin": "צ'ק-אין",
