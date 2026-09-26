@@ -3,7 +3,7 @@ import { getActiveRegions, getRegionBySlug, regionLabel } from "@/lib/regions";
 import { getUpcomingHebrewHolidays } from "@/lib/hebrewHolidays";
 import { searchProperties } from "@/lib/properties";
 import SearchForm from "@/components/SearchForm";
-import PropertyCard from "@/components/PropertyCard";
+import SearchResultsView from "@/components/SearchResultsView";
 import FavoritesButton from "@/components/FavoritesButton";
 
 // Regions come from Supabase and can change (admin adds one) without a
@@ -67,15 +67,16 @@ export default async function HomePage({
         {properties.length === 0 ? (
           <p className="mt-6 text-black/70">{tSearch("noResults")}</p>
         ) : (
-          <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {properties.map((property) => (
-              <PropertyCard
-                key={property.id}
-                property={property}
-                detailHref={`/property/${property.id}?${detailQuery.toString()}`}
-              />
-            ))}
-          </ul>
+          <SearchResultsView
+            properties={properties}
+            searchQuery={detailQuery.toString()}
+            labels={{
+              listView: tSearch("listView"),
+              mapView: tSearch("mapView"),
+              perNight: tSearch("perNight"),
+              viewDetails: tSearch("viewDetails"),
+            }}
+          />
         )}
       </div>
     </div>
