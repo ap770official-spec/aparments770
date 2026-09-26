@@ -4,7 +4,8 @@
   },
   "header": {
     "switchLanguage": "החלף שפה",
-    "landlordLogin": "בעל דירה / כניסה"
+    "landlordLogin": "בעל דירה / כניסה",
+    "newListing": "פרסום דירה חדשה"
   },
   "nav": {
     "about": "עלינו",

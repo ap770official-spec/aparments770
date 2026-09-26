@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 const localeLabels: Record<string, string> = {
   he: "עברית",
@@ -12,8 +14,24 @@ const localeLabels: Record<string, string> = {
 export default function Header() {
   const t = useTranslations("header");
   const nav = useTranslations("nav");
+  const dashboard = useTranslations("dashboard");
   const locale = useLocale();
   const pathname = usePathname();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const supabase = createBrowserSupabaseClient();
+
+    supabase.auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user));
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session?.user);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const navItems = [
     { href: "/how-it-works", label: nav("howItWorks") },
@@ -57,33 +75,96 @@ export default function Header() {
             ))}
           </div>
 
-          <Link
-            href="/list-property"
-            className="hidden rounded-full border border-black/15 px-4 py-1.5 text-sm sm:inline-block"
-          >
-            {t("landlordLogin")}
-          </Link>
-          <Link
-            href="/list-property"
-            aria-label={t("landlordLogin")}
-            title={t("landlordLogin")}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-black/15 sm:hidden"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-            </svg>
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <Link
+                href="/owner/dashboard"
+                className="hidden rounded-full border border-black/15 px-4 py-1.5 text-sm sm:inline-block"
+              >
+                {dashboard("myProperties")}
+              </Link>
+              <Link
+                href="/owner/properties/new"
+                className="hidden rounded-full bg-brand px-4 py-1.5 text-sm text-brand-foreground sm:inline-block"
+              >
+                {t("newListing")}
+              </Link>
+
+              <Link
+                href="/owner/dashboard"
+                aria-label={dashboard("myProperties")}
+                title={dashboard("myProperties")}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-black/15 sm:hidden"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="4" width="18" height="16" rx="2" />
+                  <path d="M3 9h18" />
+                  <path d="M8 4v4" />
+                  <path d="M16 4v4" />
+                </svg>
+              </Link>
+              <Link
+                href="/owner/properties/new"
+                aria-label={t("newListing")}
+                title={t("newListing")}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-brand-foreground sm:hidden"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/list-property"
+                className="hidden rounded-full border border-black/15 px-4 py-1.5 text-sm sm:inline-block"
+              >
+                {t("landlordLogin")}
+              </Link>
+              <Link
+                href="/list-property"
+                aria-label={t("landlordLogin")}
+                title={t("landlordLogin")}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-black/15 sm:hidden"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                </svg>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
