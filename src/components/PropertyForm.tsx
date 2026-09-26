@@ -81,6 +81,11 @@ const LAST_STEP = STEP_KEYS.length - 1;
 const PHOTO_SLOT_COUNT = 6;
 const BEDS_OPTIONS = Array.from({ length: 31 }, (_, i) => i);
 const TOILETS_BATHTUBS_OPTIONS = Array.from({ length: 9 }, (_, i) => i);
+const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+  const hours = String(Math.floor(i / 2)).padStart(2, "0");
+  const minutes = i % 2 === 0 ? "00" : "30";
+  return `${hours}:${minutes}`;
+});
 
 type PendingFile = {
   file: File;
@@ -699,21 +704,33 @@ export default function PropertyForm({
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 {tProperty("checkin")}
-                <input
-                  type="time"
+                <select
                   value={checkinTime}
                   onChange={(e) => setCheckinTime(e.target.value)}
                   className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                />
+                >
+                  <option value="">--:--</option>
+                  {TIME_OPTIONS.map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ))}
+                </select>
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 {tProperty("checkout")}
-                <input
-                  type="time"
+                <select
                   value={checkoutTime}
                   onChange={(e) => setCheckoutTime(e.target.value)}
                   className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                />
+                >
+                  <option value="">--:--</option>
+                  {TIME_OPTIONS.map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ))}
+                </select>
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 {tProperty("minNights")}
