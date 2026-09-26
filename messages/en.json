@@ -4,7 +4,9 @@
   },
   "header": {
     "switchLanguage": "Switch language",
-    "landlordLogin": "Landlord / Sign in"
+    "landlordLogin": "Landlord / Sign in",
+    "newListing": "List a new property",
+    "personalArea": "Personal area"
   },
   "nav": {
     "about": "About",
