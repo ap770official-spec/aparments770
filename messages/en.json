@@ -34,6 +34,8 @@
     "resultsFor": "Apartments in {region}, for {guests} guests",
     "missingParams": "No search details were received. Go back to the homepage and try again.",
     "noResults": "No apartments matched this search right now.",
+    "listView": "List",
+    "mapView": "Map",
     "perNight": "per night",
     "viewDetails": "View details"
   },

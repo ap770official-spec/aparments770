@@ -1,7 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getRegionBySlug, regionLabel } from "@/lib/regions";
 import { searchProperties } from "@/lib/properties";
-import PropertyCard from "@/components/PropertyCard";
+import SearchResultsView from "@/components/SearchResultsView";
 
 export const dynamic = "force-dynamic";
 
@@ -60,15 +60,16 @@ export default async function SearchPage({
           {t("noResults")}
         </p>
       ) : (
-        <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {properties.map((property) => (
-            <PropertyCard
-              key={property.id}
-              property={property}
-              detailHref={`/property/${property.id}?${searchQuery}`}
-            />
-          ))}
-        </ul>
+        <SearchResultsView
+          properties={properties}
+          searchQuery={searchQuery}
+          labels={{
+            listView: t("listView"),
+            mapView: t("mapView"),
+            perNight: t("perNight"),
+            viewDetails: t("viewDetails"),
+          }}
+        />
       )}
     </div>
   );

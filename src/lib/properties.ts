@@ -22,6 +22,8 @@ export type AvailabilityMode =
 export type PropertySummary = {
   id: string;
   address: string;
+  lat: number | null;
+  lng: number | null;
   price_per_night: number;
   bedrooms: number;
   beds: number;
@@ -34,8 +36,6 @@ export type PropertySummary = {
 export type PropertyDetail = PropertySummary & {
   toilets: number;
   bathtubs: number;
-  lat: number | null;
-  lng: number | null;
   phone_country_code: string;
   phone_number: string;
   checkin_time: string | null;
@@ -53,7 +53,7 @@ export type PropertyDetail = PropertySummary & {
 };
 
 const SUMMARY_COLUMNS =
-  "id, address, price_per_night, bedrooms, beds, max_guests, approval_status, availability_mode, property_photos(url, sort_order, media_type)";
+  "id, address, lat, lng, price_per_night, bedrooms, beds, max_guests, approval_status, availability_mode, property_photos(url, sort_order, media_type)";
 
 export function mainMedia(photos: PropertyPhoto[]): PropertyPhoto | null {
   if (photos.length === 0) return null;
