@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Link, usePathname } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
@@ -17,7 +17,10 @@ export default function Header() {
   const dashboard = useTranslations("dashboard");
   const locale = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const supabase = createBrowserSupabaseClient();
@@ -32,6 +35,34 @@ export default function Header() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsMenuOpen(false);
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMenuOpen]);
+
+  async function handleLogout() {
+    const supabase = createBrowserSupabaseClient();
+    await supabase.auth.signOut();
+    setIsMenuOpen(false);
+    router.push("/owner/login");
+    router.refresh();
+  }
 
   const navItems = [
     { href: "/how-it-works", label: nav("howItWorks") },
@@ -76,64 +107,54 @@ export default function Header() {
           </div>
 
           {isLoggedIn ? (
-            <>
-              <Link
-                href="/owner/dashboard"
-                className="hidden rounded-full border border-black/15 px-4 py-1.5 text-sm sm:inline-block"
+            <div ref={menuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setIsMenuOpen((open) => !open)}
+                aria-haspopup="menu"
+                aria-expanded={isMenuOpen}
+                aria-label={t("personalArea")}
+                title={t("personalArea")}
+                className="flex h-9 items-center gap-2 rounded-full border border-black/15 px-3 text-xl leading-none"
               >
-                {dashboard("myProperties")}
-              </Link>
-              <Link
-                href="/owner/properties/new"
-                className="hidden rounded-full bg-brand px-4 py-1.5 text-sm text-brand-foreground sm:inline-block"
-              >
-                {t("newListing")}
-              </Link>
+                <span aria-hidden="true">☰</span>
+                <span className="hidden text-sm sm:inline">
+                  {t("personalArea")}
+                </span>
+              </button>
 
-              <Link
-                href="/owner/dashboard"
-                aria-label={dashboard("myProperties")}
-                title={dashboard("myProperties")}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-black/15 sm:hidden"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="18"
-                  height="18"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
+              {isMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute end-0 top-full z-10 mt-1 w-48 rounded-md border border-black/15 bg-background py-1 text-sm shadow-lg"
                 >
-                  <rect x="3" y="4" width="18" height="16" rx="2" />
-                  <path d="M3 9h18" />
-                  <path d="M8 4v4" />
-                  <path d="M16 4v4" />
-                </svg>
-              </Link>
-              <Link
-                href="/owner/properties/new"
-                aria-label={t("newListing")}
-                title={t("newListing")}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-brand-foreground sm:hidden"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="18"
-                  height="18"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  aria-hidden="true"
-                >
-                  <path d="M12 5v14" />
-                  <path d="M5 12h14" />
-                </svg>
-              </Link>
-            </>
+                  <Link
+                    href="/owner/properties/new"
+                    role="menuitem"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-4 py-2 hover:bg-black/5"
+                  >
+                    {t("newListing")}
+                  </Link>
+                  <Link
+                    href="/owner/dashboard"
+                    role="menuitem"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-4 py-2 hover:bg-black/5"
+                  >
+                    {dashboard("myProperties")}
+                  </Link>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    className="block w-full border-t border-black/10 px-4 py-2 text-start hover:bg-black/5"
+                  >
+                    {dashboard("logout")}
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <Link
