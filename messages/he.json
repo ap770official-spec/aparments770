@@ -3,16 +3,17 @@
     "name": "Apartments770"
   },
   "header": {
-    "openMenu": "פתח תפריט",
-    "closeMenu": "סגור תפריט",
-    "switchLanguage": "החלף שפה"
+    "switchLanguage": "החלף שפה",
+    "landlordLogin": "בעל דירה / כניסה"
   },
   "nav": {
     "about": "עלינו",
     "articles": "מאמרים",
     "listProperty": "פרסום דירה",
     "recommendations": "ההמלצות שלנו",
-    "contact": "יצירת קשר"
+    "contact": "יצירת קשר",
+    "howItWorks": "איך זה עובד",
+    "faq": "שאלות נפוצות"
   },
   "comingSoon": {
     "title": "בקרוב",
@@ -23,9 +24,10 @@
     "about": "Apartments770 מחבר בין בעלי דירות לנופשים המחפשים דירה להשכרה לטווח קצר באזור קראון הייטס והאוהל בניו יורק. בחרו אזור, תאריכים ומספר אורחים כדי למצוא דירה מתאימה."
   },
   "searchForm": {
-    "region": "אזור",
     "checkin": "תאריך כניסה",
     "checkout": "תאריך יציאה",
+    "selectCheckin": "בחרו תאריך כניסה",
+    "selectCheckout": "עכשיו בחרו תאריך יציאה",
     "guests": "מספר אורחים",
     "submit": "חפש"
   },
@@ -38,6 +40,14 @@
     "mapView": "מפה",
     "perNight": "ללילה",
     "viewDetails": "לפרטים נוספים"
+  },
+  "favorites": {
+    "add": "הוסף למועדפים",
+    "remove": "הסר מהמועדפים",
+    "myFavorites": "הדירות שאהבתי",
+    "empty": "עדיין לא סימנת דירות מועדפות.",
+    "loading": "טוען...",
+    "close": "סגירה"
   },
   "property": {
     "perNight": "$ ללילה",
@@ -137,5 +147,10 @@
     "backToDashboard": "חזרה לדשבורד",
     "errorGeneric": "משהו השתבש בשליחת הדירה. נסה שוב.",
     "errorNoLocation": "יש לסמן את מיקום הדירה על המפה לפני השליחה."
+  },
+  "footer": {
+    "contact": "צור קשר",
+    "terms": "תנאי שימוש",
+    "copyright": "© Apartments770"
   }
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
@@ -11,24 +10,23 @@ const localeLabels: Record<string, string> = {
 };
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const t = useTranslations("header");
   const nav = useTranslations("nav");
   const locale = useLocale();
   const pathname = usePathname();
 
   const navItems = [
-    { href: "/about", label: nav("about") },
-    { href: "/articles", label: nav("articles") },
-    { href: "/list-property", label: nav("listProperty") },
-    { href: "/recommendations", label: nav("recommendations") },
-    { href: "/contact", label: nav("contact") },
+    { href: "/how-it-works", label: nav("howItWorks") },
+    { href: "/faq", label: nav("faq") },
   ] as const;
 
   return (
-    <header className="border-b border-black/10 dark:border-white/15">
+    <header className="border-b border-black/10">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="text-lg font-semibold">
+        <Link
+          href="/"
+          className="font-serif-brand text-lg font-semibold text-brand"
+        >
           Apartments770
         </Link>
 
@@ -59,35 +57,47 @@ export default function Header() {
             ))}
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsMenuOpen((open) => !open)}
-            aria-expanded={isMenuOpen}
-            aria-label={isMenuOpen ? t("closeMenu") : t("openMenu")}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-black/10 text-xl leading-none dark:border-white/15"
+          <Link
+            href="/list-property"
+            className="hidden rounded-full border border-black/15 px-4 py-1.5 text-sm sm:inline-block"
           >
-            {isMenuOpen ? "✕" : "☰"}
-          </button>
+            {t("landlordLogin")}
+          </Link>
+          <Link
+            href="/list-property"
+            aria-label={t("landlordLogin")}
+            title={t("landlordLogin")}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-black/15 sm:hidden"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+            </svg>
+          </Link>
         </div>
       </div>
 
-      {isMenuOpen && (
-        <nav className="border-t border-black/10 dark:border-white/15">
-          <ul className="mx-auto flex max-w-5xl flex-col gap-1 px-4 py-3">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block rounded-md px-2 py-2 hover:bg-black/5 dark:hover:bg-white/10"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )}
+      <nav className="border-t border-black/10">
+        <ul className="mx-auto flex max-w-5xl items-center gap-5 px-4 py-2 text-sm text-black/70">
+          {navItems.map((item) => (
+            <li key={item.href}>
+              <Link href={item.href} className="hover:underline">
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </header>
   );
 }

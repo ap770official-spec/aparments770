@@ -83,6 +83,31 @@ export async function searchProperties({
   return data ?? [];
 }
 
+/**
+ * Looks up approved properties by id for the anonymous, device-local
+ * favorites list (see src/lib/favorites.ts) - favorites are just ids in
+ * localStorage, so viewing them means re-fetching current data rather
+ * than trusting stale client-side copies.
+ */
+export async function getPropertiesByIds(
+  ids: string[],
+): Promise<PropertySummary[]> {
+  if (ids.length === 0) return [];
+
+  const supabase = createPublicSupabaseClient();
+  const { data, error } = await supabase
+    .from("properties")
+    .select(SUMMARY_COLUMNS)
+    .in("id", ids)
+    .eq("approval_status", "approved");
+
+  if (error) {
+    throw new Error(`Failed to load favorite properties: ${error.message}`);
+  }
+
+  return data ?? [];
+}
+
 export async function getOwnerProperties(
   supabase: SupabaseClient,
   ownerId: string,

@@ -3,16 +3,17 @@
     "name": "Apartments770"
   },
   "header": {
-    "openMenu": "Open menu",
-    "closeMenu": "Close menu",
-    "switchLanguage": "Switch language"
+    "switchLanguage": "Switch language",
+    "landlordLogin": "Landlord / Sign in"
   },
   "nav": {
     "about": "About",
     "articles": "Articles",
     "listProperty": "List your property",
     "recommendations": "Our recommendations",
-    "contact": "Contact us"
+    "contact": "Contact us",
+    "howItWorks": "How it works",
+    "faq": "FAQ"
   },
   "comingSoon": {
     "title": "Coming soon",
@@ -23,9 +24,10 @@
     "about": "Apartments770 connects property owners with travelers looking for short-term rentals in the Crown Heights and The Ohel areas of New York. Pick a region, dates, and number of guests to find the right apartment."
   },
   "searchForm": {
-    "region": "Region",
     "checkin": "Check-in date",
     "checkout": "Check-out date",
+    "selectCheckin": "Select a check-in date",
+    "selectCheckout": "Now select a check-out date",
     "guests": "Number of guests",
     "submit": "Search"
   },
@@ -38,6 +40,14 @@
     "mapView": "Map",
     "perNight": "per night",
     "viewDetails": "View details"
+  },
+  "favorites": {
+    "add": "Add to favorites",
+    "remove": "Remove from favorites",
+    "myFavorites": "Apartments I liked",
+    "empty": "You haven't favorited any apartments yet.",
+    "loading": "Loading...",
+    "close": "Close"
   },
   "property": {
     "perNight": "per night",
@@ -137,5 +147,10 @@
     "backToDashboard": "Back to dashboard",
     "errorGeneric": "Something went wrong submitting the apartment. Please try again.",
     "errorNoLocation": "Please pin the apartment's location on the map before submitting."
+  },
+  "footer": {
+    "contact": "Contact",
+    "terms": "Terms of use",
+    "copyright": "© Apartments770"
   }
 }

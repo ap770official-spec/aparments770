@@ -156,16 +156,16 @@ export default function LocationPicker({
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="חפש כתובת..."
-          className="w-full rounded-md border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+          className="w-full rounded-md border border-black/15 bg-transparent px-3 py-2"
         />
         {suggestions.length > 0 && (
-          <ul className="absolute z-10 mt-1 w-full rounded-md border border-black/15 bg-background text-sm shadow-lg dark:border-white/20">
+          <ul className="absolute z-10 mt-1 w-full rounded-md border border-black/15 bg-background text-sm shadow-lg">
             {suggestions.map((s) => (
               <li key={s.id}>
                 <button
                   type="button"
                   onClick={() => selectSuggestion(s)}
-                  className="block w-full px-3 py-2 text-start hover:bg-black/5 dark:hover:bg-white/10"
+                  className="block w-full px-3 py-2 text-start hover:bg-black/5"
                 >
                   {s.placeName}
                 </button>
@@ -174,19 +174,19 @@ export default function LocationPicker({
           </ul>
         )}
       </div>
-      <p className="text-xs text-black/60 dark:text-white/60">
+      <p className="text-xs text-black/60">
         חפש כתובת ובחר מהרשימה, או לחץ/גרור את הסיכה על המפה לדיוק - הכתובת
         הסופית נקבעת לפי מיקום הסיכה, לא לפי מה שמוקלד כאן
       </p>
       <div ref={containerRef} className="h-64 w-full rounded-md" />
       {resolving && (
-        <p className="text-sm text-black/60 dark:text-white/60">
+        <p className="text-sm text-black/60">
           מאתר כתובת לפי מיקום הסיכה...
         </p>
       )}
       {!resolving && resolvedAddress && (
         <p className="text-sm">
-          <span className="text-black/60 dark:text-white/60">כתובת שנקבעה: </span>
+          <span className="text-black/60">כתובת שנקבעה: </span>
           {resolvedAddress}
         </p>
       )}
