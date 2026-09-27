@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { getPropertyById, type PropertyType } from "@/lib/properties";
+import { getPropertyById } from "@/lib/properties";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { getWalkingDirections } from "@/lib/mapbox";
 import { formatHebrewDateShort } from "@/lib/hebrewDate";
@@ -22,12 +22,6 @@ const AMENITY_CATEGORIES = [
   "shabbat_kosher",
   "proximity",
 ] as const;
-
-const TYPE_LABEL_KEYS: Record<PropertyType, string> = {
-  apartment: "typeApartment",
-  house: "typeHouse",
-  basement: "typeBasement",
-};
 
 function formatDisplayDate(isoDate: string, locale: string): string {
   if (locale === "he") return formatHebrewDateShort(isoDate);
@@ -78,17 +72,7 @@ export default async function PropertyPage({
       : landmark.name_en
     : "";
 
-  // The exact address is only revealed to a renter once they've contacted
-  // the owner (see PropertyForm's step-1 copy) - so the page title is
-  // generated from non-sensitive facts instead of showing property.address.
-  const typeLabel = t(TYPE_LABEL_KEYS[property.property_type]);
-  const title = landmark
-    ? t("generatedTitle", {
-        type: typeLabel,
-        bedrooms: property.bedrooms,
-        region: landmarkName,
-      })
-    : typeLabel;
+  const title = property.address;
 
   const hasPropertyLocation = property.lat != null && property.lng != null;
   const hasLandmarkLocation =
@@ -102,18 +86,15 @@ export default async function PropertyPage({
         })
       : null;
 
-  // The outgoing message deliberately doesn't include property.address -
-  // the renter doesn't know it yet, and echoing it back here would leak it
-  // into their own compose box before the owner has said a word.
   const message =
     query.checkin && query.checkout && query.guests
       ? t("whatsappMessage", {
-          title,
+          address: property.address,
           checkin: query.checkin,
           checkout: query.checkout,
           guests: query.guests,
         })
-      : t("whatsappMessageGeneric", { title });
+      : t("whatsappMessageGeneric", { address: property.address });
 
   const whatsappLink = buildWhatsAppLink({
     countryCode: property.phone_country_code,
@@ -270,17 +251,12 @@ export default async function PropertyPage({
                         <circle cx="12" cy="10" r="2.5" />
                       </svg>
                     </div>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-[13.5px] font-semibold text-ink sm:text-[15px]">
-                        {t("walkingTimeApprox", {
-                          minutes: walking.minutes,
-                          landmark: landmarkName,
-                        })}
-                      </span>
-                      <span className="hidden text-[13px] text-[#8A8073] sm:inline">
-                        {t("walkingTimeNote")}
-                      </span>
-                    </div>
+                    <span className="text-[13.5px] font-semibold text-ink sm:text-[15px]">
+                      {t("walkingTimeApprox", {
+                        minutes: walking.minutes,
+                        landmark: landmarkName,
+                      })}
+                    </span>
                   </div>
                 )}
                 <Map
