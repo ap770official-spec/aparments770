@@ -9,9 +9,11 @@ const HEART_PATH =
 export default function FavoriteButton({
   propertyId,
   className,
+  showLabel = false,
 }: {
   propertyId: string;
   className?: string;
+  showLabel?: boolean;
 }) {
   const t = useTranslations("favorites");
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -30,22 +32,25 @@ export default function FavoriteButton({
       title={active ? t("remove") : t("add")}
       className={
         className ??
-        "flex h-9 w-9 items-center justify-center rounded-full bg-background/85 shadow"
+        (showLabel
+          ? "flex items-center gap-2 rounded-full border border-ink px-4 py-2.5 text-sm font-semibold text-ink"
+          : "flex h-9 w-9 items-center justify-center rounded-full bg-background/85 shadow")
       }
     >
       <svg
         viewBox="0 0 24 24"
-        width="20"
-        height="20"
+        width={showLabel ? "17" : "20"}
+        height={showLabel ? "17" : "20"}
         fill={active ? "currentColor" : "none"}
         stroke="currentColor"
         strokeWidth="2"
         strokeLinejoin="round"
         aria-hidden="true"
-        className={active ? "text-red-500" : "text-black/50"}
+        className={showLabel ? "" : active ? "text-red-500" : "text-black/50"}
       >
         <path d={HEART_PATH} />
       </svg>
+      {showLabel && <span>{active ? t("saved") : t("add")}</span>}
     </button>
   );
 }
