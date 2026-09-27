@@ -86,8 +86,13 @@ create policy "Owners can update their own profile"
 -- The listings themselves. Two independent status fields:
 --   approval_status   — admin-controlled (site visibility)
 --   availability_mode — owner-controlled (booking availability)
--- lat/lng/walking_minutes_to_landmark are left null until the
--- Mapbox integration is built (stage ד').
+-- lat/lng are captured from the map picker when a listing is created.
+-- walking_minutes_to_landmark is computed once at that same time (via
+-- Mapbox Directions, see createProperty in src/lib/properties.ts) and
+-- stays null for older listings created before this was added
+-- (2026-09-27, homepage redesign) - the distance filter on the
+-- homepage treats a null value as "always matches" rather than hiding
+-- those listings.
 --
 -- property_type was added later (2026-09-26, property form wizard) —
 -- see docs/handoff-2026-09-26-property-form-wizard-sql.md for the

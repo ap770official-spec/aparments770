@@ -52,7 +52,7 @@ export default function FavoritesButton() {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="mt-4 inline-flex items-center gap-2 rounded-full border border-black/15 px-4 py-2 text-sm"
+        className="inline-flex items-center gap-2 rounded-full border border-[#E5DED3] px-4 py-2 text-sm text-ink"
       >
         <span aria-hidden="true">♥</span>
         {t("myFavorites")}

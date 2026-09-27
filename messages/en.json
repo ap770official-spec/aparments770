@@ -22,8 +22,19 @@
     "body": "This page is still under construction."
   },
   "home": {
-    "title": "Welcome to Apartments770",
-    "about": "Apartments770 connects property owners with travelers looking for short-term rentals in the Crown Heights and The Ohel areas of New York. Pick a region, dates, and number of guests to find the right apartment."
+    "title": "Find an apartment near 770",
+    "about": "Simple search, direct contact with owners on WhatsApp — no signup, no waiting.",
+    "distanceLabel": "Walking distance from 770:",
+    "distanceAll": "All",
+    "distanceUpTo5": "Up to 5 min",
+    "distanceUpTo10": "Up to 10 min",
+    "distanceUpTo15": "Up to 15 min",
+    "filterPrice": "Price",
+    "filterRooms": "Rooms",
+    "filterAmenities": "Amenities",
+    "resultsCount": "{count} apartments available",
+    "sortLabel": "Sort by:",
+    "sortByDistance": "Distance from 770"
   },
   "searchForm": {
     "checkin": "Check-in date",
@@ -41,7 +52,8 @@
     "listView": "List",
     "mapView": "Map",
     "perNight": "per night",
-    "viewDetails": "View details"
+    "viewDetails": "View details",
+    "whatsappCta": "WhatsApp"
   },
   "favorites": {
     "add": "Add to favorites",

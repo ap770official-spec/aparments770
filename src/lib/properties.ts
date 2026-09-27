@@ -39,6 +39,9 @@ export type PropertySummary = {
   bedrooms: number;
   beds: number;
   max_guests: number | null;
+  walking_minutes_to_landmark: number | null;
+  phone_country_code: string;
+  phone_number: string;
   approval_status: ApprovalStatus;
   availability_mode: AvailabilityMode;
   property_photos: PropertyPhoto[];
@@ -47,8 +50,6 @@ export type PropertySummary = {
 export type PropertyDetail = PropertySummary & {
   toilets: number;
   bathtubs: number;
-  phone_country_code: string;
-  phone_number: string;
   checkin_time: string | null;
   checkout_time: string | null;
   min_nights: number | null;
@@ -64,7 +65,7 @@ export type PropertyDetail = PropertySummary & {
 };
 
 const SUMMARY_COLUMNS =
-  "id, address, lat, lng, property_type, price_per_night, bedrooms, beds, max_guests, approval_status, availability_mode, property_photos(url, sort_order, media_type)";
+  "id, address, lat, lng, property_type, price_per_night, bedrooms, beds, max_guests, walking_minutes_to_landmark, phone_country_code, phone_number, approval_status, availability_mode, property_photos(url, sort_order, media_type)";
 
 export function mainMedia(photos: PropertyPhoto[]): PropertyPhoto | null {
   if (photos.length === 0) return null;
@@ -74,17 +75,31 @@ export function mainMedia(photos: PropertyPhoto[]): PropertyPhoto | null {
 export async function searchProperties({
   regionId,
   guests,
+  maxWalkingMinutes,
 }: {
   regionId: string;
   guests: number;
+  maxWalkingMinutes?: number;
 }): Promise<PropertySummary[]> {
   const supabase = createPublicSupabaseClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("properties")
     .select(SUMMARY_COLUMNS)
     .eq("region_id", regionId)
     .eq("approval_status", "approved")
-    .or(`max_guests.is.null,max_guests.gte.${guests}`)
+    .or(`max_guests.is.null,max_guests.gte.${guests}`);
+
+  if (maxWalkingMinutes != null) {
+    // Listings with no computed walking time (older ones, or created
+    // before Mapbox was reachable) stay visible under any distance filter
+    // rather than silently disappearing for missing data.
+    query = query.or(
+      `walking_minutes_to_landmark.is.null,walking_minutes_to_landmark.lte.${maxWalkingMinutes}`,
+    );
+  }
+
+  const { data, error } = await query
+    .order("walking_minutes_to_landmark", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -267,6 +282,7 @@ export type NewPropertyInput = {
   lng: number;
   propertyType: PropertyType;
   addressNotes: string | null;
+  walkingMinutesToLandmark: number | null;
   bedrooms: number;
   beds: number;
   toilets: number;
@@ -307,6 +323,7 @@ export async function createProperty(
       lng: input.lng,
       property_type: input.propertyType,
       address_notes: input.addressNotes,
+      walking_minutes_to_landmark: input.walkingMinutesToLandmark,
       bedrooms: input.bedrooms,
       beds: input.beds,
       toilets: input.toilets,

@@ -22,8 +22,19 @@
     "body": "העמוד הזה עדיין בבנייה."
   },
   "home": {
-    "title": "ברוכים הבאים ל-Apartments770",
-    "about": "Apartments770 מחבר בין בעלי דירות לנופשים המחפשים דירה להשכרה לטווח קצר באזור קראון הייטס והאוהל בניו יורק. בחרו אזור, תאריכים ומספר אורחים כדי למצוא דירה מתאימה."
+    "title": "מצאו דירה קרובה ל-770",
+    "about": "חיפוש פשוט, יצירת קשר ישירה עם בעלי הדירות בוואטסאפ — בלי הרשמה ובלי המתנה.",
+    "distanceLabel": "מרחק הליכה מ-770:",
+    "distanceAll": "הכל",
+    "distanceUpTo5": "עד 5 דק׳",
+    "distanceUpTo10": "עד 10 דק׳",
+    "distanceUpTo15": "עד 15 דק׳",
+    "filterPrice": "מחיר",
+    "filterRooms": "חדרים",
+    "filterAmenities": "שירותים בדירה",
+    "resultsCount": "{count} דירות זמינות",
+    "sortLabel": "מיון לפי:",
+    "sortByDistance": "מרחק מ-770"
   },
   "searchForm": {
     "checkin": "תאריך כניסה",
@@ -41,7 +52,8 @@
     "listView": "רשימה",
     "mapView": "מפה",
     "perNight": "ללילה",
-    "viewDetails": "לפרטים נוספים"
+    "viewDetails": "פרטים נוספים",
+    "whatsappCta": "וואטסאפ"
   },
   "favorites": {
     "add": "הוסף למועדפים",
