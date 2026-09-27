@@ -2,15 +2,14 @@
 
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { signOut } from "@/lib/authClient";
 
 export default function LogoutButton() {
   const t = useTranslations("dashboard");
   const router = useRouter();
 
   async function handleClick() {
-    const supabase = createBrowserSupabaseClient();
-    await supabase.auth.signOut();
+    await signOut();
     router.push("/owner/login");
     router.refresh();
   }

@@ -155,6 +155,12 @@ create policy "Owners can update their own properties"
   using (owner_id = auth.uid())
   with check (owner_id = auth.uid());
 
+create policy "Owners can delete their own properties"
+  on public.properties
+  for delete
+  to authenticated
+  using (owner_id = auth.uid());
+
 
 -- =========================================================
 -- 4. property_amenities

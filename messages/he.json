@@ -7,6 +7,12 @@
     "closeMenu": "סגור תפריט",
     "switchLanguage": "החלף שפה"
   },
+  "accountMenu": {
+    "ariaLabel": "אזור אישי",
+    "myApartments": "הדירות שלי",
+    "publishApartment": "פרסום דירה",
+    "logout": "התנתקות"
+  },
   "nav": {
     "about": "עלינו",
     "articles": "מאמרים",
@@ -92,19 +98,37 @@
     "verifyCode": "אימות והתחברות"
   },
   "dashboard": {
-    "title": "אזור בעל הדירה",
+    "title": "הדירות שלי",
+    "subtitle": "נהלו כאן את כל הדירות שפרסמתם ועקבו אחרי הסטטוס שלהן.",
     "loggedInAs": "מחובר בתור {email}",
     "logout": "התנתקות",
-    "myProperties": "הדירות שלי",
     "noProperties": "עדיין לא פרסמת אף דירה.",
-    "perNight": "$ ללילה",
-    "addProperty": "הוסף דירה",
+    "addProperty": "פרסום דירה חדשה",
+    "roomsGuestsPrice": "{rooms} חדרים · עד {guests} אורחים · ${price} ללילה",
     "status": {
+      "live": "פעיל באתר",
       "pending_approval": "ממתין לאישור",
-      "approved": "מאושר",
+      "paused": "לא פעיל",
       "rejected": "נדחה"
     },
-    "duplicate": "שכפל",
+    "note": {
+      "live": "פעילה באתר ומופיעה בתוצאות החיפוש",
+      "pending_approval": "הבקשה נבדקת על ידי הצוות שלנו — נעדכן בהקדם",
+      "paused": "הדירה מוסתרת כרגע מתוצאות החיפוש",
+      "rejected": "הבקשה נדחתה — צרו קשר לפרטים נוספים"
+    },
+    "editDetails": "עריכת פרטים",
+    "action": {
+      "live": "צפייה בעמוד הדירה",
+      "pending_approval": "עריכה בזמן ההמתנה",
+      "paused": "הפעלה מחדש",
+      "rejected": "עריכה ופרסום מחדש"
+    },
+    "moreActions": "פעולות נוספות",
+    "share": "שיתוף",
+    "shareCopied": "הקישור הועתק",
+    "delete": "מחק",
+    "deleteConfirm": "למחוק את הדירה? הפעולה בלתי הפיכה.",
     "availabilityMode": {
       "label": "מצב תפוסה",
       "fully_locked": "נעילה מלאה",

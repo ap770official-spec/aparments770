@@ -7,7 +7,18 @@
   --brand-foreground: #ffffff;
   --accent-whatsapp: #256240;
   --placeholder: #d8cfc0;
+  --placeholder-text: #7a6e5c;
   --ink: #1a1512;
+  --border-soft: #e5ded3;
+  --text-secondary: #5c5349;
+  --text-faint: #8a8073;
+  --status-live-bg: #eaf3ec;
+  --status-live-text: #2f6b45;
+  --status-pending-bg: #fbf0de;
+  --status-pending-text: #8a5a1c;
+  --status-paused-bg: #f0eeea;
+  --status-paused-text: #726a5e;
+  --danger: #b3432f;
 }
 
 @theme inline {
@@ -17,7 +28,18 @@
   --color-brand-foreground: var(--brand-foreground);
   --color-accent-whatsapp: var(--accent-whatsapp);
   --color-placeholder: var(--placeholder);
+  --color-placeholder-text: var(--placeholder-text);
   --color-ink: var(--ink);
+  --color-border-soft: var(--border-soft);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-faint: var(--text-faint);
+  --color-status-live-bg: var(--status-live-bg);
+  --color-status-live-text: var(--status-live-text);
+  --color-status-pending-bg: var(--status-pending-bg);
+  --color-status-pending-text: var(--status-pending-text);
+  --color-status-paused-bg: var(--status-paused-bg);
+  --color-status-paused-text: var(--status-paused-text);
+  --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-serif-brand: var(--font-frank-ruhl);

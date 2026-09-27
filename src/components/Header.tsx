@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Link, usePathname } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { signOut } from "@/lib/authClient";
 
 const localeLabels: Record<string, string> = {
   he: "עברית",
@@ -12,10 +13,15 @@ const localeLabels: Record<string, string> = {
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const t = useTranslations("header");
   const nav = useTranslations("nav");
+  const accountMenu = useTranslations("accountMenu");
   const locale = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
+
+  const accountMenuRef = useRef<HTMLDivElement>(null);
 
   const navItems = [
     { href: "/about", label: nav("about") },
@@ -24,6 +30,33 @@ export default function Header() {
     { href: "/recommendations", label: nav("recommendations") },
     { href: "/contact", label: nav("contact") },
   ] as const;
+
+  useEffect(() => {
+    if (!isAccountMenuOpen) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!accountMenuRef.current?.contains(event.target as Node)) {
+        setIsAccountMenuOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsAccountMenuOpen(false);
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isAccountMenuOpen]);
+
+  async function handleLogout() {
+    setIsAccountMenuOpen(false);
+    await signOut();
+    router.push("/owner/login");
+    router.refresh();
+  }
 
   return (
     <header className="border-b border-black/10">
@@ -60,6 +93,64 @@ export default function Header() {
                 )}
               </span>
             ))}
+          </div>
+
+          <div ref={accountMenuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setIsAccountMenuOpen((open) => !open)}
+              aria-haspopup="menu"
+              aria-expanded={isAccountMenuOpen}
+              aria-label={accountMenu("ariaLabel")}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-black/15"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="8" r="3.5" />
+                <path d="M4.5 20c1.4-3.6 4.4-5.5 7.5-5.5s6.1 1.9 7.5 5.5" />
+              </svg>
+            </button>
+
+            {isAccountMenuOpen && (
+              <div
+                role="menu"
+                className="absolute top-12 flex w-52 flex-col gap-0.5 rounded-xl border border-border-soft bg-background p-2 shadow-lg end-0"
+              >
+                <Link
+                  href="/owner/dashboard"
+                  onClick={() => setIsAccountMenuOpen(false)}
+                  role="menuitem"
+                  className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold hover:bg-black/5"
+                >
+                  {accountMenu("myApartments")}
+                </Link>
+                <Link
+                  href="/list-property"
+                  onClick={() => setIsAccountMenuOpen(false)}
+                  role="menuitem"
+                  className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold hover:bg-black/5"
+                >
+                  {accountMenu("publishApartment")}
+                </Link>
+                <div className="my-1 h-px bg-border-soft" />
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  role="menuitem"
+                  className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-start text-sm font-semibold text-text-faint hover:bg-black/5"
+                >
+                  {accountMenu("logout")}
+                </button>
+              </div>
+            )}
           </div>
 
           <button

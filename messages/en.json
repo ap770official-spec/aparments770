@@ -7,6 +7,12 @@
     "closeMenu": "Close menu",
     "switchLanguage": "Switch language"
   },
+  "accountMenu": {
+    "ariaLabel": "Personal area",
+    "myApartments": "My apartments",
+    "publishApartment": "List a property",
+    "logout": "Log out"
+  },
   "nav": {
     "about": "About",
     "articles": "Articles",
@@ -92,19 +98,37 @@
     "verifyCode": "Verify and sign in"
   },
   "dashboard": {
-    "title": "Owner dashboard",
+    "title": "My apartments",
+    "subtitle": "Manage the apartments you've listed and track their status.",
     "loggedInAs": "Logged in as {email}",
     "logout": "Log out",
-    "myProperties": "My properties",
     "noProperties": "You haven't listed any apartments yet.",
-    "perNight": "per night",
-    "addProperty": "Add property",
+    "addProperty": "List a new apartment",
+    "roomsGuestsPrice": "{rooms} bedrooms · up to {guests} guests · ${price}/night",
     "status": {
+      "live": "Live on site",
       "pending_approval": "Pending approval",
-      "approved": "Approved",
+      "paused": "Not active",
       "rejected": "Rejected"
     },
-    "duplicate": "Duplicate",
+    "note": {
+      "live": "Active on the site and showing in search results",
+      "pending_approval": "Your request is being reviewed by our team — we'll update you soon",
+      "paused": "This apartment is currently hidden from search results",
+      "rejected": "This request was rejected — contact us for details"
+    },
+    "editDetails": "Edit details",
+    "action": {
+      "live": "View listing page",
+      "pending_approval": "Edit while pending",
+      "paused": "Reactivate",
+      "rejected": "Edit and resubmit"
+    },
+    "moreActions": "More actions",
+    "share": "Share",
+    "shareCopied": "Link copied",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this apartment? This can't be undone.",
     "availabilityMode": {
       "label": "Availability mode",
       "fully_locked": "Fully locked",
