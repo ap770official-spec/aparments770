@@ -15,6 +15,7 @@ import {
   type PropertyType,
 } from "@/lib/properties";
 import { uploadMediaToCloudinary } from "@/lib/cloudinary";
+import { getWalkingDirections } from "@/lib/mapbox";
 import type { Region } from "@/lib/regions";
 import LocationPicker from "@/components/LocationPicker";
 
@@ -303,6 +304,15 @@ export default function PropertyForm({
           .map((key) => ({ category: group.category, amenityKey: key })),
       );
 
+      const landmark = regions.find((r) => r.id === regionId);
+      const walking =
+        landmark?.landmark_lat != null && landmark?.landmark_lng != null
+          ? await getWalkingDirections({
+              from: { lat: location.lat, lng: location.lng },
+              to: { lat: landmark.landmark_lat, lng: landmark.landmark_lng },
+            })
+          : null;
+
       await createProperty(supabase, {
         ownerId,
         regionId,
@@ -311,6 +321,7 @@ export default function PropertyForm({
         lng: location.lng,
         propertyType,
         addressNotes: addressNotes || null,
+        walkingMinutesToLandmark: walking?.minutes ?? null,
         bedrooms,
         beds,
         toilets,

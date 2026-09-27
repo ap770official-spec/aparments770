@@ -99,6 +99,8 @@ export default function SearchResultsView({
               key={property.id}
               property={property}
               detailHref={`/property/${property.id}?${searchQuery}`}
+              searchQuery={searchQuery}
+              landmarkLabel={landmarkLabel}
             />
           ))}
         </ul>
@@ -113,6 +115,7 @@ export default function SearchResultsView({
                     key={property.id}
                     property={property}
                     detailHref={`/property/${property.id}?${searchQuery}`}
+                    landmarkLabel={landmarkLabel}
                     orientation="vertical"
                     selected={selectedId === property.id}
                     onMouseEnter={() => setSelectedId(property.id)}

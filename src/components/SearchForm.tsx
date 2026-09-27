@@ -109,76 +109,87 @@ export default function SearchForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8">
-      <div
-        ref={fieldRef}
-        className="relative flex flex-col divide-y divide-black/15 rounded-3xl border border-black/15 sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0 sm:rounded-full"
-      >
-        <div className="flex flex-1 flex-col gap-0.5 px-5 py-2 text-sm">
-          <span id="search-checkin-label" className="text-xs text-black/60">
-            {t("checkin")}
-          </span>
-          <button
-            type="button"
-            onClick={openCalendar}
-            aria-haspopup="dialog"
-            aria-expanded={isCalendarOpen}
-            aria-labelledby="search-checkin-label"
-            className="bg-transparent text-start"
-          >
-            {range?.from ? toISODate(range.from) : t("checkin")}
-          </button>
-        </div>
+    <form onSubmit={handleSubmit} className="mt-8 sm:max-w-[640px]">
+      <div ref={fieldRef} className="relative">
+        <div className="flex flex-col divide-y divide-black/15 overflow-hidden rounded-3xl border border-ink shadow-[0_2px_14px_rgba(26,21,18,0.05)] sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0 sm:rounded-full">
+          <div className="grid grid-cols-2 divide-x divide-black/15 sm:contents">
+            <div className="flex flex-1 flex-col gap-0.5 px-5 py-2 text-sm">
+              <span id="search-checkin-label" className="text-xs text-black/60">
+                {t("checkin")}
+              </span>
+              <button
+                type="button"
+                onClick={openCalendar}
+                aria-haspopup="dialog"
+                aria-expanded={isCalendarOpen}
+                aria-labelledby="search-checkin-label"
+                className="bg-transparent text-start"
+              >
+                {range?.from ? toISODate(range.from) : t("checkin")}
+              </button>
+            </div>
 
-        <div className="flex flex-1 flex-col gap-0.5 px-5 py-2 text-sm">
-          <span id="search-checkout-label" className="text-xs text-black/60">
-            {t("checkout")}
-          </span>
-          <button
-            type="button"
-            onClick={openCalendar}
-            aria-haspopup="dialog"
-            aria-expanded={isCalendarOpen}
-            aria-labelledby="search-checkout-label"
-            className="bg-transparent text-start"
-          >
-            {range?.to ? toISODate(range.to) : t("checkout")}
-          </button>
-        </div>
+            <div className="flex flex-1 flex-col gap-0.5 px-5 py-2 text-sm">
+              <span id="search-checkout-label" className="text-xs text-black/60">
+                {t("checkout")}
+              </span>
+              <button
+                type="button"
+                onClick={openCalendar}
+                aria-haspopup="dialog"
+                aria-expanded={isCalendarOpen}
+                aria-labelledby="search-checkout-label"
+                className="bg-transparent text-start"
+              >
+                {range?.to ? toISODate(range.to) : t("checkout")}
+              </button>
+            </div>
+          </div>
 
-        <label className="flex flex-1 flex-col gap-0.5 px-5 py-2 text-sm">
-          <span className="text-xs text-black/60">{t("guests")}</span>
-          <input
-            type="number"
-            min={1}
-            value={guests}
-            onChange={(e) => setGuests(Number(e.target.value))}
-            required
-            className="bg-transparent"
-          />
-        </label>
+          <label className="flex flex-1 flex-col gap-0.5 px-5 py-2 text-sm">
+            <span className="text-xs text-black/60">{t("guests")}</span>
+            <input
+              type="number"
+              min={1}
+              value={guests}
+              onChange={(e) => setGuests(Number(e.target.value))}
+              required
+              className="bg-transparent"
+            />
+          </label>
 
-        <div className="flex items-center justify-center p-2 sm:ps-1">
+          {/* Desktop: circular icon button inline with the pill */}
+          <div className="hidden items-center justify-center p-2 ps-1 sm:flex">
+            <button
+              type="submit"
+              disabled={!range?.from || !range?.to}
+              aria-label={t("submit")}
+              title={t("submit")}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground disabled:opacity-50"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Mobile: full-width bar as the bottom row of the search card */}
           <button
             type="submit"
             disabled={!range?.from || !range?.to}
-            aria-label={t("submit")}
-            title={t("submit")}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground disabled:opacity-50"
+            className="flex h-12 w-full items-center justify-center bg-brand text-base font-bold text-brand-foreground disabled:opacity-50 sm:hidden"
           >
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="7" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
+            {t("submit")}
           </button>
         </div>
 
