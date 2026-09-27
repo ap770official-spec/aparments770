@@ -1,10 +1,14 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { getPropertyById } from "@/lib/properties";
+import { getPropertyById, type PropertyType } from "@/lib/properties";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
-import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 import { getWalkingDirections } from "@/lib/mapbox";
+import { formatHebrewDateShort } from "@/lib/hebrewDate";
 import Map from "@/components/Map";
 import FavoriteButton from "@/components/FavoriteButton";
+import ShareMenu from "@/components/ShareMenu";
+import PropertyGallery from "@/components/PropertyGallery";
+import PropertyAmenities from "@/components/PropertyAmenities";
+import BackToSearchLink from "@/components/BackToSearchLink";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +22,20 @@ const AMENITY_CATEGORIES = [
   "shabbat_kosher",
   "proximity",
 ] as const;
+
+const TYPE_LABEL_KEYS: Record<PropertyType, string> = {
+  apartment: "typeApartment",
+  house: "typeHouse",
+  basement: "typeBasement",
+};
+
+function formatDisplayDate(isoDate: string, locale: string): string {
+  if (locale === "he") return formatHebrewDateShort(isoDate);
+  return new Date(`${isoDate}T00:00:00`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
 
 export default async function PropertyPage({
   params,
@@ -33,8 +51,6 @@ export default async function PropertyPage({
   const { locale, id } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("property");
-  const tCategory = await getTranslations("amenityCategories");
-  const tAmenity = await getTranslations("amenities");
   const query = await searchParams;
 
   const property = await getPropertyById(id);
@@ -55,31 +71,26 @@ export default async function PropertyPage({
       ? (property.description_he ?? property.description_en)
       : (property.description_en ?? property.description_he);
 
-  const message =
-    query.checkin && query.checkout && query.guests
-      ? t("whatsappMessage", {
-          address: property.address,
-          checkin: query.checkin,
-          checkout: query.checkout,
-          guests: query.guests,
-        })
-      : t("whatsappMessageGeneric", { address: property.address });
+  const landmark = property.regions;
+  const landmarkName = landmark
+    ? locale === "he"
+      ? landmark.name_he
+      : landmark.name_en
+    : "";
 
-  const whatsappLink = buildWhatsAppLink({
-    countryCode: property.phone_country_code,
-    phoneNumber: property.phone_number,
-    message,
-  });
-
-  const amenitiesByCategory = AMENITY_CATEGORIES.map((category) => ({
-    category,
-    items: property.property_amenities.filter(
-      (a) => a.category === category,
-    ),
-  })).filter((group) => group.items.length > 0);
+  // The exact address is only revealed to a renter once they've contacted
+  // the owner (see PropertyForm's step-1 copy) - so the page title is
+  // generated from non-sensitive facts instead of showing property.address.
+  const typeLabel = t(TYPE_LABEL_KEYS[property.property_type]);
+  const title = landmark
+    ? t("generatedTitle", {
+        type: typeLabel,
+        bedrooms: property.bedrooms,
+        region: landmarkName,
+      })
+    : typeLabel;
 
   const hasPropertyLocation = property.lat != null && property.lng != null;
-  const landmark = property.regions;
   const hasLandmarkLocation =
     landmark?.landmark_lat != null && landmark?.landmark_lng != null;
 
@@ -91,167 +102,263 @@ export default async function PropertyPage({
         })
       : null;
 
-  return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
-      {photos.length > 0 && (
-        <div className="grid gap-2 sm:grid-cols-2">
-          {photos.map((photo) =>
-            photo.media_type === "video" ? (
-              <video
-                key={photo.url}
-                src={optimizedCloudinaryUrl(photo.url)}
-                className="h-56 w-full rounded-lg object-cover"
-                muted
-                controls
-              />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={photo.url}
-                src={optimizedCloudinaryUrl(photo.url)}
-                alt={property.address}
-                className="h-56 w-full rounded-lg object-cover"
-              />
-            ),
-          )}
-        </div>
-      )}
+  // The outgoing message deliberately doesn't include property.address -
+  // the renter doesn't know it yet, and echoing it back here would leak it
+  // into their own compose box before the owner has said a word.
+  const message =
+    query.checkin && query.checkout && query.guests
+      ? t("whatsappMessage", {
+          title,
+          checkin: query.checkin,
+          checkout: query.checkout,
+          guests: query.guests,
+        })
+      : t("whatsappMessageGeneric", { title });
 
-      <div className="mt-6 flex items-start justify-between gap-4">
-        <h1 className="text-2xl font-semibold">{property.address}</h1>
-        <FavoriteButton propertyId={property.id} />
+  const whatsappLink = buildWhatsAppLink({
+    countryCode: property.phone_country_code,
+    phoneNumber: property.phone_number,
+    message,
+  });
+
+  const amenityGroups = AMENITY_CATEGORIES.map((category) => ({
+    category,
+    items: property.property_amenities.filter((a) => a.category === category),
+  })).filter((group) => group.items.length > 0);
+
+  const hasDates = Boolean(query.checkin && query.checkout && query.guests);
+  const datesCard = hasDates && (
+    <div className="flex flex-col overflow-hidden rounded-[10px] border border-[#E5DED3]">
+      <div className="grid grid-cols-2">
+        <div className="flex flex-col gap-0.5 border-b border-e border-[#E5DED3] px-3.5 py-2.5">
+          <span className="text-[10px] font-semibold text-[#8A8073]">
+            {t("datesCheckin")}
+          </span>
+          <span className="text-[13px] text-ink">
+            {formatDisplayDate(query.checkin!, locale)}
+          </span>
+        </div>
+        <div className="flex flex-col gap-0.5 border-b border-[#E5DED3] px-3.5 py-2.5">
+          <span className="text-[10px] font-semibold text-[#8A8073]">
+            {t("datesCheckout")}
+          </span>
+          <span className="text-[13px] text-ink">
+            {formatDisplayDate(query.checkout!, locale)}
+          </span>
+        </div>
       </div>
-      <p className="mt-1 text-xl font-semibold">
-        ${property.price_per_night}{" "}
-        <span className="text-sm font-normal text-black/60">
-          {t("perNight")}
+      <div className="flex flex-col gap-0.5 px-3.5 py-2.5">
+        <span className="text-[10px] font-semibold text-[#8A8073]">
+          {t("datesGuestsLabel")}
         </span>
-      </p>
+        <span className="text-[13px] text-ink">
+          {t("datesGuestsValue", { count: Number(query.guests) })}
+        </span>
+      </div>
+    </div>
+  );
 
-      {description && (
-        <p className="mt-4 text-black/70">
-          {description}
-        </p>
-      )}
+  const priceBlock = (
+    <div className="flex items-baseline gap-1">
+      <span className="text-xl font-bold text-ink sm:text-2xl">
+        ${property.price_per_night}
+      </span>
+      <span className="text-sm text-[#8A8073]">{t("perNightSuffix")}</span>
+    </div>
+  );
 
-      <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-4">
-        <div>
-          <dt className="text-black/60">
-            {t("bedrooms")}
-          </dt>
-          <dd className="font-medium">{property.bedrooms}</dd>
+  return (
+    <div className="pb-[76px] sm:pb-0">
+      <div className="mx-auto max-w-6xl sm:px-10 sm:pt-5">
+        <div className="hidden sm:block">
+          <BackToSearchLink />
         </div>
-        <div>
-          <dt className="text-black/60">{t("beds")}</dt>
-          <dd className="font-medium">{property.beds}</dd>
-        </div>
-        <div>
-          <dt className="text-black/60">
-            {t("toilets")}
-          </dt>
-          <dd className="font-medium">{property.toilets}</dd>
-        </div>
-        <div>
-          <dt className="text-black/60">
-            {t("bathtubs")}
-          </dt>
-          <dd className="font-medium">{property.bathtubs}</dd>
-        </div>
-        {property.checkin_time && (
-          <div>
-            <dt className="text-black/60">
-              {t("checkin")}
-            </dt>
-            <dd className="font-medium">{property.checkin_time}</dd>
-          </div>
-        )}
-        {property.checkout_time && (
-          <div>
-            <dt className="text-black/60">
-              {t("checkout")}
-            </dt>
-            <dd className="font-medium">{property.checkout_time}</dd>
-          </div>
-        )}
-        {property.max_guests !== null && (
-          <div>
-            <dt className="text-black/60">
-              {t("maxGuests")}
-            </dt>
-            <dd className="font-medium">{property.max_guests}</dd>
-          </div>
-        )}
-        {property.min_nights !== null && (
-          <div>
-            <dt className="text-black/60">
-              {t("minNights")}
-            </dt>
-            <dd className="font-medium">{property.min_nights}</dd>
-          </div>
-        )}
-      </dl>
 
-      {amenitiesByCategory.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold">{t("amenitiesTitle")}</h2>
-          {amenitiesByCategory.map((group) => (
-            <div key={group.category} className="mt-3">
-              <p className="text-sm font-medium text-black/60">
-                {tCategory(group.category)}
-              </p>
-              <ul className="mt-1 flex flex-wrap gap-2">
-                {group.items.map((item) => (
-                  <li
-                    key={item.amenity_key}
-                    className="rounded-full border border-black/10 px-3 py-1 text-sm"
-                  >
-                    {tAmenity(item.amenity_key)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {hasPropertyLocation && (
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold">{t("locationTitle")}</h2>
-          {walking && landmark && (
-            <p className="mt-1 text-sm text-black/70">
-              {t("walkingTime", {
-                minutes: walking.minutes,
-                landmark: locale === "he" ? landmark.name_he : landmark.name_en,
-              })}
-            </p>
-          )}
-          <Map
-            className="mt-3 h-80 w-full rounded-lg"
-            markers={[
-              { lat: property.lat!, lng: property.lng!, color: "#171717" },
-              ...(hasLandmarkLocation
-                ? [
-                    {
-                      lat: landmark!.landmark_lat!,
-                      lng: landmark!.landmark_lng!,
-                      color: "#a16207",
-                      label: locale === "he" ? landmark!.name_he : landmark!.name_en,
-                    },
-                  ]
-                : []),
-            ]}
+        <div className="mt-0 sm:mt-4">
+          <PropertyGallery
+            photos={photos}
+            propertyId={property.id}
+            shareText={title}
           />
         </div>
-      )}
 
-      <a
-        href={whatsappLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-8 inline-block rounded-md bg-foreground px-6 py-3 text-background"
-      >
-        {t("contactWhatsApp")}
-      </a>
+        <div className="flex flex-col gap-2 px-4 pt-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6 sm:px-0 sm:pt-8">
+          <div className="flex flex-col gap-2">
+            <h1 className="font-serif-brand text-xl font-bold leading-tight text-ink sm:text-[32px]">
+              {title}
+            </h1>
+            <div className="flex flex-wrap items-center gap-2 text-[13px] text-[#5C5349] sm:text-sm">
+              <span>
+                {property.max_guests !== null
+                  ? t("roomsGuestsLine", {
+                      rooms: property.bedrooms,
+                      guests: property.max_guests,
+                    })
+                  : t("roomsOnlyLine", { rooms: property.bedrooms })}
+              </span>
+            </div>
+            {walking && landmark && (
+              <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white">
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  aria-hidden="true"
+                >
+                  <path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11z" />
+                  <circle cx="12" cy="10" r="2.2" />
+                </svg>
+                {t("walkingTimePill", {
+                  minutes: walking.minutes,
+                  landmark: landmarkName,
+                })}
+              </span>
+            )}
+          </div>
+          <div className="hidden shrink-0 items-center gap-2.5 sm:flex">
+            <FavoriteButton propertyId={property.id} showLabel />
+            <ShareMenu
+              shareText={title}
+              buttonClassName="flex h-11 w-11 items-center justify-center rounded-full border border-ink"
+            />
+          </div>
+        </div>
+
+        <div className="px-4 pt-4 sm:hidden">{priceBlock}</div>
+        {hasDates && <div className="px-4 pt-4 sm:hidden">{datesCard}</div>}
+
+        <div className="mt-5 flex flex-col gap-8 px-4 pb-8 sm:mt-9 sm:grid sm:grid-cols-[2fr_1fr] sm:gap-11 sm:px-0">
+          <div className="flex flex-col gap-7">
+            {description && (
+              <div className="flex flex-col gap-2.5 border-b border-[#E5DED3] pb-6">
+                <h2 className="text-lg font-bold text-ink sm:text-[19px]">
+                  {t("aboutTitle")}
+                </h2>
+                <p className="text-sm leading-7 text-[#5C5349] sm:text-[15px]">
+                  {description}
+                </p>
+              </div>
+            )}
+
+            {amenityGroups.length > 0 && (
+              <div className="border-b border-[#E5DED3] pb-6">
+                <PropertyAmenities groups={amenityGroups} />
+              </div>
+            )}
+
+            {hasPropertyLocation && landmark && (
+              <div className="flex flex-col gap-3">
+                <h2 className="text-lg font-bold text-ink sm:text-[19px]">
+                  {t("walkingDistanceTitle", { landmark: landmarkName })}
+                </h2>
+                {walking && (
+                  <div className="flex items-center gap-3.5 rounded-xl border border-[#E5DED3] p-4">
+                    <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-ink sm:h-11 sm:w-11">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="2"
+                        aria-hidden="true"
+                      >
+                        <path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11z" />
+                        <circle cx="12" cy="10" r="2.5" />
+                      </svg>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[13.5px] font-semibold text-ink sm:text-[15px]">
+                        {t("walkingTimeApprox", {
+                          minutes: walking.minutes,
+                          landmark: landmarkName,
+                        })}
+                      </span>
+                      <span className="hidden text-[13px] text-[#8A8073] sm:inline">
+                        {t("walkingTimeNote")}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                <Map
+                  className="h-40 w-full rounded-xl sm:h-52"
+                  markers={[
+                    { lat: property.lat!, lng: property.lng!, color: "#1A1512" },
+                    ...(hasLandmarkLocation
+                      ? [
+                          {
+                            lat: landmark.landmark_lat!,
+                            lng: landmark.landmark_lng!,
+                            color: "#6F4E37",
+                            label: landmarkName,
+                          },
+                        ]
+                      : []),
+                  ]}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="hidden sm:block">
+            <div className="sticky top-6 flex flex-col gap-4 rounded-2xl border border-[#E5DED3] p-6 shadow-[0_4px_24px_rgba(26,21,18,0.08)]">
+              {priceBlock}
+              {hasDates && datesCard}
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 rounded-[10px] bg-accent-whatsapp px-4 py-3.5 text-base font-bold text-white"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="white"
+                  aria-hidden="true"
+                >
+                  <path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.5.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3C4.3 15 4 13.5 4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8z" />
+                </svg>
+                {t("contactWhatsApp")}
+              </a>
+              <span className="text-center text-xs text-[#8A8073]">
+                {t("bookingNote")}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-[#E5DED3] bg-white px-4 py-3 sm:hidden">
+        <div className="flex flex-col leading-tight">
+          <span className="text-[15px] font-bold text-ink">
+            ${property.price_per_night}
+          </span>
+          <span className="text-[11px] text-[#8A8073]">
+            {t("perNightSuffix")}
+          </span>
+        </div>
+        <a
+          href={whatsappLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-accent-whatsapp px-3 py-3.5 text-sm font-bold text-white"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="white"
+            aria-hidden="true"
+          >
+            <path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.5.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3C4.3 15 4 13.5 4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8z" />
+          </svg>
+          {t("contactWhatsApp")}
+        </a>
+      </div>
     </div>
   );
 }
