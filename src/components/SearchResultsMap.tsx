@@ -26,6 +26,12 @@ export default function SearchResultsMap({
     onSelectRef.current = onSelect;
   }, [onSelect]);
 
+  function markerClassName(isSelected: boolean) {
+    return isSelected
+      ? "rounded-full border border-brand bg-brand px-3 py-[7px] text-[13px] font-bold text-brand-foreground shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-colors"
+      : "rounded-full border border-[#E5DED3] bg-white px-3 py-[7px] text-[13px] font-bold text-[#1A1512] shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-colors";
+  }
+
   const located = properties.filter(
     (p): p is PropertySummary & { lat: number; lng: number } =>
       p.lat != null && p.lng != null,
@@ -51,8 +57,7 @@ export default function SearchResultsMap({
       const el = document.createElement("button");
       el.type = "button";
       el.dataset.propertyId = property.id;
-      el.className =
-        "rounded-full border border-black/15 bg-background px-3 py-1 text-sm font-semibold shadow-sm transition-colors hover:bg-brand hover:text-brand-foreground";
+      el.className = markerClassName(property.id === selectedId);
       el.textContent = `$${property.price_per_night}`;
       el.addEventListener("click", () => onSelectRef.current(property.id));
       markerElsRef.current[property.id] = el;
@@ -67,12 +72,12 @@ export default function SearchResultsMap({
       const el = document.createElement("div");
       el.className = "flex flex-col items-center gap-1";
       el.innerHTML = `
-        <div class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-background bg-brand text-brand-foreground shadow">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
-            <path d="M12 3 3 10.5V21h6v-6h6v6h6V10.5L12 3Z"/>
+        <div class="flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-white bg-brand shadow-[0_4px_14px_rgba(0,0,0,0.25)]">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 11l9-8 9 8"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path>
           </svg>
         </div>
-        <span class="rounded-full bg-brand px-2 py-0.5 text-xs font-semibold text-brand-foreground">${landmarkLabel ?? "770"}</span>
+        <span class="rounded-full bg-brand px-[10px] py-[3px] text-[11px] font-bold text-brand-foreground">${landmarkLabel ?? "770"}</span>
       `;
       new mapboxgl.Marker({ element: el, anchor: "bottom" })
         .setLngLat([landmark.lng, landmark.lat])
@@ -94,8 +99,7 @@ export default function SearchResultsMap({
 
   useEffect(() => {
     for (const [id, el] of Object.entries(markerElsRef.current)) {
-      el.classList.toggle("bg-brand", id === selectedId);
-      el.classList.toggle("text-brand-foreground", id === selectedId);
+      el.className = markerClassName(id === selectedId);
     }
   }, [selectedId]);
 
