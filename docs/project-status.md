@@ -104,8 +104,9 @@ Preset בשימוש: `xsqxl7fz` (Unsigned), עם **Incoming Transformation**
 4. **property_amenities** — שורה לכל (דירה, שירות), לא עמודות בוליאניות.
 5. **property_photos** — קישורי Cloudinary בלבד, `media_type` image/video.
 
-RLS: ציבור רואה רק `approved`; בעלים רואים/עורכים רק את שלהם; `/admin` עוקף RLS
-לגמרי (service_role key, שרת בלבד).
+RLS: ציבור רואה רק `approved`; בעלים רואים/עורכים/**מוחקים** רק את שלהם
+(policy למחיקה נוסף ב-27 בספטמבר 2026); `/admin` עוקף RLS לגמרי
+(service_role key, שרת בלבד).
 
 ### נתוני בדיקה שכבר קיימים
 - **דירה 1** (`556 Albany Ave`, Crown Heights) — הוכנסה ידנית ב-SQL, מאושרת מההתחלה,
@@ -223,11 +224,13 @@ src/
   בכותרת — יושם ב-27 בספטמבר 2026**: כרטיסי דירות מעוצבים מחדש (`owner/
   dashboard/page.tsx`) עם פילס סטטוס (פעיל/ממתין/לא פעיל/נדחה — נגזר
   מ-`approval_status`+`availability_mode`), תפריט "..." לכל כרטיס (שיתוף
-  דרך Web Share API/העתקת קישור, ומחיקה — **דורש הרצת ה-policy החדש
-  ב-`supabase/schema.sql`, "Owners can delete their own properties", ב-
-  Supabase לפני שמחיקה תעבוד בפועל**), וכפתור "הפעלה מחדש" מהיר לדירה
-  מושהית. בכותרת נוסף כפתור עיגול "אזור אישי" עם תפריט נפתח (הדירות שלי/
-  פרסום דירה/התנתקות). טוקני צבע חדשים נוספו (`--color-border-soft`,
+  דרך Web Share API/העתקת קישור, ומחיקה — עם חלון אישור דו-שלבי מעוצב
+  לפני מחיקה בפועל, לא `window.confirm` גולמי), וכפתור "הפעלה מחדש" מהיר
+  לדירה מושהית. ה-RLS policy הנדרש למחיקה ("Owners can delete their own
+  properties") **כבר הורץ ב-Supabase ב-27 בספטמבר 2026** — המחיקה פעילה
+  ועובדת בפועל, לא רק ב-UI. בכותרת נוסף כפתור עיגול "אזור אישי" עם תפריט
+  נפתח (הדירות שלי/פרסום דירה/התנתקות). טוקני צבע חדשים נוספו
+  (`--color-border-soft`,
   `--color-text-secondary`, `--color-status-*` וכו'). **לא נגעתי** בניווט
   הדסקטופ/Footer/מצב-התחברות בכותרת — אלה מטופלים במקביל בסבב handoff
   אחר (`docs/handoff-2026-09-22-header-footer-structure.md`); ייתכן צורך
