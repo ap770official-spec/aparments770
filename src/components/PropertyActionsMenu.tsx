@@ -18,6 +18,7 @@ export default function PropertyActionsMenu({
   const router = useRouter();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [justCopied, setJustCopied] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -42,6 +43,17 @@ export default function PropertyActionsMenu({
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isConfirmOpen) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !deleting) setIsConfirmOpen(false);
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isConfirmOpen, deleting]);
+
   async function handleShare() {
     const url = new URL(propertyPath, window.location.origin).toString();
 
@@ -60,15 +72,19 @@ export default function PropertyActionsMenu({
     setTimeout(() => setJustCopied(false), 1500);
   }
 
-  async function handleDelete() {
-    if (!window.confirm(t("deleteConfirm"))) return;
+  function handleDeleteClick() {
+    setIsOpen(false);
+    setIsConfirmOpen(true);
+  }
+
+  async function handleConfirmDelete() {
     setDeleting(true);
     try {
       await deleteProperty(propertyId);
       router.refresh();
     } finally {
       setDeleting(false);
-      setIsOpen(false);
+      setIsConfirmOpen(false);
     }
   }
 
@@ -104,13 +120,55 @@ export default function PropertyActionsMenu({
           </button>
           <button
             type="button"
-            onClick={handleDelete}
-            disabled={deleting}
+            onClick={handleDeleteClick}
             role="menuitem"
-            className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-start text-sm font-semibold text-danger hover:bg-black/5 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-start text-sm font-semibold text-danger hover:bg-black/5"
           >
             {t("delete")}
           </button>
+        </div>
+      )}
+
+      {isConfirmOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={(event) => {
+            if (event.target === event.currentTarget && !deleting) {
+              setIsConfirmOpen(false);
+            }
+          }}
+        >
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-confirm-title"
+            className="w-full max-w-sm rounded-2xl border border-border-soft bg-background p-5 shadow-lg"
+          >
+            <h2 id="delete-confirm-title" className="text-base font-bold">
+              {t("delete")}
+            </h2>
+            <p className="mt-2 text-sm text-text-secondary">
+              {t("deleteConfirm")}
+            </p>
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setIsConfirmOpen(false)}
+                disabled={deleting}
+                className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm font-semibold disabled:opacity-50"
+              >
+                {t("cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+                className="flex-1 rounded-lg bg-danger px-3 py-2 text-sm font-bold text-brand-foreground disabled:opacity-50"
+              >
+                {deleting ? t("deleting") : t("delete")}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

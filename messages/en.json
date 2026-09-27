@@ -129,6 +129,8 @@
     "shareCopied": "Link copied",
     "delete": "Delete",
     "deleteConfirm": "Delete this apartment? This can't be undone.",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
     "availabilityMode": {
       "label": "Availability mode",
       "fully_locked": "Fully locked",

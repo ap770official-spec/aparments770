@@ -129,6 +129,8 @@
     "shareCopied": "הקישור הועתק",
     "delete": "מחק",
     "deleteConfirm": "למחוק את הדירה? הפעולה בלתי הפיכה.",
+    "cancel": "ביטול",
+    "deleting": "מוחק...",
     "availabilityMode": {
       "label": "מצב תפוסה",
       "fully_locked": "נעילה מלאה",
