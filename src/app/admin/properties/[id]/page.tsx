@@ -16,7 +16,16 @@ const STATUS_LABELS: Record<string, string> = {
   rejected: "נדחה",
 };
 
-const AMENITY_CATEGORY_ORDER = ["general", "shabbat_kosher", "proximity"] as const;
+const AMENITY_CATEGORY_ORDER = [
+  "kitchen",
+  "climate",
+  "bathroom",
+  "safety",
+  "family",
+  "outdoor",
+  "shabbat_kosher",
+  "proximity",
+] as const;
 
 function defaultExpiryDate(): string {
   const d = new Date();

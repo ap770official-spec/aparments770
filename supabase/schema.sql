@@ -88,6 +88,11 @@ create policy "Owners can update their own profile"
 --   availability_mode — owner-controlled (booking availability)
 -- lat/lng/walking_minutes_to_landmark are left null until the
 -- Mapbox integration is built (stage ד').
+--
+-- property_type was added later (2026-09-26, property form wizard) —
+-- see docs/handoff-2026-09-26-property-form-wizard-sql.md for the
+-- exact migration statement that was run manually in the Supabase
+-- SQL Editor for the already-live database.
 -- =========================================================
 
 create table public.properties (
@@ -99,6 +104,10 @@ create table public.properties (
   lat numeric,
   lng numeric,
   walking_minutes_to_landmark integer,
+  address_notes text,
+
+  property_type text not null default 'apartment'
+    check (property_type in ('apartment', 'house', 'basement')),
 
   bedrooms smallint not null default 0 check (bedrooms between 0 and 30),
   beds smallint not null default 0 check (beds between 0 and 30),
@@ -162,16 +171,29 @@ create policy "Owners can update their own properties"
 -- properties, so new amenity types can be added later without a
 -- schema change. RLS checks ownership via a join to properties,
 -- since this table has no owner_id column of its own.
+--
+-- The category/amenity_key CHECK constraints that used to whitelist
+-- specific values were dropped (2026-09-26, property form wizard) —
+-- validation now lives only in the app, matching the original intent
+-- of this table ("new amenity types can be added later without a
+-- schema change"). See docs/handoff-2026-09-26-property-form-wizard-sql.md
+-- for the exact statements run manually against the live database.
+-- Current app-side categories/keys (src/components/PropertyForm.tsx):
+--   kitchen: kitchen_hotplate, kitchen_urn, kitchen_fridge, kitchen_stove,
+--     kitchen_oven, kitchen_microwave, kitchen_kettle, kitchen_coffee, kitchen_utensils
+--   climate: wifi, ac, heating
+--   bathroom: linens, toiletries, hairdryer, washer, dryer, iron
+--   safety: safe, smoke_detector, fire_extinguisher, first_aid
+--   family: crib, games
+--   outdoor: balcony, sukkah, parking
+--   shabbat_kosher: shabbat_elevator, non_electric_lock, hotplate, shabbat_clock, kosher_kitchen
+--   proximity: supermarket, mikvah, bakery, subway
 -- =========================================================
 
 create table public.property_amenities (
   property_id uuid not null references public.properties(id) on delete cascade,
-  category text not null check (category in ('general','shabbat_kosher','proximity')),
-  amenity_key text not null check (amenity_key in (
-    'dryer','balcony_yard','iron','storage_closets','crib','elevator',
-    'shabbat_elevator','non_electric_lock','hotplate','shabbat_clock','kosher_kitchen','sukkah',
-    'supermarket','mikvah','bakery','subway'
-  )),
+  category text not null,
+  amenity_key text not null,
   primary key (property_id, amenity_key)
 );
 

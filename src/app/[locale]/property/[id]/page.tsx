@@ -9,7 +9,12 @@ import FavoriteButton from "@/components/FavoriteButton";
 export const dynamic = "force-dynamic";
 
 const AMENITY_CATEGORIES = [
-  "general",
+  "kitchen",
+  "climate",
+  "bathroom",
+  "safety",
+  "family",
+  "outdoor",
   "shabbat_kosher",
   "proximity",
 ] as const;
