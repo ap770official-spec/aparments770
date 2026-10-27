@@ -3,8 +3,9 @@ import type {
   PropertyEdit,
   PropertyPhoto,
 } from "@/lib/properties";
+import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 import { approvePropertyEdit, rejectPropertyEdit } from "../../actions";
-import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import PendingSubmitButton from "@/components/admin/PendingSubmitButton";
 import he from "../../../../../messages/he.json";
 
 const PROPERTY_TYPE_LABELS: Record<string, string> = {
@@ -42,16 +43,16 @@ function MediaThumb({
     <div className="relative">
       {photo.media_type === "video" ? (
         <video
-          src={photo.url}
+          src={optimizedCloudinaryUrl(photo.url)}
           controls
-          className="aspect-square w-full rounded-md object-cover"
+          className="aspect-square w-full rounded-lg bg-placeholder object-cover"
         />
       ) : (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={photo.url}
+          src={optimizedCloudinaryUrl(photo.url)}
           alt=""
-          className="aspect-square w-full rounded-md object-cover"
+          className="aspect-square w-full rounded-lg bg-placeholder object-cover"
         />
       )}
       {tag && (
@@ -176,11 +177,17 @@ export default function PendingEditSection({
     !mediaChanged;
 
   return (
-    <section className="mt-8 rounded-xl border border-amber-300 bg-amber-50 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <section
+      id="pending-edit"
+      aria-labelledby="pending-edit-title"
+      className="mt-5 scroll-mt-4 rounded-2xl border border-amber-400/70 bg-amber-50 p-5"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="font-semibold">עריכה ממתינה לאישור</h2>
-          <p className="mt-0.5 text-sm text-black/60">
+          <h2 id="pending-edit-title" className="text-base font-bold text-ink">
+            בעל הדירה שלח עריכה שממתינה לאישור
+          </h2>
+          <p className="mt-1 text-sm text-ink-soft">
             נשלחה ב-
             {new Date(edit.created_at).toLocaleString("en-GB", {
               dateStyle: "short",
@@ -189,22 +196,23 @@ export default function PendingEditSection({
             . עד האישור הדירה מוצגת באתר כפי שהיא למטה.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex shrink-0 gap-2">
           <form action={approvePropertyEdit.bind(null, edit.id)}>
-            <button
-              type="submit"
-              className="rounded-md bg-foreground px-3 py-1 text-background"
+            <PendingSubmitButton
+              pendingLabel="מאשר…"
+              className="min-h-11 cursor-pointer rounded-lg bg-brand px-5 text-sm font-semibold text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
             >
               אשר עריכה
-            </button>
+            </PendingSubmitButton>
           </form>
           <form action={rejectPropertyEdit.bind(null, edit.id)}>
-            <ConfirmSubmitButton
+            <PendingSubmitButton
+              pendingLabel="דוחה…"
               confirmMessage="לדחות את העריכה? הדירה תישאר באתר כפי שהיא."
-              className="rounded-md border border-black/15 bg-white px-3 py-1"
+              className="min-h-11 cursor-pointer rounded-lg border border-black/15 bg-white px-4 text-sm font-semibold text-ink hover:bg-black/5 disabled:cursor-wait disabled:opacity-60"
             >
               דחה עריכה
-            </ConfirmSubmitButton>
+            </PendingSubmitButton>
           </form>
         </div>
       </div>
@@ -216,28 +224,28 @@ export default function PendingEditSection({
       )}
 
       {changedRows.length > 0 && (
-        <div className="mt-4 overflow-x-auto">
+        <div className="mt-4 overflow-x-auto rounded-xl border border-line bg-white">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-black/10 text-black/60">
-                <th className="p-2 text-start font-medium">שדה</th>
-                <th className="p-2 text-start font-medium">עכשיו באתר</th>
-                <th className="p-2 text-start font-medium">אחרי העריכה</th>
+                <th className="p-3 text-start font-medium">שדה</th>
+                <th className="p-3 text-start font-medium">עכשיו באתר</th>
+                <th className="p-3 text-start font-medium">אחרי העריכה</th>
               </tr>
             </thead>
             <tbody>
               {changedRows.map((row) => (
                 <tr key={row.label} className="border-b border-black/5 align-top">
-                  <td className="p-2 text-black/60">{row.label}</td>
+                  <td className="p-3 text-black/60">{row.label}</td>
                   <td
                     dir="auto"
-                    className="p-2 whitespace-pre-wrap text-start text-black/50 line-through decoration-black/30"
+                    className="p-3 whitespace-pre-wrap text-start text-black/50 line-through decoration-black/30"
                   >
                     {display(row.current)}
                   </td>
                   <td
                     dir="auto"
-                    className="p-2 whitespace-pre-wrap text-start font-medium"
+                    className="p-3 whitespace-pre-wrap text-start font-semibold text-ink"
                   >
                     {display(row.proposed)}
                   </td>
@@ -255,7 +263,7 @@ export default function PendingEditSection({
             {addedAmenities.map((key) => (
               <li
                 key={key}
-                className="rounded-md border border-green-300 bg-green-50 px-2 py-1 text-sm text-green-800"
+                className="rounded-full border border-green-300 bg-green-50 px-3 py-1 text-sm text-green-800"
               >
                 + {amenityLabel(key)}
               </li>
@@ -263,7 +271,7 @@ export default function PendingEditSection({
             {removedAmenities.map((key) => (
               <li
                 key={key}
-                className="rounded-md border border-red-300 bg-red-50 px-2 py-1 text-sm text-red-800 line-through"
+                className="rounded-full border border-red-300 bg-red-50 px-3 py-1 text-sm text-red-800 line-through"
               >
                 {amenityLabel(key)}
               </li>
