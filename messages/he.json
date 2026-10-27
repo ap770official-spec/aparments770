@@ -170,12 +170,12 @@
     "noProperties": "עדיין לא פרסמת אף דירה.",
     "perNight": "ללילה",
     "addProperty": "הוסף דירה",
+    "edit": "עריכה",
     "status": {
       "pending_approval": "ממתין לאישור",
       "approved": "מאושר",
       "rejected": "נדחה"
     },
-    "duplicate": "שכפל",
     "availabilityMode": {
       "label": "מצב תפוסה",
       "fully_locked": "נעילה מלאה",
@@ -254,7 +254,13 @@
     "summaryPhotosLabel": "תמונות",
     "summaryPhotosValue": "{count} תמונות",
     "summaryNote": "לאחר השליחה, הדירה לא תופיע באתר עד לאישור ידני של הצוות שלנו.",
-    "summaryNoAddress": "טרם הוזנה כתובת"
+    "summaryNoAddress": "טרם הוזנה כתובת",
+    "editTitle": "עריכת דירה",
+    "editSubtitle": "עדכנו את פרטי הדירה, התמונות והמתקנים, ושמרו את השינויים.",
+    "saveChanges": "שמירת שינויים",
+    "editSuccessTitle": "השינויים נשמרו!",
+    "editSuccessBody": "פרטי הדירה עודכנו בהצלחה.",
+    "editSummaryNote": "השינויים יישמרו בדירה הקיימת."
   },
   "footer": {
     "contact": "צור קשר",

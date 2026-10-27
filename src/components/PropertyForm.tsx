@@ -11,10 +11,14 @@ import { Link } from "@/i18n/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import {
   createProperty,
-  type PropertyForDuplication,
+  updateProperty,
+  type PropertyForEdit,
   type PropertyType,
 } from "@/lib/properties";
-import { uploadMediaToCloudinary } from "@/lib/cloudinary";
+import {
+  optimizedCloudinaryUrl,
+  uploadMediaToCloudinary,
+} from "@/lib/cloudinary";
 import { getWalkingDirections } from "@/lib/mapbox";
 import type { Region } from "@/lib/regions";
 import LocationPicker from "@/components/LocationPicker";
@@ -88,10 +92,15 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   return `${hours}:${minutes}`;
 });
 
-type PendingFile = {
-  file: File;
-  previewUrl: string;
-};
+type MediaItem =
+  | { kind: "existing"; url: string; mediaType: "image" | "video" }
+  | { kind: "new"; file: File; previewUrl: string };
+
+function isVideo(item: MediaItem): boolean {
+  return item.kind === "existing"
+    ? item.mediaType === "video"
+    : item.file.type.startsWith("video/");
+}
 
 type StepStatus = "done" | "active" | "upcoming";
 
@@ -135,8 +144,9 @@ export default function PropertyForm({
 }: {
   regions: Region[];
   ownerId: string;
-  initialProperty?: PropertyForDuplication;
+  initialProperty?: PropertyForEdit;
 }) {
+  const isEdit = initialProperty !== undefined;
   const t = useTranslations("propertyForm");
   const tProperty = useTranslations("property");
   const tCategory = useTranslations("amenityCategories");
@@ -194,11 +204,15 @@ export default function PropertyForm({
   );
   const [descriptionSourceLang, setDescriptionSourceLang] = useState<
     "he" | "en"
-  >("he");
+  >(initialProperty?.description_source_lang ?? "he");
   const [amenities, setAmenities] = useState<Set<string>>(
     new Set(initialAmenityKeys ?? []),
   );
-  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [media, setMedia] = useState<MediaItem[]>(() =>
+    [...(initialProperty?.property_photos ?? [])]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((p) => ({ kind: "existing", url: p.url, mediaType: p.media_type })),
+  );
   const [phoneCountryCode, setPhoneCountryCode] = useState(
     initialProperty?.phone_country_code ?? "+1",
   );
@@ -227,20 +241,24 @@ export default function PropertyForm({
 
   function handleFilesSelected(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
-    setPendingFiles((prev) => {
+    setMedia((prev) => {
       const room = Math.max(0, PHOTO_SLOT_COUNT - prev.length);
-      const accepted = files
-        .slice(0, room)
-        .map((file) => ({ file, previewUrl: URL.createObjectURL(file) }));
+      const accepted = files.slice(0, room).map(
+        (file): MediaItem => ({
+          kind: "new",
+          file,
+          previewUrl: URL.createObjectURL(file),
+        }),
+      );
       return [...prev, ...accepted];
     });
     event.target.value = "";
   }
 
   function removeFile(index: number) {
-    setPendingFiles((prev) => {
+    setMedia((prev) => {
       const removed = prev[index];
-      if (removed) URL.revokeObjectURL(removed.previewUrl);
+      if (removed?.kind === "new") URL.revokeObjectURL(removed.previewUrl);
       return prev.filter((_, i) => i !== index);
     });
   }
@@ -291,7 +309,11 @@ export default function PropertyForm({
     try {
       setUploading(true);
       const uploaded = await Promise.all(
-        pendingFiles.map((pf) => uploadMediaToCloudinary(pf.file)),
+        media.map((item) =>
+          item.kind === "new"
+            ? uploadMediaToCloudinary(item.file)
+            : { url: item.url, mediaType: item.mediaType },
+        ),
       );
       setUploading(false);
 
@@ -304,16 +326,23 @@ export default function PropertyForm({
           .map((key) => ({ category: group.category, amenityKey: key })),
       );
 
+      const locationUnchanged =
+        isEdit &&
+        initialProperty.lat === location.lat &&
+        initialProperty.lng === location.lng;
       const landmark = regions.find((r) => r.id === regionId);
-      const walking =
-        landmark?.landmark_lat != null && landmark?.landmark_lng != null
-          ? await getWalkingDirections({
-              from: { lat: location.lat, lng: location.lng },
-              to: { lat: landmark.landmark_lat, lng: landmark.landmark_lng },
-            })
+      const walkingMinutes = locationUnchanged
+        ? initialProperty.walking_minutes_to_landmark
+        : landmark?.landmark_lat != null && landmark?.landmark_lng != null
+          ? ((
+              await getWalkingDirections({
+                from: { lat: location.lat, lng: location.lng },
+                to: { lat: landmark.landmark_lat, lng: landmark.landmark_lng },
+              })
+            )?.minutes ?? null)
           : null;
 
-      await createProperty(supabase, {
+      const input = {
         ownerId,
         regionId,
         address: location.address,
@@ -321,7 +350,7 @@ export default function PropertyForm({
         lng: location.lng,
         propertyType,
         addressNotes: addressNotes || null,
-        walkingMinutesToLandmark: walking?.minutes ?? null,
+        walkingMinutesToLandmark: walkingMinutes,
         bedrooms,
         beds,
         toilets,
@@ -343,7 +372,13 @@ export default function PropertyForm({
           mediaType: m.mediaType,
           sortOrder: index,
         })),
-      });
+      };
+
+      if (isEdit) {
+        await updateProperty(supabase, initialProperty.id, input);
+      } else {
+        await createProperty(supabase, input);
+      }
 
       setSubmitting(false);
       setSuccess(true);
@@ -373,10 +408,10 @@ export default function PropertyForm({
           </svg>
         </div>
         <h1 className="font-serif-brand text-2xl font-bold text-ink">
-          {t("successTitle")}
+          {isEdit ? t("editSuccessTitle") : t("successTitle")}
         </h1>
         <p className="text-[15px] leading-7 text-[#5C5349]">
-          {t("successBody")}
+          {isEdit ? t("editSuccessBody") : t("successBody")}
         </p>
         <div className="mt-2 flex gap-3">
           <button
@@ -407,7 +442,7 @@ export default function PropertyForm({
     >
       <div className="mb-1 flex items-center justify-between">
         <h1 className="font-serif-brand text-[28px] font-bold text-ink">
-          {t("title")}
+          {isEdit ? t("editTitle") : t("title")}
         </h1>
         <Link
           href="/owner/dashboard"
@@ -416,7 +451,9 @@ export default function PropertyForm({
           {t("exit")}
         </Link>
       </div>
-      <p className="mb-7 text-[15px] text-[#5C5349]">{t("subtitle")}</p>
+      <p className="mb-7 text-[15px] text-[#5C5349]">
+        {isEdit ? t("editSubtitle") : t("subtitle")}
+      </p>
 
       <div className="mb-9 flex items-start">
         {STEP_KEYS.map((key, i) => {
@@ -830,34 +867,42 @@ export default function PropertyForm({
               />
               <div className="grid grid-cols-3 gap-3">
                 {Array.from({ length: PHOTO_SLOT_COUNT }).map((_, index) => {
-                  const pf = pendingFiles[index];
+                  const item = media[index];
                   const isMain = index === 0;
                   return (
                     <div
                       key={index}
                       onClick={() =>
-                        !pf && fileInputRef.current?.click()
+                        !item && fileInputRef.current?.click()
                       }
                       className={`relative flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed ${
-                        pf
+                        item
                           ? "border-[#E5DED3]"
                           : isMain
                             ? "border-brand text-brand"
                             : "border-[#E5DED3] text-[#8A8073]"
-                      } ${!pf ? "cursor-pointer" : ""}`}
+                      } ${!item ? "cursor-pointer" : ""}`}
                     >
-                      {pf ? (
+                      {item ? (
                         <>
-                          {pf.file.type.startsWith("video/") ? (
+                          {isVideo(item) ? (
                             <video
-                              src={pf.previewUrl}
+                              src={
+                                item.kind === "new"
+                                  ? item.previewUrl
+                                  : optimizedCloudinaryUrl(item.url)
+                              }
                               className="h-full w-full rounded-[10px] object-cover"
                               muted
                             />
                           ) : (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={pf.previewUrl}
+                              src={
+                                item.kind === "new"
+                                  ? item.previewUrl
+                                  : optimizedCloudinaryUrl(item.url)
+                              }
                               alt=""
                               className="h-full w-full rounded-[10px] object-cover"
                             />
@@ -868,7 +913,7 @@ export default function PropertyForm({
                               e.stopPropagation();
                               removeFile(index);
                             }}
-                            className="absolute end-1 top-1 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white"
+                            className="absolute end-1.5 top-1.5 inline-flex min-h-8 items-center rounded-full bg-black/70 px-3 text-xs font-semibold text-white transition-colors duration-150 hover:bg-black/85"
                           >
                             {t("removeMedia")}
                           </button>
@@ -987,11 +1032,13 @@ export default function PropertyForm({
                   {t("summaryPhotosLabel")}
                 </span>
                 <span className="font-semibold text-ink">
-                  {t("summaryPhotosValue", { count: pendingFiles.length })}
+                  {t("summaryPhotosValue", { count: media.length })}
                 </span>
               </div>
             </div>
-            <p className="text-[13px] text-[#8A8073]">{t("summaryNote")}</p>
+            <p className="text-[13px] text-[#8A8073]">
+              {isEdit ? t("editSummaryNote") : t("summaryNote")}
+            </p>
           </div>
         )}
 
@@ -1016,7 +1063,9 @@ export default function PropertyForm({
               : submitting
                 ? t("submitting")
                 : step === LAST_STEP
-                  ? t("submitForApproval")
+                  ? isEdit
+                    ? t("saveChanges")
+                    : t("submitForApproval")
                   : t("continue")}
           </button>
         </div>

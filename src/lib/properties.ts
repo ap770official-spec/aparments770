@@ -219,11 +219,13 @@ export async function getAdminPropertyById(
   return data as AdminPropertyDetail | null;
 }
 
-export type PropertyForDuplication = {
+export type PropertyForEdit = {
+  id: string;
   region_id: string;
   address: string;
   lat: number | null;
   lng: number | null;
+  walking_minutes_to_landmark: number | null;
   property_type: PropertyType;
   address_notes: string | null;
   bedrooms: number;
@@ -239,36 +241,38 @@ export type PropertyForDuplication = {
   min_nights: number | null;
   description_he: string | null;
   description_en: string | null;
+  description_source_lang: "he" | "en" | null;
   property_amenities: PropertyAmenity[];
+  property_photos: PropertyPhoto[];
 };
 
 /**
- * Fetches a property's fields for prefilling the "new property" form
- * when duplicating - restricted to the caller's own listings (checked
- * via owner_id, on top of whatever RLS already enforces). Media isn't
- * included: a duplicate should get its own fresh photos, not reuse
- * another listing's.
+ * Fetches a property's fields, amenities and media for prefilling the
+ * property form in edit mode - restricted to the caller's own listings
+ * (checked via owner_id, on top of whatever RLS already enforces).
  */
-export async function getOwnerPropertyForDuplicate(
+export async function getOwnerPropertyForEdit(
   supabase: SupabaseClient,
   id: string,
   ownerId: string,
-): Promise<PropertyForDuplication | null> {
+): Promise<PropertyForEdit | null> {
   const { data, error } = await supabase
     .from("properties")
     .select(
-      `region_id, address, lat, lng, property_type, address_notes, bedrooms, beds, toilets, bathtubs,
+      `id, region_id, address, lat, lng, walking_minutes_to_landmark, property_type, address_notes,
+       bedrooms, beds, toilets, bathtubs,
        price_per_night, phone_country_code, phone_number,
        checkin_time, checkout_time, max_guests, min_nights,
-       description_he, description_en,
-       property_amenities(category, amenity_key)`,
+       description_he, description_en, description_source_lang,
+       property_amenities(category, amenity_key),
+       property_photos(url, sort_order, media_type)`,
     )
     .eq("id", id)
     .eq("owner_id", ownerId)
     .maybeSingle();
 
   if (error) {
-    throw new Error(`Failed to load property to duplicate: ${error.message}`);
+    throw new Error(`Failed to load property to edit: ${error.message}`);
   }
 
   return data;
@@ -315,30 +319,7 @@ export async function createProperty(
 ): Promise<string> {
   const { data: property, error: propertyError } = await supabase
     .from("properties")
-    .insert({
-      owner_id: input.ownerId,
-      region_id: input.regionId,
-      address: input.address,
-      lat: input.lat,
-      lng: input.lng,
-      property_type: input.propertyType,
-      address_notes: input.addressNotes,
-      walking_minutes_to_landmark: input.walkingMinutesToLandmark,
-      bedrooms: input.bedrooms,
-      beds: input.beds,
-      toilets: input.toilets,
-      bathtubs: input.bathtubs,
-      price_per_night: input.pricePerNight,
-      phone_country_code: input.phoneCountryCode,
-      phone_number: input.phoneNumber,
-      checkin_time: input.checkinTime,
-      checkout_time: input.checkoutTime,
-      max_guests: input.maxGuests,
-      min_nights: input.minNights,
-      description_he: input.descriptionHe,
-      description_en: input.descriptionEn,
-      description_source_lang: input.descriptionSourceLang,
-    })
+    .insert({ owner_id: input.ownerId, ...propertyRow(input) })
     .select("id")
     .single();
 
@@ -349,7 +330,82 @@ export async function createProperty(
   }
 
   const propertyId = property.id as string;
+  await insertAmenitiesAndMedia(supabase, propertyId, input);
+  return propertyId;
+}
 
+/**
+ * Updates an owner's property and replaces its amenities and media with
+ * the given lists. Like createProperty, these are sequential writes
+ * rather than one transaction. approval_status is left untouched.
+ */
+export async function updateProperty(
+  supabase: SupabaseClient,
+  propertyId: string,
+  input: NewPropertyInput,
+): Promise<void> {
+  const { error: propertyError } = await supabase
+    .from("properties")
+    .update({ ...propertyRow(input), updated_at: new Date().toISOString() })
+    .eq("id", propertyId)
+    .eq("owner_id", input.ownerId);
+
+  if (propertyError) {
+    throw new Error(`Failed to update property: ${propertyError.message}`);
+  }
+
+  const { error: amenitiesDeleteError } = await supabase
+    .from("property_amenities")
+    .delete()
+    .eq("property_id", propertyId);
+  if (amenitiesDeleteError) {
+    throw new Error(
+      `Failed to clear amenities: ${amenitiesDeleteError.message}`,
+    );
+  }
+
+  const { error: photosDeleteError } = await supabase
+    .from("property_photos")
+    .delete()
+    .eq("property_id", propertyId);
+  if (photosDeleteError) {
+    throw new Error(`Failed to clear photos: ${photosDeleteError.message}`);
+  }
+
+  await insertAmenitiesAndMedia(supabase, propertyId, input);
+}
+
+function propertyRow(input: NewPropertyInput) {
+  return {
+    region_id: input.regionId,
+    address: input.address,
+    lat: input.lat,
+    lng: input.lng,
+    property_type: input.propertyType,
+    address_notes: input.addressNotes,
+    walking_minutes_to_landmark: input.walkingMinutesToLandmark,
+    bedrooms: input.bedrooms,
+    beds: input.beds,
+    toilets: input.toilets,
+    bathtubs: input.bathtubs,
+    price_per_night: input.pricePerNight,
+    phone_country_code: input.phoneCountryCode,
+    phone_number: input.phoneNumber,
+    checkin_time: input.checkinTime,
+    checkout_time: input.checkoutTime,
+    max_guests: input.maxGuests,
+    min_nights: input.minNights,
+    description_he: input.descriptionHe,
+    description_en: input.descriptionEn,
+    description_source_lang: input.descriptionSourceLang,
+  };
+}
+
+async function insertAmenitiesAndMedia(
+  supabase: SupabaseClient,
+  propertyId: string,
+  input: NewPropertyInput,
+): Promise<void> {
   if (input.amenities.length > 0) {
     const { error: amenitiesError } = await supabase
       .from("property_amenities")
@@ -380,6 +436,4 @@ export async function createProperty(
       throw new Error(`Failed to save photos: ${photosError.message}`);
     }
   }
-
-  return propertyId;
 }

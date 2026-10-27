@@ -170,12 +170,12 @@
     "noProperties": "You haven't listed any apartments yet.",
     "perNight": "per night",
     "addProperty": "Add property",
+    "edit": "Edit",
     "status": {
       "pending_approval": "Pending approval",
       "approved": "Approved",
       "rejected": "Rejected"
     },
-    "duplicate": "Duplicate",
     "availabilityMode": {
       "label": "Availability mode",
       "fully_locked": "Fully locked",
@@ -254,7 +254,13 @@
     "summaryPhotosLabel": "Photos",
     "summaryPhotosValue": "{count} photos",
     "summaryNote": "After submitting, the apartment won't appear on the site until our team manually approves it.",
-    "summaryNoAddress": "No address entered yet"
+    "summaryNoAddress": "No address entered yet",
+    "editTitle": "Edit apartment",
+    "editSubtitle": "Update the apartment details, photos and amenities, then save your changes.",
+    "saveChanges": "Save changes",
+    "editSuccessTitle": "Changes saved!",
+    "editSuccessBody": "Your apartment details were updated.",
+    "editSummaryNote": "Your changes will be saved to the existing listing."
   },
   "footer": {
     "contact": "Contact",
