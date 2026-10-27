@@ -30,7 +30,7 @@ export default async function AdminPropertiesPage() {
   const { data: properties, error } = await supabase
     .from("properties")
     .select(
-      "id, address, price_per_night, approval_status, created_at, phone_country_code, phone_number, owners(full_name), regions(name_he)",
+      "id, address, lat, lng, price_per_night, approval_status, created_at, phone_country_code, phone_number, owners(full_name), regions(name_he)",
     )
     .order("created_at", { ascending: false });
 
@@ -84,6 +84,7 @@ export default async function AdminPropertiesPage() {
             <thead>
               <tr className="border-b border-black/10">
                 <th className="p-2 text-start">כתובת</th>
+                <th className="p-2 text-start">מיקום</th>
                 <th className="p-2 text-start">אזור</th>
                 <th className="p-2 text-start">בעלים</th>
                 <th className="p-2 text-start">מחיר</th>
@@ -105,6 +106,15 @@ export default async function AdminPropertiesPage() {
                     >
                       {property.address}
                     </Link>
+                  </td>
+                  <td className="p-2">
+                    {property.lat != null && property.lng != null ? (
+                      <span className="text-black/60">יש מיקום</span>
+                    ) : (
+                      <span className="font-medium text-red-600">
+                        אין מיקום
+                      </span>
+                    )}
                   </td>
                   <td className="p-2">
                     {(
