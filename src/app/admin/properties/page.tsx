@@ -41,6 +41,8 @@ type FilterKey = (typeof FILTERS)[number]["key"];
 type AdminPropertyRow = {
   id: string;
   address: string;
+  lat: number | null;
+  lng: number | null;
   price_per_night: number;
   approval_status: string;
   created_at: string;
@@ -98,7 +100,7 @@ export default async function AdminPropertiesPage({
   const { data, error } = await supabase
     .from("properties")
     .select(
-      `id, address, price_per_night, approval_status, created_at, bedrooms,
+      `id, address, lat, lng, price_per_night, approval_status, created_at, bedrooms,
        max_guests, phone_country_code, phone_number,
        owners(full_name, subscription_expires_at, is_frozen),
        regions(name_he),
@@ -355,6 +357,13 @@ function PropertyRow({
               {STATUS_LABELS[property.approval_status] ?? property.approval_status}
             </span>
             <SubscriptionBadge state={subscription} />
+            {/* No lat/lng = hidden from the search map until the
+                geocodeLegacyProperties backfill (tools below) runs. */}
+            {(property.lat == null || property.lng == null) && (
+              <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                אין מיקום במפה
+              </span>
+            )}
           </div>
 
           <Link
