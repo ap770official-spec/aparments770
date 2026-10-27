@@ -254,7 +254,10 @@
     "summaryPhotosLabel": "תמונות",
     "summaryPhotosValue": "{count} תמונות",
     "summaryNote": "לאחר השליחה, הדירה לא תופיע באתר עד לאישור ידני של הצוות שלנו.",
-    "summaryNoAddress": "טרם הוזנה כתובת"
+    "summaryNoAddress": "טרם הוזנה כתובת",
+    "decrease": "הפחת {label}",
+    "increase": "הוסף {label}",
+    "otherTime": "שעה אחרת"
   },
   "footer": {
     "contact": "צור קשר",

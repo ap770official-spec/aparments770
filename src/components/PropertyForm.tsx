@@ -80,8 +80,8 @@ const STEP_KEYS = [
 ] as const;
 const LAST_STEP = STEP_KEYS.length - 1;
 const PHOTO_SLOT_COUNT = 6;
-const BEDS_OPTIONS = Array.from({ length: 31 }, (_, i) => i);
-const TOILETS_BATHTUBS_OPTIONS = Array.from({ length: 9 }, (_, i) => i);
+const CHECKIN_PRESETS = ["14:00", "15:00", "16:00"];
+const CHECKOUT_PRESETS = ["10:00", "11:00", "12:00"];
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   const hours = String(Math.floor(i / 2)).padStart(2, "0");
   const minutes = i % 2 === 0 ? "00" : "30";
@@ -126,6 +126,153 @@ function amenityChipClass(active: boolean): string {
   return active
     ? "rounded-full border border-brand bg-brand px-4 py-2 text-[13.5px] font-semibold text-brand-foreground"
     : "rounded-full border border-[#E5DED3] bg-white px-4 py-2 text-[13.5px] font-semibold text-ink";
+}
+
+function StepperButton({
+  label,
+  disabled,
+  onClick,
+  kind,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+  kind: "minus" | "plus";
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5DED3] text-ink disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        aria-hidden="true"
+      >
+        <path d={kind === "plus" ? "M12 5v14M5 12h14" : "M5 12h14"} />
+      </svg>
+    </button>
+  );
+}
+
+function Counter({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+  decreaseLabel,
+  increaseLabel,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+  decreaseLabel: string;
+  increaseLabel: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      <span className="text-[13px] font-semibold text-[#8A8073]">{label}</span>
+      <div className="flex items-center gap-3.5">
+        <StepperButton
+          kind="minus"
+          label={decreaseLabel}
+          disabled={value <= min}
+          onClick={() => onChange(Math.max(min, value - 1))}
+        />
+        <span
+          aria-live="polite"
+          className="min-w-5 text-center text-xl font-bold tabular-nums text-ink"
+        >
+          {value}
+        </span>
+        <StepperButton
+          kind="plus"
+          label={increaseLabel}
+          disabled={value >= max}
+          onClick={() => onChange(Math.min(max, value + 1))}
+        />
+      </div>
+    </div>
+  );
+}
+
+function TimePicker({
+  label,
+  value,
+  presets,
+  otherLabel,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  presets: string[];
+  otherLabel: string;
+  onChange: (value: string) => void;
+}) {
+  const isOther = value !== "" && !presets.includes(value);
+  return (
+    <fieldset className="flex flex-col gap-2.5">
+      <legend className="mb-2.5 text-[13px] font-semibold text-[#8A8073]">
+        {label}
+      </legend>
+      <div className="flex flex-wrap gap-2">
+        {presets.map((time) => (
+          <button
+            key={time}
+            type="button"
+            aria-pressed={value === time}
+            onClick={() => onChange(value === time ? "" : time)}
+            className={`${chipClass(value === time)} min-h-11 tabular-nums`}
+            dir="ltr"
+          >
+            {time}
+          </button>
+        ))}
+        <label className="relative">
+          <span className="sr-only">{otherLabel}</span>
+          <select
+            value={isOther ? value : ""}
+            onChange={(e) => onChange(e.target.value)}
+            className={`${chipClass(isOther)} min-h-11 cursor-pointer appearance-none pe-9 tabular-nums`}
+          >
+            <option value="">{otherLabel}</option>
+            {TIME_OPTIONS.filter((time) => !presets.includes(time)).map(
+              (time) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ),
+            )}
+          </select>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className={`pointer-events-none absolute end-3.5 top-1/2 -translate-y-1/2 ${isOther ? "text-brand-foreground" : "text-[#8A8073]"}`}
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </label>
+      </div>
+    </fieldset>
+  );
 }
 
 export default function PropertyForm({
@@ -185,7 +332,7 @@ export default function PropertyForm({
     initialProperty?.checkout_time ?? "",
   );
   const [minNights, setMinNights] = useState(
-    initialProperty?.min_nights ? String(initialProperty.min_nights) : "",
+    initialProperty?.min_nights ?? 1,
   );
   const [descriptionHe, setDescriptionHe] = useState(
     initialProperty?.description_he ?? "",
@@ -356,7 +503,7 @@ export default function PropertyForm({
         checkinTime: checkinTime || null,
         checkoutTime: checkoutTime || null,
         maxGuests,
-        minNights: minNights ? Number(minNights) : null,
+        minNights,
         descriptionHe: descriptionHe || null,
         descriptionEn: descriptionEn || null,
         descriptionSourceLang:
@@ -579,107 +726,28 @@ export default function PropertyForm({
             </div>
 
             <div className="flex flex-wrap gap-8">
-              <div className="flex flex-col gap-2.5">
-                <span className="text-[13px] font-semibold text-[#8A8073]">
-                  {t("roomsLabel")}
-                </span>
-                <div className="flex items-center gap-3.5">
-                  <button
-                    type="button"
-                    aria-label={t("roomsLabel")}
-                    onClick={() =>
-                      setBedrooms((n) => Math.max(0, n - 1))
-                    }
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5DED3]"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.4"
-                      strokeLinecap="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M5 12h14" />
-                    </svg>
-                  </button>
-                  <span className="min-w-5 text-center text-xl font-bold text-ink">
-                    {bedrooms}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={t("roomsLabel")}
-                    onClick={() => setBedrooms((n) => Math.min(30, n + 1))}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5DED3]"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.4"
-                      strokeLinecap="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2.5">
-                <span className="text-[13px] font-semibold text-[#8A8073]">
-                  {t("maxGuestsStepperLabel")}
-                </span>
-                <div className="flex items-center gap-3.5">
-                  <button
-                    type="button"
-                    aria-label={t("maxGuestsStepperLabel")}
-                    onClick={() =>
-                      setMaxGuests((n) => Math.max(1, n - 1))
-                    }
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5DED3]"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.4"
-                      strokeLinecap="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M5 12h14" />
-                    </svg>
-                  </button>
-                  <span className="min-w-5 text-center text-xl font-bold text-ink">
-                    {maxGuests}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={t("maxGuestsStepperLabel")}
-                    onClick={() => setMaxGuests((n) => Math.min(20, n + 1))}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5DED3]"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.4"
-                      strokeLinecap="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
+              <Counter
+                label={t("roomsLabel")}
+                value={bedrooms}
+                min={0}
+                max={30}
+                onChange={setBedrooms}
+                decreaseLabel={t("decrease", { label: t("roomsLabel") })}
+                increaseLabel={t("increase", { label: t("roomsLabel") })}
+              />
+              <Counter
+                label={t("maxGuestsStepperLabel")}
+                value={maxGuests}
+                min={1}
+                max={20}
+                onChange={setMaxGuests}
+                decreaseLabel={t("decrease", {
+                  label: t("maxGuestsStepperLabel"),
+                })}
+                increaseLabel={t("increase", {
+                  label: t("maxGuestsStepperLabel"),
+                })}
+              />
             </div>
 
             <label className="flex max-w-[240px] flex-col gap-1.5 text-sm">
@@ -702,89 +770,60 @@ export default function PropertyForm({
               </div>
             </label>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <label className="flex flex-col gap-1 text-sm">
-                {tProperty("beds")}
-                <select
-                  value={beds}
-                  onChange={(e) => setBeds(Number(e.target.value))}
-                  className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                >
-                  {BEDS_OPTIONS.map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                {tProperty("toilets")}
-                <select
-                  value={toilets}
-                  onChange={(e) => setToilets(Number(e.target.value))}
-                  className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                >
-                  {TOILETS_BATHTUBS_OPTIONS.map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                {tProperty("bathtubs")}
-                <select
-                  value={bathtubs}
-                  onChange={(e) => setBathtubs(Number(e.target.value))}
-                  className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                >
-                  {TOILETS_BATHTUBS_OPTIONS.map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                {tProperty("checkin")}
-                <select
-                  value={checkinTime}
-                  onChange={(e) => setCheckinTime(e.target.value)}
-                  className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                >
-                  <option value="">--:--</option>
-                  {TIME_OPTIONS.map((time) => (
-                    <option key={time} value={time}>
-                      {time}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                {tProperty("checkout")}
-                <select
-                  value={checkoutTime}
-                  onChange={(e) => setCheckoutTime(e.target.value)}
-                  className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                >
-                  <option value="">--:--</option>
-                  {TIME_OPTIONS.map((time) => (
-                    <option key={time} value={time}>
-                      {time}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                {tProperty("minNights")}
-                <input
-                  type="number"
-                  min={1}
-                  value={minNights}
-                  onChange={(e) => setMinNights(e.target.value)}
-                  className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                />
-              </label>
+            <div className="flex flex-wrap gap-8">
+              <Counter
+                label={tProperty("beds")}
+                value={beds}
+                min={0}
+                max={30}
+                onChange={setBeds}
+                decreaseLabel={t("decrease", { label: tProperty("beds") })}
+                increaseLabel={t("increase", { label: tProperty("beds") })}
+              />
+              <Counter
+                label={tProperty("toilets")}
+                value={toilets}
+                min={0}
+                max={8}
+                onChange={setToilets}
+                decreaseLabel={t("decrease", { label: tProperty("toilets") })}
+                increaseLabel={t("increase", { label: tProperty("toilets") })}
+              />
+              <Counter
+                label={tProperty("bathtubs")}
+                value={bathtubs}
+                min={0}
+                max={8}
+                onChange={setBathtubs}
+                decreaseLabel={t("decrease", { label: tProperty("bathtubs") })}
+                increaseLabel={t("increase", { label: tProperty("bathtubs") })}
+              />
+              <Counter
+                label={tProperty("minNights")}
+                value={minNights}
+                min={1}
+                max={30}
+                onChange={setMinNights}
+                decreaseLabel={t("decrease", { label: tProperty("minNights") })}
+                increaseLabel={t("increase", { label: tProperty("minNights") })}
+              />
+            </div>
+
+            <div className="flex flex-col gap-6 sm:flex-row sm:gap-10">
+              <TimePicker
+                label={tProperty("checkin")}
+                value={checkinTime}
+                presets={CHECKIN_PRESETS}
+                otherLabel={t("otherTime")}
+                onChange={setCheckinTime}
+              />
+              <TimePicker
+                label={tProperty("checkout")}
+                value={checkoutTime}
+                presets={CHECKOUT_PRESETS}
+                otherLabel={t("otherTime")}
+                onChange={setCheckoutTime}
+              />
             </div>
 
             <label className="flex flex-col gap-1.5 text-sm">

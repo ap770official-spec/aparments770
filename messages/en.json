@@ -254,7 +254,10 @@
     "summaryPhotosLabel": "Photos",
     "summaryPhotosValue": "{count} photos",
     "summaryNote": "After submitting, the apartment won't appear on the site until our team manually approves it.",
-    "summaryNoAddress": "No address entered yet"
+    "summaryNoAddress": "No address entered yet",
+    "decrease": "Decrease {label}",
+    "increase": "Increase {label}",
+    "otherTime": "Other time"
   },
   "footer": {
     "contact": "Contact",
