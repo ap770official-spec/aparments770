@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { getPendingEditPropertyIds } from "@/lib/properties";
 import { approveProperty, deleteProperty, logoutAdmin, rejectProperty } from "../actions";
 import { geocodeLegacyProperties, geocodeRegions } from "../geocode-actions";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
@@ -38,6 +39,8 @@ export default async function AdminPropertiesPage() {
     throw new Error(`Failed to load properties: ${error.message}`);
   }
 
+  const pendingEditIds = await getPendingEditPropertyIds(supabase);
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       <div className="flex items-center justify-between">
@@ -51,6 +54,15 @@ export default async function AdminPropertiesPage() {
           </button>
         </form>
       </div>
+
+      {pendingEditIds.size > 0 && (
+        <p className="mt-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm">
+          {pendingEditIds.size === 1
+            ? "עריכה אחת של בעל דירה ממתינה לאישור"
+            : `${pendingEditIds.size} עריכות של בעלי דירות ממתינות לאישור`}
+          {" - "}מסומנות בטבלה. לחצו על הכתובת כדי לראות מה השתנה.
+        </p>
+      )}
 
       <div className="mt-4 flex flex-wrap gap-2 border-y border-black/10 py-3 text-sm">
         <span className="text-black/60">
@@ -132,6 +144,14 @@ export default async function AdminPropertiesPage() {
                   <td className="p-2">
                     {STATUS_LABELS[property.approval_status] ??
                       property.approval_status}
+                    {pendingEditIds.has(property.id) && (
+                      <Link
+                        href={`/admin/properties/${property.id}`}
+                        className="mt-1 block w-fit rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium"
+                      >
+                        עריכה ממתינה
+                      </Link>
+                    )}
                   </td>
                   <td className="p-2">
                     <div className="flex gap-2">

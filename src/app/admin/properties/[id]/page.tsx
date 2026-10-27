@@ -2,10 +2,14 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { getAdminPropertyById } from "@/lib/properties";
+import {
+  getAdminPropertyById,
+  getPendingPropertyEdit,
+} from "@/lib/properties";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { approveProperty, deleteProperty, rejectProperty } from "../../actions";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import PendingEditSection from "./PendingEditSection";
 import he from "../../../../../messages/he.json";
 
 export const dynamic = "force-dynamic";
@@ -49,6 +53,14 @@ export default async function AdminPropertyDetailPage({
   if (!property) {
     notFound();
   }
+
+  const [pendingEdit, { data: regions }] = await Promise.all([
+    getPendingPropertyEdit(supabase, property.id),
+    supabase.from("regions").select("id, name_he"),
+  ]);
+  const regionNames = Object.fromEntries(
+    (regions ?? []).map((r) => [r.id as string, r.name_he as string]),
+  );
 
   const amenitiesByCategory = AMENITY_CATEGORY_ORDER.map((category) => ({
     category,
@@ -117,6 +129,14 @@ export default async function AdminPropertyDetailPage({
           </ConfirmSubmitButton>
         </form>
       </div>
+
+      {pendingEdit && (
+        <PendingEditSection
+          property={property}
+          edit={pendingEdit}
+          regionNames={regionNames}
+        />
+      )}
 
       <section className="mt-8">
         <h2 className="font-semibold">פרטי קשר</h2>

@@ -2,10 +2,15 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link, redirect } from "@/i18n/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ensureOwnerRow } from "@/lib/owners";
-import { getOwnerProperties, mainMedia } from "@/lib/properties";
+import {
+  getOwnerProperties,
+  getPendingEditPropertyIds,
+  mainMedia,
+} from "@/lib/properties";
 import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 import LogoutButton from "@/components/LogoutButton";
 import AvailabilityModeSelect from "@/components/AvailabilityModeSelect";
+import EditSentDialog from "@/components/EditSentDialog";
 
 export const dynamic = "force-dynamic";
 
@@ -51,10 +56,13 @@ function StatusIcon({ status }: { status: string }) {
 
 export default async function OwnerDashboardPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ edit?: string }>;
 }) {
   const { locale } = await params;
+  const { edit } = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("dashboard");
 
@@ -68,10 +76,14 @@ export default async function OwnerDashboardPage({
   }
 
   await ensureOwnerRow(supabase, user!.id);
-  const properties = await getOwnerProperties(supabase, user!.id);
+  const [properties, pendingEditIds] = await Promise.all([
+    getOwnerProperties(supabase, user!.id),
+    getPendingEditPropertyIds(supabase, user!.id),
+  ]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12">
+      {edit === "sent" && <EditSentDialog />}
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#E5DED3] pb-6">
         <div className="min-w-0">
           <h1 className="font-serif-brand text-3xl font-semibold text-ink">
@@ -232,6 +244,25 @@ export default async function OwnerDashboardPage({
                           {t("perNight")}
                         </span>
                       </p>
+                      {pendingEditIds.has(property.id) && (
+                        <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#FDF3E1] px-2.5 py-1 text-xs font-semibold text-[#8A5A12] ring-1 ring-[#F0D9AE]">
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                          {t("editPending")}
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex flex-col gap-3 md:w-64 md:shrink-0">

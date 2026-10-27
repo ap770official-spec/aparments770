@@ -178,6 +178,9 @@ export async function getPropertyById(
 }
 
 export type AdminPropertyDetail = PropertyDetail & {
+  owner_id: string;
+  region_id: string;
+  address_notes: string | null;
   approval_status: ApprovalStatus;
   created_at: string;
   regions: { name_he: string } | null;
@@ -201,7 +204,7 @@ export async function getAdminPropertyById(
   const { data, error } = await supabase
     .from("properties")
     .select(
-      `id, address, property_type, price_per_night, bedrooms, beds, toilets, bathtubs,
+      `id, owner_id, region_id, address, address_notes, property_type, price_per_night, bedrooms, beds, toilets, bathtubs,
        max_guests, min_nights, checkin_time, checkout_time, approval_status,
        availability_mode, phone_country_code, phone_number, created_at,
        description_he, description_en,
@@ -221,6 +224,7 @@ export async function getAdminPropertyById(
 
 export type PropertyForEdit = {
   id: string;
+  approval_status: ApprovalStatus;
   region_id: string;
   address: string;
   lat: number | null;
@@ -259,7 +263,7 @@ export async function getOwnerPropertyForEdit(
   const { data, error } = await supabase
     .from("properties")
     .select(
-      `id, region_id, address, lat, lng, walking_minutes_to_landmark, property_type, address_notes,
+      `id, approval_status, region_id, address, lat, lng, walking_minutes_to_landmark, property_type, address_notes,
        bedrooms, beds, toilets, bathtubs,
        price_per_night, phone_country_code, phone_number,
        checkin_time, checkout_time, max_guests, min_nights,
@@ -335,18 +339,28 @@ export async function createProperty(
 }
 
 /**
- * Updates an owner's property and replaces its amenities and media with
- * the given lists. Like createProperty, these are sequential writes
- * rather than one transaction. approval_status is left untouched.
+ * Updates a property and replaces its amenities and media with the
+ * given lists. Like createProperty, these are sequential writes rather
+ * than one transaction. approval_status is left untouched unless
+ * resubmit is set, which sends a rejected listing back for review.
+ *
+ * Owners call this directly only for listings that aren't live yet;
+ * edits to an approved listing go through submitPropertyEdit and are
+ * applied here by the admin on approval.
  */
 export async function updateProperty(
   supabase: SupabaseClient,
   propertyId: string,
   input: NewPropertyInput,
+  { resubmit = false }: { resubmit?: boolean } = {},
 ): Promise<void> {
   const { error: propertyError } = await supabase
     .from("properties")
-    .update({ ...propertyRow(input), updated_at: new Date().toISOString() })
+    .update({
+      ...propertyRow(input),
+      ...(resubmit ? { approval_status: "pending_approval" } : {}),
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", propertyId)
     .eq("owner_id", input.ownerId);
 
@@ -436,4 +450,129 @@ async function insertAmenitiesAndMedia(
       throw new Error(`Failed to save photos: ${photosError.message}`);
     }
   }
+}
+
+export type PropertyEditPayload = Omit<NewPropertyInput, "ownerId">;
+
+export type PropertyEdit = {
+  id: string;
+  property_id: string;
+  owner_id: string;
+  payload: PropertyEditPayload;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+};
+
+/**
+ * Queues an owner's edit to an approved listing for admin review,
+ * replacing any edit already pending for that property. The live
+ * listing is not touched until the admin approves.
+ */
+export async function submitPropertyEdit(
+  supabase: SupabaseClient,
+  propertyId: string,
+  input: NewPropertyInput,
+): Promise<void> {
+  const { ownerId, ...payload } = input;
+
+  const { error: deleteError } = await supabase
+    .from("property_edits")
+    .delete()
+    .eq("property_id", propertyId)
+    .eq("status", "pending");
+  if (deleteError) {
+    throw new Error(`Failed to replace pending edit: ${deleteError.message}`);
+  }
+
+  const { error: insertError } = await supabase.from("property_edits").insert({
+    property_id: propertyId,
+    owner_id: ownerId,
+    payload,
+  });
+  if (insertError) {
+    throw new Error(`Failed to submit edit: ${insertError.message}`);
+  }
+}
+
+export async function getPendingPropertyEdit(
+  supabase: SupabaseClient,
+  propertyId: string,
+): Promise<PropertyEdit | null> {
+  const { data, error } = await supabase
+    .from("property_edits")
+    .select("id, property_id, owner_id, payload, status, created_at")
+    .eq("property_id", propertyId)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load pending edit: ${error.message}`);
+  }
+
+  return data;
+}
+
+/**
+ * IDs of properties with an edit awaiting review. Pass ownerId to limit
+ * to one owner's listings (the owner dashboard); omit it for admin use.
+ */
+export async function getPendingEditPropertyIds(
+  supabase: SupabaseClient,
+  ownerId?: string,
+): Promise<Set<string>> {
+  let query = supabase
+    .from("property_edits")
+    .select("property_id")
+    .eq("status", "pending");
+  if (ownerId) query = query.eq("owner_id", ownerId);
+
+  const { data, error } = await query;
+  if (error) {
+    throw new Error(`Failed to load pending edits: ${error.message}`);
+  }
+
+  return new Set((data ?? []).map((row) => row.property_id as string));
+}
+
+/**
+ * Overlays a pending edit onto the live listing, so the edit form shows
+ * the owner what they last submitted rather than the approved version.
+ */
+export function withPendingEdit(
+  property: PropertyForEdit,
+  payload: PropertyEditPayload,
+): PropertyForEdit {
+  return {
+    ...property,
+    region_id: payload.regionId,
+    address: payload.address,
+    lat: payload.lat,
+    lng: payload.lng,
+    walking_minutes_to_landmark: payload.walkingMinutesToLandmark,
+    property_type: payload.propertyType,
+    address_notes: payload.addressNotes,
+    bedrooms: payload.bedrooms,
+    beds: payload.beds,
+    toilets: payload.toilets,
+    bathtubs: payload.bathtubs,
+    price_per_night: payload.pricePerNight,
+    phone_country_code: payload.phoneCountryCode,
+    phone_number: payload.phoneNumber,
+    checkin_time: payload.checkinTime,
+    checkout_time: payload.checkoutTime,
+    max_guests: payload.maxGuests,
+    min_nights: payload.minNights,
+    description_he: payload.descriptionHe,
+    description_en: payload.descriptionEn,
+    description_source_lang: payload.descriptionSourceLang,
+    property_amenities: payload.amenities.map((a) => ({
+      category: a.category as PropertyAmenity["category"],
+      amenity_key: a.amenityKey,
+    })),
+    property_photos: payload.media.map((m) => ({
+      url: m.url,
+      media_type: m.mediaType,
+      sort_order: m.sortOrder,
+    })),
+  };
 }

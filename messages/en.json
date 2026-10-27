@@ -181,7 +181,11 @@
       "fully_locked": "Fully locked",
       "default_open_block_dates": "Open (block dates manually)",
       "default_closed_open_dates": "Closed (open dates manually)"
-    }
+    },
+    "editSentTitle": "Your edit was sent for approval",
+    "editSentBody": "Our team will review your changes. Until they are approved, the apartment keeps appearing on the site as it did before the edit.",
+    "editSentClose": "Got it",
+    "editPending": "Edit awaiting approval"
   },
   "propertyForm": {
     "title": "List a new apartment",
@@ -256,11 +260,10 @@
     "summaryNote": "After submitting, the apartment won't appear on the site until our team manually approves it.",
     "summaryNoAddress": "No address entered yet",
     "editTitle": "Edit apartment",
-    "editSubtitle": "Update the apartment details, photos and amenities, then save your changes.",
-    "saveChanges": "Save changes",
-    "editSuccessTitle": "Changes saved!",
-    "editSuccessBody": "Your apartment details were updated.",
-    "editSummaryNote": "Your changes will be saved to the existing listing."
+    "editSubtitle": "Update the apartment details, photos and amenities. Your changes will be sent to our team for approval.",
+    "saveChanges": "Send changes for approval",
+    "editSummaryNote": "Your changes will be sent for approval. Until our team approves them, the apartment keeps appearing on the site as it does today.",
+    "pendingEditNotice": "You already sent an edit for this apartment and it's awaiting approval. The form shows what you sent, and sending again will replace that edit."
   },
   "footer": {
     "contact": "Contact",

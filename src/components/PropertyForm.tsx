@@ -7,10 +7,11 @@ import {
   type FormEvent,
 } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import {
   createProperty,
+  submitPropertyEdit,
   updateProperty,
   type PropertyForEdit,
   type PropertyType,
@@ -141,12 +142,15 @@ export default function PropertyForm({
   regions,
   ownerId,
   initialProperty,
+  hasPendingEdit = false,
 }: {
   regions: Region[];
   ownerId: string;
   initialProperty?: PropertyForEdit;
+  hasPendingEdit?: boolean;
 }) {
   const isEdit = initialProperty !== undefined;
+  const router = useRouter();
   const t = useTranslations("propertyForm");
   const tProperty = useTranslations("property");
   const tCategory = useTranslations("amenityCategories");
@@ -375,11 +379,22 @@ export default function PropertyForm({
       };
 
       if (isEdit) {
-        await updateProperty(supabase, initialProperty.id, input);
-      } else {
-        await createProperty(supabase, input);
+        // An approved listing stays live as-is until the admin reviews
+        // the edit; one that isn't live yet is updated directly and
+        // (if it was rejected) goes back into the review queue.
+        if (initialProperty.approval_status === "approved") {
+          await submitPropertyEdit(supabase, initialProperty.id, input);
+        } else {
+          await updateProperty(supabase, initialProperty.id, input, {
+            resubmit: initialProperty.approval_status === "rejected",
+          });
+        }
+        router.push("/owner/dashboard?edit=sent");
+        router.refresh();
+        return;
       }
 
+      await createProperty(supabase, input);
       setSubmitting(false);
       setSuccess(true);
     } catch {
@@ -408,10 +423,10 @@ export default function PropertyForm({
           </svg>
         </div>
         <h1 className="font-serif-brand text-2xl font-bold text-ink">
-          {isEdit ? t("editSuccessTitle") : t("successTitle")}
+          {t("successTitle")}
         </h1>
         <p className="text-[15px] leading-7 text-[#5C5349]">
-          {isEdit ? t("editSuccessBody") : t("successBody")}
+          {t("successBody")}
         </p>
         <div className="mt-2 flex gap-3">
           <button
@@ -454,6 +469,29 @@ export default function PropertyForm({
       <p className="mb-7 text-[15px] text-[#5C5349]">
         {isEdit ? t("editSubtitle") : t("subtitle")}
       </p>
+      {hasPendingEdit && (
+        <div
+          role="status"
+          className="mb-7 flex items-start gap-2.5 rounded-xl border border-[#F0D9AE] bg-[#FDF3E1] px-4 py-3 text-sm text-[#8A5A12]"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mt-0.5 shrink-0"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 2" />
+          </svg>
+          <span>{t("pendingEditNotice")}</span>
+        </div>
+      )}
 
       <div className="mb-9 flex items-start">
         {STEP_KEYS.map((key, i) => {

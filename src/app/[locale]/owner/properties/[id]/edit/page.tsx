@@ -3,7 +3,11 @@ import { setRequestLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveRegions } from "@/lib/regions";
-import { getOwnerPropertyForEdit } from "@/lib/properties";
+import {
+  getOwnerPropertyForEdit,
+  getPendingPropertyEdit,
+  withPendingEdit,
+} from "@/lib/properties";
 import PropertyForm from "@/components/PropertyForm";
 
 export const dynamic = "force-dynamic";
@@ -34,11 +38,16 @@ export default async function EditPropertyPage({
     notFound();
   }
 
+  const pendingEdit = await getPendingPropertyEdit(supabase, property.id);
+
   return (
     <PropertyForm
       regions={regions}
       ownerId={user!.id}
-      initialProperty={property}
+      initialProperty={
+        pendingEdit ? withPendingEdit(property, pendingEdit.payload) : property
+      }
+      hasPendingEdit={pendingEdit !== null}
     />
   );
 }
