@@ -19,7 +19,7 @@ export default function LogoutButton() {
     <button
       type="button"
       onClick={handleClick}
-      className="rounded-md border border-black/15 px-4 py-2 text-sm"
+      className="inline-flex min-h-11 items-center rounded-lg border border-[#D8CFC0] px-4 text-sm font-semibold text-ink transition-[background-color,border-color,transform] duration-150 hover:border-ink hover:bg-[#FAF7F2] active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
     >
       {t("logout")}
     </button>
