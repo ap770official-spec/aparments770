@@ -7,6 +7,7 @@ import { ADMIN_COOKIE_NAME, adminSessionToken, isAdminAuthenticated } from "@/li
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { generateSubscriptionPdf } from "@/lib/subscription-pdf";
 import { sendEmail } from "@/lib/email";
+import { updateProperty, type PropertyEditPayload } from "@/lib/properties";
 
 export async function loginAdmin(formData: FormData) {
   const password = formData.get("password");
@@ -185,4 +186,59 @@ export async function deleteProperty(propertyId: string) {
   if (error) throw new Error(error.message);
   revalidatePath("/admin/properties");
   redirect("/admin/properties");
+}
+
+/**
+ * Applies an owner's pending edit to the live listing (fields,
+ * amenities and media), then marks the edit approved. The listing's
+ * approval_status is unchanged - it was already approved when the edit
+ * was submitted.
+ */
+export async function approvePropertyEdit(editId: string) {
+  await requireAdmin();
+  const supabase = createAdminSupabaseClient();
+
+  const { data: edit, error: editError } = await supabase
+    .from("property_edits")
+    .select("id, property_id, owner_id, payload")
+    .eq("id", editId)
+    .eq("status", "pending")
+    .maybeSingle();
+  if (editError) throw new Error(editError.message);
+  if (!edit) throw new Error("העריכה לא נמצאה או שכבר טופלה");
+
+  await updateProperty(supabase, edit.property_id, {
+    ...(edit.payload as PropertyEditPayload),
+    ownerId: edit.owner_id,
+  });
+
+  const { error: statusError } = await supabase
+    .from("property_edits")
+    .update({ status: "approved", reviewed_at: new Date().toISOString() })
+    .eq("id", editId);
+  if (statusError) throw new Error(statusError.message);
+
+  revalidatePath("/admin/properties");
+  revalidatePath(`/admin/properties/${edit.property_id}`);
+}
+
+/**
+ * Discards an owner's pending edit. The live listing is left exactly
+ * as it was.
+ */
+export async function rejectPropertyEdit(editId: string) {
+  await requireAdmin();
+  const supabase = createAdminSupabaseClient();
+
+  const { data: edit, error } = await supabase
+    .from("property_edits")
+    .update({ status: "rejected", reviewed_at: new Date().toISOString() })
+    .eq("id", editId)
+    .eq("status", "pending")
+    .select("property_id")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/properties");
+  if (edit) revalidatePath(`/admin/properties/${edit.property_id}`);
 }

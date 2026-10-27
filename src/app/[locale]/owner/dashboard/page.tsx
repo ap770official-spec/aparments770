@@ -2,10 +2,16 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link, redirect } from "@/i18n/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ensureOwnerRow } from "@/lib/owners";
-import { getOwnerProperties, isListingExpired, mainMedia } from "@/lib/properties";
+import {
+  getOwnerProperties,
+  getPendingEditPropertyIds,
+  isListingExpired,
+  mainMedia,
+} from "@/lib/properties";
 import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 import LogoutButton from "@/components/LogoutButton";
 import AvailabilityModeSelect from "@/components/AvailabilityModeSelect";
+import EditSentDialog from "@/components/EditSentDialog";
 
 export const dynamic = "force-dynamic";
 
@@ -51,10 +57,13 @@ function StatusIcon({ status }: { status: string }) {
 
 export default async function OwnerDashboardPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ edit?: string }>;
 }) {
   const { locale } = await params;
+  const { edit } = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("dashboard");
 
@@ -68,10 +77,14 @@ export default async function OwnerDashboardPage({
   }
 
   await ensureOwnerRow(supabase, user!.id);
-  const properties = await getOwnerProperties(supabase, user!.id);
+  const [properties, pendingEditIds] = await Promise.all([
+    getOwnerProperties(supabase, user!.id),
+    getPendingEditPropertyIds(supabase, user!.id),
+  ]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12">
+      {edit === "sent" && <EditSentDialog />}
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#E5DED3] pb-6">
         <div className="min-w-0">
           <h1 className="font-serif-brand text-3xl font-semibold text-ink">
@@ -161,7 +174,7 @@ export default async function OwnerDashboardPage({
             </Link>
           </div>
         ) : (
-          <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-6 flex flex-col gap-4">
             {properties.map((property) => {
               const media = mainMedia(property.property_photos);
               const status = property.approval_status;
@@ -176,14 +189,14 @@ export default async function OwnerDashboardPage({
               return (
                 <li
                   key={property.id}
-                  className="flex flex-col overflow-hidden rounded-[14px] border border-[#E5DED3] bg-white"
+                  className="flex flex-col overflow-hidden rounded-[14px] border border-[#E5DED3] bg-white sm:flex-row"
                 >
-                  <div className="relative aspect-[16/10] w-full bg-placeholder">
+                  <div className="relative aspect-[16/10] w-full shrink-0 bg-placeholder sm:aspect-auto sm:min-h-40 sm:w-60">
                     {media ? (
                       media.media_type === "video" ? (
                         <video
                           src={optimizedCloudinaryUrl(media.url)}
-                          className="h-full w-full object-cover"
+                          className="absolute inset-0 h-full w-full object-cover"
                           muted
                           playsInline
                           preload="metadata"
@@ -194,11 +207,11 @@ export default async function OwnerDashboardPage({
                           src={optimizedCloudinaryUrl(media.url)}
                           alt={property.address}
                           loading="lazy"
-                          className="h-full w-full object-cover"
+                          className="absolute inset-0 h-full w-full object-cover"
                         />
                       )
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-[#A89E90]">
+                      <div className="absolute inset-0 flex items-center justify-center text-[#A89E90]">
                         <svg
                           width="32"
                           height="32"
@@ -224,9 +237,12 @@ export default async function OwnerDashboardPage({
                     </span>
                   </div>
 
-                  <div className="flex flex-1 flex-col gap-3 p-4">
-                    <div className="min-w-0">
-                      <h3 className="line-clamp-2 text-[17px] font-bold break-words text-ink">
+                  <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 md:flex-row md:items-center md:gap-6 md:p-5">
+                    <div className="min-w-0 flex-1">
+                      <h3
+                        dir="auto"
+                        className="line-clamp-2 text-start text-[17px] font-bold break-words text-ink"
+                      >
                         {property.address}
                       </h3>
                       <p className="mt-1 flex items-baseline gap-1">
@@ -242,26 +258,43 @@ export default async function OwnerDashboardPage({
                           {t("visibleUntil", { date: expiryDate })}
                         </p>
                       )}
+                      {expired && expiryDate && (
+                        <p
+                          role="status"
+                          className="mt-2 rounded-lg bg-[#FBEAEA] px-3 py-2.5 text-[13px] leading-5 font-medium text-[#9B2C2C] ring-1 ring-[#F1CACA]"
+                        >
+                          {t("notVisible", { date: expiryDate })}
+                        </p>
+                      )}
+                      {pendingEditIds.has(property.id) && (
+                        <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#FDF3E1] px-2.5 py-1 text-xs font-semibold text-[#8A5A12] ring-1 ring-[#F0D9AE]">
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                          {t("editPending")}
+                        </p>
+                      )}
                     </div>
 
-                    {expired && expiryDate && (
-                      <p
-                        role="status"
-                        className="rounded-lg bg-[#FBEAEA] px-3 py-2.5 text-[13px] leading-5 font-medium text-[#9B2C2C] ring-1 ring-[#F1CACA]"
-                      >
-                        {t("notVisible", { date: expiryDate })}
-                      </p>
-                    )}
-
-                    <AvailabilityModeSelect
-                      propertyId={property.id}
-                      initialMode={property.availability_mode}
-                    />
-
-                    <div className="mt-auto border-t border-[#EFE9E0] pt-3">
+                    <div className="flex flex-col gap-3 md:w-64 md:shrink-0">
+                      <AvailabilityModeSelect
+                        propertyId={property.id}
+                        initialMode={property.availability_mode}
+                      />
                       <Link
-                        href={`/owner/properties/new?duplicate=${property.id}`}
-                        className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg border border-[#D8CFC0] px-3 text-sm font-semibold text-ink transition-[background-color,border-color,transform] duration-150 hover:border-ink hover:bg-[#FAF7F2] active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                        href={`/owner/properties/${property.id}/edit`}
+                        className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg border border-ink px-3 text-sm font-semibold text-ink transition-[background-color,transform] duration-150 hover:bg-[#FAF7F2] active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                       >
                         <svg
                           width="15"
@@ -274,10 +307,10 @@ export default async function OwnerDashboardPage({
                           strokeLinejoin="round"
                           aria-hidden="true"
                         >
-                          <rect x="9" y="9" width="12" height="12" rx="2" />
-                          <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+                          <path d="M12 20h9" />
+                          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                         </svg>
-                        {t("duplicate")}
+                        {t("edit")}
                       </Link>
                     </div>
                   </div>

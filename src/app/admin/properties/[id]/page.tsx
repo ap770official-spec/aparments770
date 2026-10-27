@@ -3,7 +3,10 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { getAdminPropertyById } from "@/lib/properties";
+import {
+  getAdminPropertyById,
+  getPendingPropertyEdit,
+} from "@/lib/properties";
 import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import {
@@ -16,6 +19,7 @@ import { approveProperty, deleteProperty, rejectProperty } from "../../actions";
 import AdminHeader from "@/components/admin/AdminHeader";
 import PendingSubmitButton from "@/components/admin/PendingSubmitButton";
 import ListingExpiryEditor from "@/components/admin/ListingExpiryEditor";
+import PendingEditSection from "./PendingEditSection";
 import he from "../../../../../messages/he.json";
 
 export const dynamic = "force-dynamic";
@@ -86,6 +90,14 @@ export default async function AdminPropertyDetailPage({
   if (!property) {
     notFound();
   }
+
+  const [pendingEdit, { data: regions }] = await Promise.all([
+    getPendingPropertyEdit(supabase, property.id),
+    supabase.from("regions").select("id, name_he"),
+  ]);
+  const regionNames = Object.fromEntries(
+    (regions ?? []).map((r) => [r.id as string, r.name_he as string]),
+  );
 
   const media = [...property.property_photos].sort(
     (a, b) => a.sort_order - b.sort_order,
@@ -200,6 +212,14 @@ export default async function AdminPropertyDetailPage({
             )}
           </div>
         </div>
+
+        {pendingEdit && (
+          <PendingEditSection
+            property={property}
+            edit={pendingEdit}
+            regionNames={regionNames}
+          />
+        )}
 
         <Gallery media={media} />
 

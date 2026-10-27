@@ -36,7 +36,7 @@
 | מיילים מהשרת (לא Auth) | Resend API ישיר, מדומיין מאומת `apartments770.com` | ✅ |
 | אחסון/הרצה | Vercel, מחובר אוטומטית ל-GitHub | ✅ |
 | קוד מקור | GitHub: `ap770official-spec/aparments770`, ענף `claude/apartments770-basic-setup-oqzbfi` | ✅ |
-| אתר חי | https://aparments770.vercel.app | ✅ (יש דומיין `apartments770.com` קנוי, אומת ל-Resend, אבל **לא** מחובר עדיין כדומיין של האתר עצמו ב-Vercel) |
+| אתר חי | https://www.apartments770.com | ✅ הדומיין חובר ל-Vercel (27/10/2026) — `apartments770.com` מפנה אוטומטית ל-`www.apartments770.com`. הכתובת הישנה `aparments770.vercel.app` עדיין פעילה במקביל (לא הוגדרה הפניה אוטומטית ממנה) |
 
 **חשבונות שנפתחו:** Supabase, Mapbox, Cloudinary, Google Cloud (Google Sign-In), Resend,
 Vercel, Spaceship (רישום הדומיין). כולם עם המייל/חשבונות שלך.
@@ -254,7 +254,6 @@ src/
   חדש (צור קשר/תנאי שימוש/copyright) בכל עמוד ציבורי, כולל עמוד `/terms`
   חדש. **שאר האתר** (עמוד דירה, דשבורד בעלים, פאנל ניהול) עדיין בעיצוב
   הישן — ממתין לאישור בעל האתר על מראה דף הבית לפני שלב 2 |
-| חיבור דומיין `apartments770.com` לאתר עצמו | הדומיין קיים ומאומת ל-Resend, אבל לא מחובר ל-Vercel כדומיין של האתר |
 | מועדפים בין מכשירים/דפדפנים | **הוחלט במפורש** לשמור ב-localStorage בלי חשבון (ראה סעיף 5) — אם ירצו בעתיד סנכרון בין מכשירים, זה ידרוש חשבון שוכר לצורך זה בלבד |
 
 ---
@@ -263,11 +262,10 @@ src/
 
 1. **תמיד קודם:** `git pull` — יש שני מקומות שעובדים על הריפו הזה (ראה הערה למעלה)
 2. תגיד ל-Claude "תמשיך מהמסמך `docs/project-status.md`" בכל שיחה חדשה
-3. **החלטות פתוחות:** אילו מ-5 הטאבים הנוספים בפאנל ניהול הכי דחוף? לחבר את דומיין
-   apartments770.com לאתר עצמו עכשיו או בסוף (לפני השקה)?
+3. **החלטה פתוחה:** אילו מ-5 הטאבים הנוספים בפאנל ניהול הכי דחוף?
 4. אופן העבודה המוסכם: לפני כל פעולה — הסבר קודם, ולחכות לאישור.
 
 **קישורים שימושיים:**
-- אתר חי: https://aparments770.vercel.app
+- אתר חי: https://www.apartments770.com (הכתובת הישנה https://aparments770.vercel.app עדיין עובדת גם היא)
 - קוד: https://github.com/ap770official-spec/aparments770/tree/claude/apartments770-basic-setup-oqzbfi
 - מסד נתונים: פרויקט Supabase שלך (`ucdqvntoljvrbmqzrehn`)
