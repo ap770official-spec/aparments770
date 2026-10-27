@@ -5,6 +5,7 @@ import { ensureOwnerRow } from "@/lib/owners";
 import {
   getOwnerProperties,
   getPendingEditPropertyIds,
+  isListingExpired,
   mainMedia,
 } from "@/lib/properties";
 import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
@@ -177,6 +178,14 @@ export default async function OwnerDashboardPage({
             {properties.map((property) => {
               const media = mainMedia(property.property_photos);
               const status = property.approval_status;
+              // Approved but past its paid period: hidden from guests
+              // (see notExpiredFilter in lib/properties.ts).
+              const expired =
+                status === "approved" &&
+                isListingExpired(property.listing_expires_at);
+              const expiryDate = property.listing_expires_at
+                ? new Date(property.listing_expires_at).toLocaleDateString("en-GB")
+                : null;
               return (
                 <li
                   key={property.id}
@@ -221,10 +230,10 @@ export default async function OwnerDashboardPage({
                       </div>
                     )}
                     <span
-                      className={`absolute start-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${STATUS_STYLES[status] ?? STATUS_STYLES.pending_approval}`}
+                      className={`absolute start-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${expired ? STATUS_STYLES.rejected : (STATUS_STYLES[status] ?? STATUS_STYLES.pending_approval)}`}
                     >
-                      <StatusIcon status={status} />
-                      {t(`status.${status}`)}
+                      <StatusIcon status={expired ? "rejected" : status} />
+                      {expired ? t("expiredBadge") : t(`status.${status}`)}
                     </span>
                   </div>
 
@@ -244,6 +253,19 @@ export default async function OwnerDashboardPage({
                           {t("perNight")}
                         </span>
                       </p>
+                      {status === "approved" && !expired && expiryDate && (
+                        <p className="mt-1 text-[13px] text-[#5C5349]">
+                          {t("visibleUntil", { date: expiryDate })}
+                        </p>
+                      )}
+                      {expired && expiryDate && (
+                        <p
+                          role="status"
+                          className="mt-2 rounded-lg bg-[#FBEAEA] px-3 py-2.5 text-[13px] leading-5 font-medium text-[#9B2C2C] ring-1 ring-[#F1CACA]"
+                        >
+                          {t("notVisible", { date: expiryDate })}
+                        </p>
+                      )}
                       {pendingEditIds.has(property.id) && (
                         <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#FDF3E1] px-2.5 py-1 text-xs font-semibold text-[#8A5A12] ring-1 ring-[#F0D9AE]">
                           <svg

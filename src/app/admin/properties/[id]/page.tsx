@@ -9,10 +9,16 @@ import {
 } from "@/lib/properties";
 import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
-import { formatAdminDate, subscriptionState } from "@/lib/admin-subscription";
+import {
+  expiryInputValue,
+  expiryPill,
+  formatAdminDate,
+  subscriptionState,
+} from "@/lib/admin-subscription";
 import { approveProperty, deleteProperty, rejectProperty } from "../../actions";
 import AdminHeader from "@/components/admin/AdminHeader";
 import PendingSubmitButton from "@/components/admin/PendingSubmitButton";
+import ListingExpiryEditor from "@/components/admin/ListingExpiryEditor";
 import PendingEditSection from "./PendingEditSection";
 import he from "../../../../../messages/he.json";
 
@@ -101,7 +107,10 @@ export default async function AdminPropertyDetailPage({
     items: property.property_amenities.filter((a) => a.category === category),
   })).filter((group) => group.items.length > 0);
 
-  const subscription = subscriptionState(property.owners);
+  const subscription = subscriptionState(property.listing_expires_at);
+  const isApproved = property.approval_status === "approved";
+  const isExpired = isApproved && subscription.kind === "expired";
+  const pill = expiryPill(subscription);
   const hasLocation = property.lat != null && property.lng != null;
   const phoneHref = `tel:${property.phone_country_code}${property.phone_number}`;
   const whatsappHref = buildWhatsAppLink({
@@ -122,26 +131,6 @@ export default async function AdminPropertyDetailPage({
     { label: he.property.checkout, value: property.checkout_time?.slice(0, 5) ?? "—" },
   ];
 
-  const subscriptionText = (() => {
-    switch (subscription.kind) {
-      case "none":
-        return { label: "לא הוגדר", tone: "text-ink-muted" };
-      case "frozen":
-        return { label: "מוקפא", tone: "text-sky-800" };
-      case "expired":
-        return {
-          label: `פג ב-${formatAdminDate(subscription.expiresAt)}`,
-          tone: "text-red-700",
-        };
-      case "expiring":
-        return {
-          label: `עד ${formatAdminDate(subscription.expiresAt)} (עוד ${subscription.daysLeft} ימים)`,
-          tone: "text-amber-800",
-        };
-      case "active":
-        return { label: `עד ${formatAdminDate(subscription.expiresAt)}`, tone: "text-ink" };
-    }
-  })();
 
   return (
     <div className="min-h-dvh bg-canvas">
@@ -169,14 +158,20 @@ export default async function AdminPropertyDetailPage({
         <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={`${badgeBase} ${
-                  STATUS_BADGE_CLASSES[property.approval_status] ??
-                  "bg-black/5 text-ink-soft ring-black/10"
-                }`}
-              >
-                {STATUS_LABELS[property.approval_status] ?? property.approval_status}
-              </span>
+              {isExpired ? (
+                <span className={`${badgeBase} bg-red-50 text-red-700 ring-red-600/20`}>
+                  פג תוקף · לא מוצג באתר
+                </span>
+              ) : (
+                <span
+                  className={`${badgeBase} ${
+                    STATUS_BADGE_CLASSES[property.approval_status] ??
+                    "bg-black/5 text-ink-soft ring-black/10"
+                  }`}
+                >
+                  {STATUS_LABELS[property.approval_status] ?? property.approval_status}
+                </span>
+              )}
               {!hasLocation && (
                 <span className={`${badgeBase} bg-red-50 text-red-700 ring-red-600/20`}>
                   אין מיקום במפה
@@ -205,7 +200,7 @@ export default async function AdminPropertyDetailPage({
               <PencilIcon />
               עריכת הדירה
             </Link>
-            {property.approval_status === "approved" && (
+            {isApproved && !isExpired && (
               <a
                 href={`/he/property/${property.id}`}
                 target="_blank"
@@ -316,29 +311,39 @@ export default async function AdminPropertyDetailPage({
 
           <aside className="order-first flex flex-col gap-6 lg:order-none">
             <Card title="סטטוס ומנוי">
-              <dl className="flex flex-col gap-3 text-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <dt className="text-ink-muted">סטטוס</dt>
-                  <dd className="font-semibold text-ink">
-                    {STATUS_LABELS[property.approval_status] ?? property.approval_status}
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <dt className="text-ink-muted">מנוי בעלים</dt>
-                  <dd className={`text-end font-semibold ${subscriptionText.tone}`}>
-                    {subscriptionText.label}
-                  </dd>
-                </div>
+              <dl className="flex items-center justify-between gap-3 text-sm">
+                <dt className="text-ink-muted">סטטוס</dt>
+                <dd className={`font-semibold ${isExpired ? "text-red-700" : "text-ink"}`}>
+                  {isExpired
+                    ? "פג תוקף · לא מוצג באתר"
+                    : (STATUS_LABELS[property.approval_status] ?? property.approval_status)}
+                </dd>
               </dl>
 
+              {isApproved && (
+                <div className="mt-4 flex flex-col gap-2">
+                  <p className="text-sm font-semibold text-ink">מוצג באתר עד</p>
+                  <ListingExpiryEditor
+                    propertyId={property.id}
+                    label={pill.label}
+                    tone={pill.tone}
+                    currentDate={expiryInputValue(subscription)}
+                    fullWidth
+                  />
+                  <p className="text-xs text-ink-muted">
+                    לחיצה מאפשרת לשנות את התאריך לדירה הזו בלבד. אחרי התאריך הדירה יורדת מהאתר אוטומטית.
+                  </p>
+                </div>
+              )}
+
               <div className="mt-5 flex flex-col gap-2 border-t border-line pt-5">
-                {property.approval_status !== "approved" && (
+                {!isApproved && (
                   <form
                     action={approveProperty.bind(null, property.id)}
                     className="flex flex-col gap-2"
                   >
                     <label htmlFor="expiresAt" className="text-sm font-semibold text-ink">
-                      אישור ופתיחת מנוי עד
+                      אישור והצגה באתר עד
                     </label>
                     <div className="flex gap-2">
                       <input
@@ -460,7 +465,7 @@ function Gallery({
 }) {
   if (media.length === 0) {
     return (
-      <div className="mt-5 flex aspect-[21/9] items-center justify-center rounded-2xl border border-dashed border-line bg-white text-sm text-ink-muted">
+      <div className="mt-5 flex h-40 items-center justify-center rounded-2xl border border-dashed border-line bg-white text-sm text-ink-muted">
         לא הועלו תמונות לדירה הזו
       </div>
     );
