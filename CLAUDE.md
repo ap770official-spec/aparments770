@@ -3,3 +3,5 @@
 ## UI/UX design
 
 For any design or UI task (pages, components, layout, colors, typography, spacing, animation, responsiveness, accessibility, or reviewing or fixing how something looks or behaves), always invoke the `ui-ux-pro-max` skill first and follow its workflow and rules. That includes running its search script (`python3 .claude/skills/ui-ux-pro-max/scripts/search.py ...`) for design-system, style, color, and typography decisions, and checking the result against its pre-delivery checklist before finishing.
+
+For animation and motion work, and for UI polish details, also follow Emil Kowalski's skills: `emil-design-eng` (polish philosophy), `animate` (building an animation), `animation-performance`, `apple-design`, `mobile-native`, and `break-ui` (stress-testing UI with worst-case data). Where they overlap with `ui-ux-pro-max`, use the more specific rule.
