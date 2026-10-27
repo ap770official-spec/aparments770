@@ -148,6 +148,7 @@ export default function PropertyForm({
 
   const regionId = initialProperty?.region_id ?? regions[0]?.id ?? "";
   const [step, setStep] = useState(0);
+  const [furthestStep, setFurthestStep] = useState(0);
   const [location, setLocation] = useState<{
     lat: number;
     lng: number;
@@ -258,19 +259,33 @@ export default function PropertyForm({
     return null;
   }
 
-  function goNext() {
-    const validationError = validateStep(step);
-    if (validationError) {
-      setError(validationError);
+  // Moving forward requires every step before the target to pass validation,
+  // so a required field cleared after going back still blocks progress.
+  function goToStep(target: number) {
+    if (target <= step) {
+      setError(null);
+      setStep(target);
       return;
     }
+    for (let i = step; i < target; i++) {
+      const validationError = validateStep(i);
+      if (validationError) {
+        setError(validationError);
+        setStep(i);
+        return;
+      }
+    }
     setError(null);
-    setStep((s) => Math.min(s + 1, LAST_STEP));
+    setStep(target);
+    setFurthestStep((f) => Math.max(f, target));
+  }
+
+  function goNext() {
+    goToStep(Math.min(step + 1, LAST_STEP));
   }
 
   function goBack() {
-    setError(null);
-    setStep((s) => Math.max(s - 1, 0));
+    goToStep(Math.max(step - 1, 0));
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -282,6 +297,15 @@ export default function PropertyForm({
     }
 
     setError(null);
+
+    for (let i = 0; i < LAST_STEP; i++) {
+      const validationError = validateStep(i);
+      if (validationError) {
+        setError(validationError);
+        setStep(i);
+        return;
+      }
+    }
 
     if (!location || !location.address) {
       setError(t("errorNoLocation"));
@@ -384,6 +408,7 @@ export default function PropertyForm({
             onClick={() => {
               setSuccess(false);
               setStep(0);
+              setFurthestStep(LAST_STEP);
             }}
             className="rounded-lg border border-ink px-6 py-3 text-sm font-semibold text-ink"
           >
@@ -421,21 +446,28 @@ export default function PropertyForm({
       <div className="mb-9 flex items-start">
         {STEP_KEYS.map((key, i) => {
           const status: StepStatus =
-            i < step ? "done" : i === step ? "active" : "upcoming";
+            i === step ? "active" : i <= furthestStep ? "done" : "upcoming";
+          const reachable = i <= furthestStep && i !== step;
           return (
-            <div
+            <button
               key={key}
-              className="flex flex-1 flex-col items-center gap-2"
+              type="button"
+              onClick={() => goToStep(i)}
+              disabled={!reachable}
+              aria-current={i === step ? "step" : undefined}
+              className="flex min-h-11 flex-1 flex-col items-center gap-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand enabled:cursor-pointer enabled:hover:opacity-80 disabled:cursor-default"
             >
               <div className="flex w-full items-center">
-                <span className={lineClass(i - 1 < step, i === 0)} />
+                <span className={lineClass(i - 1 < furthestStep, i === 0)} />
                 <span className={circleClass(status)}>
                   {status === "done" ? "✓" : i + 1}
                 </span>
-                <span className={lineClass(i < step, i === LAST_STEP)} />
+                <span
+                  className={lineClass(i < furthestStep, i === LAST_STEP)}
+                />
               </div>
               <span className={labelClass(status)}>{t(`steps.${key}`)}</span>
-            </div>
+            </button>
           );
         })}
       </div>
