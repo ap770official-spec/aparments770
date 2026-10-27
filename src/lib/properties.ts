@@ -180,7 +180,13 @@ export async function getPropertyById(
 export type AdminPropertyDetail = PropertyDetail & {
   approval_status: ApprovalStatus;
   created_at: string;
-  regions: { name_he: string } | null;
+  updated_at: string;
+  address_notes: string | null;
+  regions: {
+    name_he: string;
+    landmark_lat: number | null;
+    landmark_lng: number | null;
+  } | null;
   owners: {
     full_name: string | null;
     subscription_expires_at: string | null;
@@ -201,13 +207,14 @@ export async function getAdminPropertyById(
   const { data, error } = await supabase
     .from("properties")
     .select(
-      `id, address, property_type, price_per_night, bedrooms, beds, toilets, bathtubs,
+      `id, address, lat, lng, address_notes, walking_minutes_to_landmark,
+       property_type, price_per_night, bedrooms, beds, toilets, bathtubs,
        max_guests, min_nights, checkin_time, checkout_time, approval_status,
-       availability_mode, phone_country_code, phone_number, created_at,
+       availability_mode, phone_country_code, phone_number, created_at, updated_at,
        description_he, description_en,
        property_photos(url, sort_order, media_type),
        property_amenities(category, amenity_key),
-       regions(name_he), owners(full_name, subscription_expires_at, is_frozen)`,
+       regions(name_he, landmark_lat, landmark_lng), owners(full_name, subscription_expires_at, is_frozen)`,
     )
     .eq("id", id)
     .maybeSingle();

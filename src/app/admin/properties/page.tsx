@@ -448,10 +448,10 @@ function PropertyRow({
         )}
         <div className="flex gap-2">
           <Link
-            href={detailHref}
+            href={`${detailHref}/edit`}
             className="flex min-h-10 flex-1 items-center justify-center rounded-md border border-black/15 px-3 text-sm hover:bg-black/5"
           >
-            פרטים
+            ערוך
           </Link>
           {property.approval_status !== "rejected" && (
             <form action={rejectProperty.bind(null, property.id)} className="flex-1">
