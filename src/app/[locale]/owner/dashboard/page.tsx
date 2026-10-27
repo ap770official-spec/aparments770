@@ -9,6 +9,46 @@ import AvailabilityModeSelect from "@/components/AvailabilityModeSelect";
 
 export const dynamic = "force-dynamic";
 
+const STATUS_STYLES: Record<string, string> = {
+  pending_approval: "bg-[#FDF3E1] text-[#8A5A12] ring-[#F0D9AE]",
+  approved: "bg-[#E8F3EC] text-[#256240] ring-[#C5E0CF]",
+  rejected: "bg-[#FBEAEA] text-[#9B2C2C] ring-[#F1CACA]",
+};
+
+function StatusIcon({ status }: { status: string }) {
+  const common = {
+    width: 12,
+    height: 12,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2.5,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+  };
+  if (status === "approved") {
+    return (
+      <svg {...common}>
+        <path d="M20 6 9 17l-5-5" />
+      </svg>
+    );
+  }
+  if (status === "rejected") {
+    return (
+      <svg {...common}>
+        <path d="M18 6 6 18M6 6l12 12" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...common}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  );
+}
+
 export default async function OwnerDashboardPage({
   params,
 }: {
@@ -31,84 +71,200 @@ export default async function OwnerDashboardPage({
   const properties = await getOwnerProperties(supabase, user!.id);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{t("title")}</h1>
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#E5DED3] pb-6">
+        <div className="min-w-0">
+          <h1 className="font-serif-brand text-3xl font-semibold text-ink">
+            {t("title")}
+          </h1>
+          <p className="mt-1.5 truncate text-sm text-[#5C5349]">
+            {t("loggedInAs", { email: user!.email ?? "" })}
+          </p>
+        </div>
         <LogoutButton />
       </div>
-      <p className="mt-4 text-black/70">
-        {t("loggedInAs", { email: user!.email ?? "" })}
-      </p>
 
-      <div className="mt-8">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{t("myProperties")}</h2>
-          <Link
-            href="/owner/properties/new"
-            className="rounded-md bg-foreground px-4 py-2 text-sm text-background"
+      <section className="mt-8" aria-labelledby="my-properties-heading">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2
+            id="my-properties-heading"
+            className="flex items-center gap-2 text-xl font-bold text-ink"
           >
-            {t("addProperty")}
-          </Link>
+            {t("myProperties")}
+            {properties.length > 0 && (
+              <span className="rounded-full bg-[#F3EEE6] px-2.5 py-0.5 text-sm font-semibold text-[#5C5349] tabular-nums">
+                {properties.length}
+              </span>
+            )}
+          </h2>
+          {properties.length > 0 && (
+            <Link
+              href="/owner/properties/new"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-ink px-4 text-sm font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-black active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              {t("addProperty")}
+            </Link>
+          )}
         </div>
 
         {properties.length === 0 ? (
-          <p className="mt-2 text-black/70">
-            {t("noProperties")}
-          </p>
+          <div className="mt-6 flex flex-col items-center rounded-[14px] border border-dashed border-[#D8CFC0] bg-[#FAF7F2] px-6 py-14 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-brand ring-1 ring-[#E5DED3]">
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 10.5 12 3l9 7.5" />
+                <path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5" />
+                <path d="M10 21v-6h4v6" />
+              </svg>
+            </div>
+            <p className="mt-4 max-w-xs text-[15px] text-[#5C5349]">
+              {t("noProperties")}
+            </p>
+            <Link
+              href="/owner/properties/new"
+              className="mt-5 inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-ink px-5 text-sm font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-black active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              {t("addProperty")}
+            </Link>
+          </div>
         ) : (
-          <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+          <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {properties.map((property) => {
               const media = mainMedia(property.property_photos);
+              const status = property.approval_status;
               return (
                 <li
                   key={property.id}
-                  className="overflow-hidden rounded-lg border border-black/10"
+                  className="flex flex-col overflow-hidden rounded-[14px] border border-[#E5DED3] bg-white"
                 >
-                  {media ? (
-                    media.media_type === "video" ? (
-                      <video
-                        src={optimizedCloudinaryUrl(media.url)}
-                        className="h-32 w-full object-cover"
-                        muted
-                      />
+                  <div className="relative aspect-[16/10] w-full bg-placeholder">
+                    {media ? (
+                      media.media_type === "video" ? (
+                        <video
+                          src={optimizedCloudinaryUrl(media.url)}
+                          className="h-full w-full object-cover"
+                          muted
+                          playsInline
+                          preload="metadata"
+                        />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={optimizedCloudinaryUrl(media.url)}
+                          alt={property.address}
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                        />
+                      )
                     ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={optimizedCloudinaryUrl(media.url)}
-                        alt={property.address}
-                        className="h-32 w-full object-cover"
-                      />
-                    )
-                  ) : (
-                    <div className="h-32 w-full bg-black/5" />
-                  )}
-                  <div className="p-3">
-                    <p className="font-medium">{property.address}</p>
-                    <p className="text-sm text-black/70">
-                      ${property.price_per_night} {t("perNight")}
-                    </p>
-                    <span className="mt-1 inline-block rounded-full border border-black/10 px-2 py-0.5 text-xs">
-                      {t(`status.${property.approval_status}`)}
+                      <div className="flex h-full w-full items-center justify-center text-[#A89E90]">
+                        <svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <rect x="3" y="4" width="18" height="16" rx="2" />
+                          <circle cx="9" cy="10" r="2" />
+                          <path d="m21 16-5-5L5 20" />
+                        </svg>
+                      </div>
+                    )}
+                    <span
+                      className={`absolute start-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${STATUS_STYLES[status] ?? STATUS_STYLES.pending_approval}`}
+                    >
+                      <StatusIcon status={status} />
+                      {t(`status.${status}`)}
                     </span>
+                  </div>
+
+                  <div className="flex flex-1 flex-col gap-3 p-4">
+                    <div className="min-w-0">
+                      <h3 className="line-clamp-2 text-[17px] font-bold break-words text-ink">
+                        {property.address}
+                      </h3>
+                      <p className="mt-1 flex items-baseline gap-1">
+                        <span className="text-lg font-bold text-ink tabular-nums">
+                          ${property.price_per_night}
+                        </span>
+                        <span className="text-[13px] text-[#8A8073]">
+                          {t("perNight")}
+                        </span>
+                      </p>
+                    </div>
 
                     <AvailabilityModeSelect
                       propertyId={property.id}
                       initialMode={property.availability_mode}
                     />
 
-                    <Link
-                      href={`/owner/properties/new?duplicate=${property.id}`}
-                      className="mt-2 inline-block text-xs underline underline-offset-2"
-                    >
-                      {t("duplicate")}
-                    </Link>
+                    <div className="mt-auto border-t border-[#EFE9E0] pt-3">
+                      <Link
+                        href={`/owner/properties/new?duplicate=${property.id}`}
+                        className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg border border-[#D8CFC0] px-3 text-sm font-semibold text-ink transition-[background-color,border-color,transform] duration-150 hover:border-ink hover:bg-[#FAF7F2] active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                      >
+                        <svg
+                          width="15"
+                          height="15"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <rect x="9" y="9" width="12" height="12" rx="2" />
+                          <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+                        </svg>
+                        {t("duplicate")}
+                      </Link>
+                    </div>
                   </div>
                 </li>
               );
             })}
           </ul>
         )}
-      </div>
+      </section>
     </div>
   );
 }

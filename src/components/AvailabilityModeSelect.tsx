@@ -37,20 +37,54 @@ export default function AvailabilityModeSelect({
   }
 
   return (
-    <label className="mt-1 flex flex-col gap-0.5 text-xs">
+    <label className="flex flex-col gap-1.5 text-xs font-semibold text-[#5C5349]">
       {t("label")}
-      <select
-        value={mode}
-        onChange={handleChange}
-        disabled={saving}
-        className="rounded-md border border-black/15 bg-transparent px-2 py-1 text-xs"
-      >
-        {MODES.map((m) => (
-          <option key={m} value={m}>
-            {t(m)}
-          </option>
-        ))}
-      </select>
+      <span className="relative">
+        <select
+          value={mode}
+          onChange={handleChange}
+          disabled={saving}
+          aria-busy={saving}
+          className="min-h-11 w-full appearance-none rounded-lg border border-[#D8CFC0] bg-white ps-3 pe-9 text-sm font-medium text-ink transition-colors duration-150 hover:border-[#A89E90] focus-visible:border-brand focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand/40 disabled:cursor-wait disabled:opacity-60"
+        >
+          {MODES.map((m) => (
+            <option key={m} value={m}>
+              {t(m)}
+            </option>
+          ))}
+        </select>
+        <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-[#8A8073]">
+          {saving ? (
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              className="animate-spin motion-reduce:animate-none"
+              aria-hidden="true"
+            >
+              <path d="M21 12a9 9 0 1 1-6.2-8.56" />
+            </svg>
+          ) : (
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          )}
+        </span>
+      </span>
     </label>
   );
 }
