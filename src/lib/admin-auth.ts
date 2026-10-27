@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
 export const ADMIN_COOKIE_NAME = "admin_session";
@@ -16,8 +16,20 @@ export function adminSessionToken(): string {
     .digest("hex");
 }
 
+/**
+ * Constant-time string comparison, so response timing can't leak how
+ * many leading characters of a guessed password/token were right.
+ * Both sides are hashed first to get equal-length buffers.
+ */
+export function safeEqual(a: string, b: string): boolean {
+  const hashA = createHash("sha256").update(a).digest();
+  const hashB = createHash("sha256").update(b).digest();
+  return timingSafeEqual(hashA, hashB);
+}
+
 export async function isAdminAuthenticated(): Promise<boolean> {
   if (!process.env.ADMIN_PASSWORD) return false;
   const cookieStore = await cookies();
-  return cookieStore.get(ADMIN_COOKIE_NAME)?.value === adminSessionToken();
+  const token = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
+  return !!token && safeEqual(token, adminSessionToken());
 }

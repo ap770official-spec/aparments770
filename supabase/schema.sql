@@ -4,7 +4,7 @@
 -- if something goes wrong in the Supabase project, and so a second
 -- environment (e.g. staging) could be recreated from it.
 --
--- Run order matters: regions -> owners -> properties -> property_amenities -> property_photos
+-- Run order matters: regions -> owners -> properties -> property_amenities -> property_photos -> admin-only column triggers
 -- (each later table references an earlier one via foreign key).
 
 -- =========================================================
@@ -337,3 +337,70 @@ create policy "Owners can delete photos of their own properties"
         and p.owner_id = auth.uid()
     )
   );
+
+
+-- =========================================================
+-- 6. Admin-only columns (security, 2026-10-27)
+-- The RLS policies above let an owner insert/update their own rows -
+-- but RLS is row-level, not column-level, so on its own it would also
+-- let an owner (straight through the public Supabase API, with their
+-- own login token) set approval_status = 'approved' on their listing,
+-- or extend their own subscription_expires_at / un-freeze themselves.
+-- These triggers pin those columns for the public roles (anon,
+-- authenticated): on insert they get the default, on update they keep
+-- their old value. The admin panel uses the service_role key, and the
+-- SQL Editor runs as postgres, so neither is affected.
+-- See docs/handoff-2026-10-27-security-sql.md.
+-- =========================================================
+
+create or replace function public.protect_owner_admin_columns()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user in ('anon', 'authenticated') then
+    if tg_op = 'INSERT' then
+      new.is_verified := false;
+      new.is_first_100 := false;
+      new.subscription_expires_at := null;
+      new.is_frozen := false;
+    else
+      new.id := old.id;
+      new.is_verified := old.is_verified;
+      new.is_first_100 := old.is_first_100;
+      new.subscription_expires_at := old.subscription_expires_at;
+      new.is_frozen := old.is_frozen;
+      new.created_at := old.created_at;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger protect_owner_admin_columns
+  before insert or update on public.owners
+  for each row execute function public.protect_owner_admin_columns();
+
+create or replace function public.protect_property_admin_columns()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user in ('anon', 'authenticated') then
+    if tg_op = 'INSERT' then
+      new.approval_status := 'pending_approval';
+    else
+      new.approval_status := old.approval_status;
+      new.owner_id := old.owner_id;
+      new.created_at := old.created_at;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger protect_property_admin_columns
+  before insert or update on public.properties
+  for each row execute function public.protect_property_admin_columns();
