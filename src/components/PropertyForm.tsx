@@ -18,58 +18,7 @@ import { uploadMediaToCloudinary } from "@/lib/cloudinary";
 import { getWalkingDirections } from "@/lib/mapbox";
 import type { Region } from "@/lib/regions";
 import LocationPicker from "@/components/LocationPicker";
-
-type AmenityCategory =
-  | "kitchen"
-  | "climate"
-  | "bathroom"
-  | "safety"
-  | "family"
-  | "outdoor"
-  | "shabbat_kosher"
-  | "proximity";
-
-const AMENITY_GROUPS: { category: AmenityCategory; keys: string[] }[] = [
-  {
-    category: "kitchen",
-    keys: [
-      "kitchen_hotplate",
-      "kitchen_urn",
-      "kitchen_fridge",
-      "kitchen_stove",
-      "kitchen_oven",
-      "kitchen_microwave",
-      "kitchen_kettle",
-      "kitchen_coffee",
-      "kitchen_utensils",
-    ],
-  },
-  { category: "climate", keys: ["wifi", "ac", "heating"] },
-  {
-    category: "bathroom",
-    keys: ["linens", "toiletries", "hairdryer", "washer", "dryer", "iron"],
-  },
-  {
-    category: "safety",
-    keys: ["safe", "smoke_detector", "fire_extinguisher", "first_aid"],
-  },
-  { category: "family", keys: ["crib", "games"] },
-  { category: "outdoor", keys: ["balcony", "sukkah", "parking"] },
-  {
-    category: "shabbat_kosher",
-    keys: [
-      "shabbat_elevator",
-      "non_electric_lock",
-      "hotplate",
-      "shabbat_clock",
-      "kosher_kitchen",
-    ],
-  },
-  {
-    category: "proximity",
-    keys: ["supermarket", "mikvah", "bakery", "subway"],
-  },
-];
+import { AMENITY_GROUPS } from "@/lib/amenities";
 
 const STEP_KEYS = [
   "address",

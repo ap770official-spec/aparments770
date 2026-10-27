@@ -8,6 +8,10 @@
   --accent-whatsapp: #256240;
   --placeholder: #d8cfc0;
   --ink: #1a1512;
+  --canvas: #f7f4ef;
+  --line: #e5ded3;
+  --ink-soft: #5c5349;
+  --ink-muted: #8a8073;
 }
 
 @theme inline {
@@ -18,6 +22,10 @@
   --color-accent-whatsapp: var(--accent-whatsapp);
   --color-placeholder: var(--placeholder);
   --color-ink: var(--ink);
+  --color-canvas: var(--canvas);
+  --color-line: var(--line);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-serif-brand: var(--font-frank-ruhl);
