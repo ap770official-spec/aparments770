@@ -181,7 +181,10 @@
       "fully_locked": "Fully locked",
       "default_open_block_dates": "Open (block dates manually)",
       "default_closed_open_dates": "Closed (open dates manually)"
-    }
+    },
+    "expiredBadge": "Expired",
+    "visibleUntil": "Shown on the site until {date}",
+    "notVisible": "This listing is no longer shown to guests — it expired on {date}. Contact the site admin to renew."
   },
   "propertyForm": {
     "title": "List a new apartment",

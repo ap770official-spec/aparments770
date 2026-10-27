@@ -44,6 +44,7 @@ export type PropertySummary = {
   phone_number: string;
   approval_status: ApprovalStatus;
   availability_mode: AvailabilityMode;
+  listing_expires_at: string | null;
   property_photos: PropertyPhoto[];
 };
 
@@ -65,7 +66,26 @@ export type PropertyDetail = PropertySummary & {
 };
 
 const SUMMARY_COLUMNS =
-  "id, address, lat, lng, property_type, price_per_night, bedrooms, beds, max_guests, walking_minutes_to_landmark, phone_country_code, phone_number, approval_status, availability_mode, property_photos(url, sort_order, media_type)";
+  "id, address, lat, lng, property_type, price_per_night, bedrooms, beds, max_guests, walking_minutes_to_landmark, phone_country_code, phone_number, approval_status, availability_mode, listing_expires_at, property_photos(url, sort_order, media_type)";
+
+/**
+ * PostgREST filter for "listing hasn't expired": an approved listing is
+ * only shown publicly until its listing_expires_at (set by the admin on
+ * approval). Null = no end date (legacy rows). RLS enforces the same
+ * rule for anonymous visitors; this also covers a logged-in owner
+ * browsing the site, whom RLS lets see their own expired listings.
+ */
+function notExpiredFilter(): string {
+  return `listing_expires_at.is.null,listing_expires_at.gt.${new Date().toISOString()}`;
+}
+
+/** Whether an approved listing is past its listing_expires_at. */
+export function isListingExpired(
+  listingExpiresAt: string | null,
+  now = new Date(),
+): boolean {
+  return listingExpiresAt != null && new Date(listingExpiresAt) <= now;
+}
 
 export function mainMedia(photos: PropertyPhoto[]): PropertyPhoto | null {
   if (photos.length === 0) return null;
@@ -87,6 +107,7 @@ export async function searchProperties({
     .select(SUMMARY_COLUMNS)
     .eq("region_id", regionId)
     .eq("approval_status", "approved")
+    .or(notExpiredFilter())
     .or(`max_guests.is.null,max_guests.gte.${guests}`);
 
   if (maxWalkingMinutes != null) {
@@ -125,7 +146,8 @@ export async function getPropertiesByIds(
     .from("properties")
     .select(SUMMARY_COLUMNS)
     .in("id", ids)
-    .eq("approval_status", "approved");
+    .eq("approval_status", "approved")
+    .or(notExpiredFilter());
 
   if (error) {
     throw new Error(`Failed to load favorite properties: ${error.message}`);
@@ -168,6 +190,7 @@ export async function getPropertyById(
     )
     .eq("id", id)
     .eq("approval_status", "approved")
+    .or(notExpiredFilter())
     .maybeSingle();
 
   if (error) {
@@ -187,11 +210,7 @@ export type AdminPropertyDetail = PropertyDetail & {
     landmark_lat: number | null;
     landmark_lng: number | null;
   } | null;
-  owners: {
-    full_name: string | null;
-    subscription_expires_at: string | null;
-    is_frozen: boolean;
-  } | null;
+  owners: { full_name: string | null } | null;
 };
 
 /**
@@ -210,11 +229,12 @@ export async function getAdminPropertyById(
       `id, address, lat, lng, address_notes, walking_minutes_to_landmark,
        property_type, price_per_night, bedrooms, beds, toilets, bathtubs,
        max_guests, min_nights, checkin_time, checkout_time, approval_status,
-       availability_mode, phone_country_code, phone_number, created_at, updated_at,
+       availability_mode, listing_expires_at, phone_country_code, phone_number,
+       created_at, updated_at,
        description_he, description_en,
        property_photos(url, sort_order, media_type),
        property_amenities(category, amenity_key),
-       regions(name_he, landmark_lat, landmark_lng), owners(full_name, subscription_expires_at, is_frozen)`,
+       regions(name_he, landmark_lat, landmark_lng), owners(full_name)`,
     )
     .eq("id", id)
     .maybeSingle();

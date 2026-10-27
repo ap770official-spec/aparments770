@@ -181,7 +181,10 @@
       "fully_locked": "נעילה מלאה",
       "default_open_block_dates": "פתוח (סוגר תאריכים ידנית)",
       "default_closed_open_dates": "סגור (פותח תאריכים ידנית)"
-    }
+    },
+    "expiredBadge": "פג תוקף",
+    "visibleUntil": "מוצגת באתר עד {date}",
+    "notVisible": "הדירה לא מוצגת יותר ללקוחות — תוקף הפרסום פג ב-{date}. לחידוש, צרו קשר עם מנהל האתר."
   },
   "propertyForm": {
     "title": "פרסום דירה חדשה",

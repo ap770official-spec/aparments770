@@ -2,26 +2,23 @@ export const EXPIRING_SOON_DAYS = 30;
 
 export type SubscriptionState =
   | { kind: "none" }
-  | { kind: "frozen" }
   | { kind: "expired"; expiresAt: Date }
   | { kind: "expiring"; expiresAt: Date; daysLeft: number }
   | { kind: "active"; expiresAt: Date };
 
 /**
- * The owner's listing subscription, reduced to the one state the
- * admin cares about at a glance. Lives on the owner (one payment
- * covers all their listings), so every property of the same owner
- * shows the same state.
+ * A listing's paid display period (properties.listing_expires_at,
+ * set per property when the admin approves it), reduced to the one
+ * state the admin cares about at a glance. An expired listing stays
+ * "approved" but is hidden from the public site.
  */
 export function subscriptionState(
-  owner: { subscription_expires_at: string | null; is_frozen: boolean } | null,
+  listingExpiresAt: string | null,
   now = new Date(),
 ): SubscriptionState {
-  if (!owner) return { kind: "none" };
-  if (owner.is_frozen) return { kind: "frozen" };
-  if (!owner.subscription_expires_at) return { kind: "none" };
+  if (!listingExpiresAt) return { kind: "none" };
 
-  const expiresAt = new Date(owner.subscription_expires_at);
+  const expiresAt = new Date(listingExpiresAt);
   const msLeft = expiresAt.getTime() - now.getTime();
   if (msLeft <= 0) return { kind: "expired", expiresAt };
 
@@ -36,7 +33,42 @@ export function formatAdminDate(date: Date): string {
   return date.toLocaleDateString("en-GB");
 }
 
+/** yyyy-mm-dd for a date input's value. */
+export function toDateInputValue(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
 /** Whether this state needs the admin's attention (renewal/payment). */
 export function needsRenewal(state: SubscriptionState): boolean {
-  return state.kind === "expired" || state.kind === "expiring" || state.kind === "frozen";
+  return state.kind === "expired" || state.kind === "expiring";
+}
+
+/** Label + color tone for the listing's "shown until" pill. */
+export function expiryPill(state: SubscriptionState): {
+  label: string;
+  tone: "neutral" | "warning" | "danger";
+} {
+  switch (state.kind) {
+    case "none":
+      return { label: "מנוי ללא תאריך סיום", tone: "neutral" };
+    case "expired":
+      return { label: `פג ב-${formatAdminDate(state.expiresAt)} · לא מוצג`, tone: "danger" };
+    case "expiring":
+      return {
+        label: `מנוי עד ${formatAdminDate(state.expiresAt)} · עוד ${state.daysLeft} ${state.daysLeft === 1 ? "יום" : "ימים"}`,
+        tone: "warning",
+      };
+    case "active":
+      return { label: `מנוי עד ${formatAdminDate(state.expiresAt)}`, tone: "neutral" };
+  }
+}
+
+/** Date to prefill when editing: the current expiry, or a year from now. */
+export function expiryInputValue(state: SubscriptionState): string {
+  if (state.kind === "none") {
+    const d = new Date();
+    d.setDate(d.getDate() + 365);
+    return toDateInputValue(d);
+  }
+  return toDateInputValue(state.expiresAt);
 }
