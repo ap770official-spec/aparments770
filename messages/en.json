@@ -269,5 +269,10 @@
     "contact": "Contact",
     "terms": "Terms of use",
     "copyright": "© Apartments770"
+  },
+  "underConstructionNotice": {
+    "title": "Site under construction",
+    "body": "This site is still under construction. We apologize for the inconvenience — it isn't fully ready for use yet.",
+    "close": "Got it, close"
   }
 }
