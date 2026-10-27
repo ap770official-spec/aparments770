@@ -137,6 +137,7 @@ export async function rejectProperty(propertyId: string) {
     .eq("id", propertyId);
   if (error) throw new Error(error.message);
   revalidatePath("/admin/properties");
+  revalidatePath(`/admin/properties/${propertyId}`);
 }
 
 /**

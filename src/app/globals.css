@@ -8,6 +8,7 @@
   --accent-whatsapp: #256240;
   --placeholder: #d8cfc0;
   --ink: #1a1512;
+  --canvas: #f7f4ef;
 }
 
 @theme inline {
@@ -18,6 +19,7 @@
   --color-accent-whatsapp: var(--accent-whatsapp);
   --color-placeholder: var(--placeholder);
   --color-ink: var(--ink);
+  --color-canvas: var(--canvas);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-serif-brand: var(--font-frank-ruhl);
