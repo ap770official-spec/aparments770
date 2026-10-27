@@ -1,7 +1,8 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link, redirect } from "@/i18n/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { ensureOwnerRow } from "@/lib/owners";
+import { ensureOwnerRow, getOwnerSubscription } from "@/lib/owners";
+import { subscriptionState } from "@/lib/admin-subscription";
 import {
   getOwnerProperties,
   getPendingEditPropertyIds,
@@ -18,6 +19,13 @@ const STATUS_STYLES: Record<string, string> = {
   pending_approval: "bg-[#FDF3E1] text-[#8A5A12] ring-[#F0D9AE]",
   approved: "bg-[#E8F3EC] text-[#256240] ring-[#C5E0CF]",
   rejected: "bg-[#FBEAEA] text-[#9B2C2C] ring-[#F1CACA]",
+};
+
+const LISTING_PERIOD_TONES = {
+  active: "text-[#8A8073]",
+  expiring: "font-semibold text-[#8A5A12]",
+  expired: "font-semibold text-[#9B2C2C]",
+  frozen: "font-semibold text-[#5C5349]",
 };
 
 function StatusIcon({ status }: { status: string }) {
@@ -76,10 +84,46 @@ export default async function OwnerDashboardPage({
   }
 
   await ensureOwnerRow(supabase, user!.id);
-  const [properties, pendingEditIds] = await Promise.all([
+  const [properties, pendingEditIds, ownerSubscription] = await Promise.all([
     getOwnerProperties(supabase, user!.id),
     getPendingEditPropertyIds(supabase, user!.id),
+    getOwnerSubscription(supabase, user!.id),
   ]);
+
+  // One subscription covers all of the owner's listings, so every
+  // approved listing shows the same end date.
+  const subscription = subscriptionState(ownerSubscription);
+  const formatDate = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  const listingPeriod =
+    subscription.kind === "none"
+      ? null
+      : subscription.kind === "frozen"
+        ? { tone: "frozen" as const, text: t("listingFrozen") }
+        : subscription.kind === "expired"
+          ? {
+              tone: "expired" as const,
+              text: t("listingExpired", {
+                date: formatDate.format(subscription.expiresAt),
+              }),
+            }
+          : subscription.kind === "expiring"
+            ? {
+                tone: "expiring" as const,
+                text: t("listedUntilSoon", {
+                  date: formatDate.format(subscription.expiresAt),
+                  days: subscription.daysLeft,
+                }),
+              }
+            : {
+                tone: "active" as const,
+                text: t("listedUntil", {
+                  date: formatDate.format(subscription.expiresAt),
+                }),
+              };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12">
@@ -244,6 +288,28 @@ export default async function OwnerDashboardPage({
                           {t("perNight")}
                         </span>
                       </p>
+                      {status === "approved" && listingPeriod && (
+                        <p
+                          className={`mt-1.5 flex items-center gap-1.5 text-[13px] ${LISTING_PERIOD_TONES[listingPeriod.tone]}`}
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="shrink-0"
+                            aria-hidden="true"
+                          >
+                            <rect x="3" y="4" width="18" height="18" rx="2" />
+                            <path d="M16 2v4M8 2v4M3 10h18" />
+                          </svg>
+                          {listingPeriod.text}
+                        </p>
+                      )}
                       {pendingEditIds.has(property.id) && (
                         <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#FDF3E1] px-2.5 py-1 text-xs font-semibold text-[#8A5A12] ring-1 ring-[#F0D9AE]">
                           <svg

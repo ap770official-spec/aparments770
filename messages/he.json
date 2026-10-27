@@ -185,7 +185,11 @@
     "editSentTitle": "העריכה נשלחה לאישור",
     "editSentBody": "הצוות שלנו יבדוק את השינויים. עד שהם יאושרו, הדירה תמשיך להופיע באתר כפי שהופיעה לפני העריכה.",
     "editSentClose": "הבנתי",
-    "editPending": "עריכה ממתינה לאישור"
+    "editPending": "עריכה ממתינה לאישור",
+    "listedUntil": "באתר עד {date}",
+    "listedUntilSoon": "באתר עד {date} · {days, plural, one {נשאר יום אחד} other {נשארו # ימים}}",
+    "listingExpired": "תקופת הפרסום הסתיימה ב-{date}",
+    "listingFrozen": "הפרסום מוקפא כרגע"
   },
   "propertyForm": {
     "title": "פרסום דירה חדשה",
