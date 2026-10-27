@@ -170,18 +170,22 @@
     "noProperties": "עדיין לא פרסמת אף דירה.",
     "perNight": "ללילה",
     "addProperty": "הוסף דירה",
+    "edit": "עריכה",
     "status": {
       "pending_approval": "ממתין לאישור",
       "approved": "מאושר",
       "rejected": "נדחה"
     },
-    "duplicate": "שכפל",
     "availabilityMode": {
       "label": "מצב תפוסה",
       "fully_locked": "נעילה מלאה",
       "default_open_block_dates": "פתוח (סוגר תאריכים ידנית)",
       "default_closed_open_dates": "סגור (פותח תאריכים ידנית)"
-    }
+    },
+    "editSentTitle": "העריכה נשלחה לאישור",
+    "editSentBody": "הצוות שלנו יבדוק את השינויים. עד שהם יאושרו, הדירה תמשיך להופיע באתר כפי שהופיעה לפני העריכה.",
+    "editSentClose": "הבנתי",
+    "editPending": "עריכה ממתינה לאישור"
   },
   "propertyForm": {
     "title": "פרסום דירה חדשה",
@@ -254,7 +258,12 @@
     "summaryPhotosLabel": "תמונות",
     "summaryPhotosValue": "{count} תמונות",
     "summaryNote": "לאחר השליחה, הדירה לא תופיע באתר עד לאישור ידני של הצוות שלנו.",
-    "summaryNoAddress": "טרם הוזנה כתובת"
+    "summaryNoAddress": "טרם הוזנה כתובת",
+    "editTitle": "עריכת דירה",
+    "editSubtitle": "עדכנו את פרטי הדירה, התמונות והמתקנים. השינויים יישלחו לאישור הצוות.",
+    "saveChanges": "שליחת השינויים לאישור",
+    "editSummaryNote": "השינויים יישלחו לאישור. עד שהצוות יאשר אותם, הדירה תמשיך להופיע באתר כפי שהיא היום.",
+    "pendingEditNotice": "כבר שלחתם עריכה לדירה הזו והיא ממתינה לאישור. הטופס מציג את מה ששלחתם, ושליחה חדשה תחליף את העריכה הקודמת."
   },
   "footer": {
     "contact": "צור קשר",

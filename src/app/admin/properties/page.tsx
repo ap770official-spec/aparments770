@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { getPendingEditPropertyIds } from "@/lib/properties";
 import {
   formatAdminDate,
   needsRenewal,
@@ -31,6 +32,7 @@ const STATUS_BADGE_CLASSES: Record<string, string> = {
 const FILTERS = [
   { key: "all", label: "הכל" },
   { key: "pending_approval", label: "ממתינות לאישור" },
+  { key: "edits", label: "עריכות ממתינות" },
   { key: "approved", label: "מאושרות" },
   { key: "renewal", label: "דורשות חידוש" },
   { key: "rejected", label: "נדחו" },
@@ -112,6 +114,8 @@ export default async function AdminPropertiesPage({
     throw new Error(`Failed to load properties: ${error.message}`);
   }
 
+  const pendingEditIds = await getPendingEditPropertyIds(supabase);
+
   const now = new Date();
   const rows = (data as unknown as AdminPropertyRow[]).map((property) => ({
     property,
@@ -124,6 +128,7 @@ export default async function AdminPropertiesPage({
     approved: 0,
     rejected: 0,
     renewal: 0,
+    edits: 0,
   };
   for (const { property, subscription } of rows) {
     if (property.approval_status in counts) {
@@ -132,11 +137,17 @@ export default async function AdminPropertiesPage({
     if (property.approval_status === "approved" && needsRenewal(subscription)) {
       counts.renewal += 1;
     }
+    if (pendingEditIds.has(property.id)) {
+      counts.edits += 1;
+    }
   }
 
   const needle = q.toLowerCase();
   const visible = rows
     .filter(({ property, subscription }) => {
+      if (activeFilter === "edits") {
+        return pendingEditIds.has(property.id);
+      }
       if (activeFilter === "renewal") {
         return property.approval_status === "approved" && needsRenewal(subscription);
       }
@@ -151,12 +162,14 @@ export default async function AdminPropertiesPage({
         property.phone_number,
       ].some((field) => field.toLowerCase().includes(needle));
     })
-    // Pending listings are the admin's to-do list - keep them on top.
-    .sort(
-      (a, b) =>
-        Number(b.property.approval_status === "pending_approval") -
-        Number(a.property.approval_status === "pending_approval"),
-    );
+    // Pending listings and pending owner edits are the admin's to-do
+    // list - keep them on top.
+    .sort((a, b) => {
+      const needsAction = ({ property }: (typeof rows)[number]) =>
+        property.approval_status === "pending_approval" ||
+        pendingEditIds.has(property.id);
+      return Number(needsAction(b)) - Number(needsAction(a));
+    });
 
   const stats = [
     { label: "סה״כ דירות", value: counts.all, filter: "all" as const },
@@ -203,6 +216,22 @@ export default async function AdminPropertiesPage({
             </Link>
           ))}
         </dl>
+
+        {counts.edits > 0 && activeFilter !== "edits" && (
+          <Link
+            href={filterHref("edits", q)}
+            className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-amber-400/70 bg-amber-50 px-4 py-3 text-sm text-amber-900 transition-colors hover:bg-amber-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          >
+            <span>
+              {counts.edits === 1
+                ? "בעל דירה ערך דירה מאושרת, והעריכה ממתינה לאישור שלך."
+                : `${counts.edits} עריכות של בעלי דירות ממתינות לאישור שלך.`}
+            </span>
+            <span className="shrink-0 font-medium underline underline-offset-2">
+              הצג
+            </span>
+          </Link>
+        )}
 
         <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <nav aria-label="סינון לפי סטטוס" className="-mx-4 overflow-x-auto px-4">
@@ -278,6 +307,7 @@ export default async function AdminPropertiesPage({
                 key={property.id}
                 property={property}
                 subscription={subscription}
+                hasPendingEdit={pendingEditIds.has(property.id)}
               />
             ))}
           </ul>
@@ -314,9 +344,11 @@ export default async function AdminPropertiesPage({
 function PropertyRow({
   property,
   subscription,
+  hasPendingEdit,
 }: {
   property: AdminPropertyRow;
   subscription: SubscriptionState;
+  hasPendingEdit: boolean;
 }) {
   const thumb = thumbnailUrl(property.property_photos);
   const detailHref = `/admin/properties/${property.id}`;
@@ -357,6 +389,14 @@ function PropertyRow({
               {STATUS_LABELS[property.approval_status] ?? property.approval_status}
             </span>
             <SubscriptionBadge state={subscription} />
+            {hasPendingEdit && (
+              <Link
+                href={`${detailHref}#pending-edit`}
+                className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 ring-1 ring-inset ring-amber-600/30 hover:bg-amber-200"
+              >
+                עריכה ממתינה לאישור
+              </Link>
+            )}
             {/* No lat/lng = hidden from the search map until the
                 geocodeLegacyProperties backfill (tools below) runs. */}
             {(property.lat == null || property.lng == null) && (
