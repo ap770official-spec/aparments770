@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link, redirect } from "@/i18n/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ensureOwnerRow } from "@/lib/owners";
+import { subscriptionState } from "@/lib/admin-subscription";
 import {
   getOwnerProperties,
   getPendingEditPropertyIds,
@@ -81,6 +82,12 @@ export default async function OwnerDashboardPage({
     getOwnerProperties(supabase, user!.id),
     getPendingEditPropertyIds(supabase, user!.id),
   ]);
+
+  const formatDate = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12">
@@ -183,9 +190,11 @@ export default async function OwnerDashboardPage({
               const expired =
                 status === "approved" &&
                 isListingExpired(property.listing_expires_at);
-              const expiryDate = property.listing_expires_at
-                ? new Date(property.listing_expires_at).toLocaleDateString("en-GB")
-                : null;
+              const period = subscriptionState(property.listing_expires_at);
+              const expiryDate =
+                period.kind === "none"
+                  ? null
+                  : formatDate.format(period.expiresAt);
               return (
                 <li
                   key={property.id}
@@ -254,8 +263,34 @@ export default async function OwnerDashboardPage({
                         </span>
                       </p>
                       {status === "approved" && !expired && expiryDate && (
-                        <p className="mt-1 text-[13px] text-[#5C5349]">
-                          {t("visibleUntil", { date: expiryDate })}
+                        <p
+                          className={`mt-1.5 flex items-center gap-1.5 text-[13px] ${
+                            period.kind === "expiring"
+                              ? "font-semibold text-[#8A5A12]"
+                              : "text-[#8A8073]"
+                          }`}
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="shrink-0"
+                            aria-hidden="true"
+                          >
+                            <rect x="3" y="4" width="18" height="18" rx="2" />
+                            <path d="M16 2v4M8 2v4M3 10h18" />
+                          </svg>
+                          {period.kind === "expiring"
+                            ? t("visibleUntilSoon", {
+                                date: expiryDate,
+                                days: period.daysLeft,
+                              })
+                            : t("visibleUntil", { date: expiryDate })}
                         </p>
                       )}
                       {expired && expiryDate && (

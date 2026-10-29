@@ -184,6 +184,7 @@
     },
     "expiredBadge": "Expired",
     "visibleUntil": "Shown on the site until {date}",
+    "visibleUntilSoon": "Shown on the site until {date} · {days, plural, one {1 day left} other {# days left}}",
     "notVisible": "This listing is no longer shown to guests — it expired on {date}. Contact the site admin to renew.",
     "editSentTitle": "Your edit was sent for approval",
     "editSentBody": "Our team will review your changes. Until they are approved, the apartment keeps appearing on the site as it did before the edit.",
