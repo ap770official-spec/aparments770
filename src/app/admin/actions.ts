@@ -7,6 +7,7 @@ import { ADMIN_COOKIE_NAME, adminSessionToken, isAdminAuthenticated } from "@/li
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { generateSubscriptionPdf } from "@/lib/subscription-pdf";
 import { sendEmail } from "@/lib/email";
+import { updateProperty, type PropertyEditPayload } from "@/lib/properties";
 
 export async function loginAdmin(formData: FormData) {
   const password = formData.get("password");
@@ -42,28 +43,43 @@ async function requireAdmin() {
   }
 }
 
+/** The "expiresAt" date input (yyyy-mm-dd), as the end of that day. */
+function parseExpiryDate(formData: FormData): Date {
+  const input = formData.get("expiresAt");
+  const expiresAt =
+    typeof input === "string" && /^\d{4}-\d{2}-\d{2}$/.test(input)
+      ? new Date(`${input}T23:59:59`)
+      : null;
+  if (!expiresAt || Number.isNaN(expiresAt.getTime())) {
+    throw new Error("יש לבחור תאריך תוקף");
+  }
+  return expiresAt;
+}
+
+function revalidateListing(propertyId: string) {
+  revalidatePath("/admin/properties");
+  revalidatePath(`/admin/properties/${propertyId}`);
+  revalidatePath("/[locale]/property/[id]", "page");
+  revalidatePath("/[locale]/search", "page");
+  revalidatePath("/[locale]/owner/dashboard", "page");
+}
+
 /**
- * Approving a property also opens the owner's yearly (or whatever
- * length the admin picks) listing subscription and emails them a PDF
- * confirmation - approval and payment sign-off are the same action
- * here, since payment itself happens off-platform (WhatsApp + bank
- * transfer) before the admin ever clicks approve. The subscription
- * lives on the owner, not the property, since one payment covers all
- * of that owner's listings.
+ * Approving a property also sets how long it's shown on the site
+ * (properties.listing_expires_at - per listing, not per owner) and
+ * emails the owner a PDF confirmation. Approval and payment sign-off
+ * are the same action here, since payment itself happens off-platform
+ * (WhatsApp + bank transfer) before the admin ever clicks approve.
  *
- * Email delivery failures don't roll back the approval or the
- * subscription date - those are the parts that matter operationally,
- * and are already visible/correct in the DB even if the email never
- * arrives. The admin can always resend by re-approving.
+ * Email delivery failures don't roll back the approval or the expiry
+ * date - those are the parts that matter operationally, and are
+ * already visible/correct in the DB even if the email never arrives.
+ * The admin can always resend by re-approving.
  */
 export async function approveProperty(propertyId: string, formData: FormData) {
   await requireAdmin();
 
-  const expiresAtInput = formData.get("expiresAt");
-  if (typeof expiresAtInput !== "string" || !expiresAtInput) {
-    throw new Error("יש לבחור תאריך תוקף לפני אישור");
-  }
-  const expiresAt = new Date(`${expiresAtInput}T23:59:59`);
+  const expiresAt = parseExpiryDate(formData);
 
   const supabase = createAdminSupabaseClient();
 
@@ -78,18 +94,14 @@ export async function approveProperty(propertyId: string, formData: FormData) {
 
   const { error: approveError } = await supabase
     .from("properties")
-    .update({ approval_status: "approved" })
+    .update({
+      approval_status: "approved",
+      listing_expires_at: expiresAt.toISOString(),
+    })
     .eq("id", propertyId);
   if (approveError) throw new Error(approveError.message);
 
-  const { error: subscriptionError } = await supabase
-    .from("owners")
-    .update({ subscription_expires_at: expiresAt.toISOString(), is_frozen: false })
-    .eq("id", property.owner_id);
-  if (subscriptionError) throw new Error(subscriptionError.message);
-
-  revalidatePath("/admin/properties");
-  revalidatePath(`/admin/properties/${propertyId}`);
+  revalidateListing(propertyId);
 
   try {
     const { data: userData } = await supabase.auth.admin.getUserById(
@@ -128,6 +140,24 @@ export async function approveProperty(propertyId: string, formData: FormData) {
   }
 }
 
+/**
+ * Changes only how long one approved listing stays on the site - for
+ * renewals and corrections. Unlike approveProperty it sends no email,
+ * and it never touches the owner's other listings. A date in the past
+ * takes the listing off the site right away.
+ */
+export async function setListingExpiry(propertyId: string, formData: FormData) {
+  await requireAdmin();
+  const expiresAt = parseExpiryDate(formData);
+  const supabase = createAdminSupabaseClient();
+  const { error } = await supabase
+    .from("properties")
+    .update({ listing_expires_at: expiresAt.toISOString() })
+    .eq("id", propertyId);
+  if (error) throw new Error(error.message);
+  revalidateListing(propertyId);
+}
+
 export async function rejectProperty(propertyId: string) {
   await requireAdmin();
   const supabase = createAdminSupabaseClient();
@@ -136,7 +166,7 @@ export async function rejectProperty(propertyId: string) {
     .update({ approval_status: "rejected" })
     .eq("id", propertyId);
   if (error) throw new Error(error.message);
-  revalidatePath("/admin/properties");
+  revalidateListing(propertyId);
 }
 
 /**
@@ -156,4 +186,59 @@ export async function deleteProperty(propertyId: string) {
   if (error) throw new Error(error.message);
   revalidatePath("/admin/properties");
   redirect("/admin/properties");
+}
+
+/**
+ * Applies an owner's pending edit to the live listing (fields,
+ * amenities and media), then marks the edit approved. The listing's
+ * approval_status is unchanged - it was already approved when the edit
+ * was submitted.
+ */
+export async function approvePropertyEdit(editId: string) {
+  await requireAdmin();
+  const supabase = createAdminSupabaseClient();
+
+  const { data: edit, error: editError } = await supabase
+    .from("property_edits")
+    .select("id, property_id, owner_id, payload")
+    .eq("id", editId)
+    .eq("status", "pending")
+    .maybeSingle();
+  if (editError) throw new Error(editError.message);
+  if (!edit) throw new Error("העריכה לא נמצאה או שכבר טופלה");
+
+  await updateProperty(supabase, edit.property_id, {
+    ...(edit.payload as PropertyEditPayload),
+    ownerId: edit.owner_id,
+  });
+
+  const { error: statusError } = await supabase
+    .from("property_edits")
+    .update({ status: "approved", reviewed_at: new Date().toISOString() })
+    .eq("id", editId);
+  if (statusError) throw new Error(statusError.message);
+
+  revalidatePath("/admin/properties");
+  revalidatePath(`/admin/properties/${edit.property_id}`);
+}
+
+/**
+ * Discards an owner's pending edit. The live listing is left exactly
+ * as it was.
+ */
+export async function rejectPropertyEdit(editId: string) {
+  await requireAdmin();
+  const supabase = createAdminSupabaseClient();
+
+  const { data: edit, error } = await supabase
+    .from("property_edits")
+    .update({ status: "rejected", reviewed_at: new Date().toISOString() })
+    .eq("id", editId)
+    .eq("status", "pending")
+    .select("property_id")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/properties");
+  if (edit) revalidatePath(`/admin/properties/${edit.property_id}`);
 }

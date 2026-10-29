@@ -4,7 +4,7 @@
 -- if something goes wrong in the Supabase project, and so a second
 -- environment (e.g. staging) could be recreated from it.
 --
--- Run order matters: regions -> owners -> properties -> property_amenities -> property_photos
+-- Run order matters: regions -> owners -> properties -> property_amenities -> property_photos -> property_edits
 -- (each later table references an earlier one via foreign key).
 
 -- =========================================================
@@ -135,6 +135,11 @@ create table public.properties (
 
   approval_status text not null default 'pending_approval'
     check (approval_status in ('pending_approval','approved','rejected')),
+  -- End of the paid display period, set per listing by the admin on
+  -- approval. Past this date an approved listing is hidden from the
+  -- public site (RLS below). Null = no end date. Added 2026-10-27,
+  -- replacing the owner-level owners.subscription_expires_at.
+  listing_expires_at timestamptz,
   availability_mode text not null default 'default_open_block_dates'
     check (availability_mode in ('fully_locked','default_open_block_dates','default_closed_open_dates')),
 
@@ -148,7 +153,10 @@ create policy "Public can view approved properties"
   on public.properties
   for select
   to anon, authenticated
-  using (approval_status = 'approved');
+  using (
+    approval_status = 'approved'
+    and (listing_expires_at is null or listing_expires_at > now())
+  );
 
 create policy "Owners can view their own properties"
   on public.properties
@@ -337,3 +345,63 @@ create policy "Owners can delete photos of their own properties"
         and p.owner_id = auth.uid()
     )
   );
+
+
+-- =========================================================
+-- 6. property_edits
+-- Owner edits to an already-approved listing wait here for admin
+-- review, so the live listing keeps showing its approved version
+-- until then. payload holds the full proposed listing (the
+-- NewPropertyInput shape from src/lib/properties.ts, minus ownerId):
+-- fields, amenities and media. Approving applies it to properties /
+-- property_amenities / property_photos via the service-role client
+-- (src/app/admin/actions.ts). At most one pending edit per property;
+-- a new submission replaces the previous pending one.
+--
+-- Added 2026-10-27 (owner edit approval) - see
+-- docs/handoff-2026-10-27-property-edits-sql.md for the statements run
+-- manually against the live database.
+-- =========================================================
+
+create table public.property_edits (
+  id uuid primary key default gen_random_uuid(),
+  property_id uuid not null references public.properties(id) on delete cascade,
+  owner_id uuid not null references public.owners(id) on delete cascade,
+  payload jsonb not null,
+  status text not null default 'pending'
+    check (status in ('pending','approved','rejected')),
+  created_at timestamptz not null default now(),
+  reviewed_at timestamptz
+);
+
+create unique index property_edits_one_pending_per_property
+  on public.property_edits (property_id)
+  where status = 'pending';
+
+alter table public.property_edits enable row level security;
+
+create policy "Owners can view their own property edits"
+  on public.property_edits
+  for select
+  to authenticated
+  using (owner_id = auth.uid());
+
+create policy "Owners can submit edits for their own properties"
+  on public.property_edits
+  for insert
+  to authenticated
+  with check (
+    owner_id = auth.uid()
+    and status = 'pending'
+    and exists (
+      select 1 from public.properties p
+      where p.id = property_edits.property_id
+        and p.owner_id = auth.uid()
+    )
+  );
+
+create policy "Owners can withdraw their own pending edits"
+  on public.property_edits
+  for delete
+  to authenticated
+  using (owner_id = auth.uid() and status = 'pending');

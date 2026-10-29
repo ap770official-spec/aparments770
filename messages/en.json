@@ -170,18 +170,25 @@
     "noProperties": "You haven't listed any apartments yet.",
     "perNight": "per night",
     "addProperty": "Add property",
+    "edit": "Edit",
     "status": {
       "pending_approval": "Pending approval",
       "approved": "Approved",
       "rejected": "Rejected"
     },
-    "duplicate": "Duplicate",
     "availabilityMode": {
       "label": "Availability mode",
       "fully_locked": "Fully locked",
       "default_open_block_dates": "Open (block dates manually)",
       "default_closed_open_dates": "Closed (open dates manually)"
-    }
+    },
+    "expiredBadge": "Expired",
+    "visibleUntil": "Shown on the site until {date}",
+    "notVisible": "This listing is no longer shown to guests — it expired on {date}. Contact the site admin to renew.",
+    "editSentTitle": "Your edit was sent for approval",
+    "editSentBody": "Our team will review your changes. Until they are approved, the apartment keeps appearing on the site as it did before the edit.",
+    "editSentClose": "Got it",
+    "editPending": "Edit awaiting approval"
   },
   "propertyForm": {
     "title": "List a new apartment",
@@ -257,7 +264,12 @@
     "summaryNoAddress": "No address entered yet",
     "decrease": "Decrease {label}",
     "increase": "Increase {label}",
-    "otherTime": "Other time"
+    "otherTime": "Other time",
+    "editTitle": "Edit apartment",
+    "editSubtitle": "Update the apartment details, photos and amenities. Your changes will be sent to our team for approval.",
+    "saveChanges": "Send changes for approval",
+    "editSummaryNote": "Your changes will be sent for approval. Until our team approves them, the apartment keeps appearing on the site as it does today.",
+    "pendingEditNotice": "You already sent an edit for this apartment and it's awaiting approval. The form shows what you sent, and sending again will replace that edit."
   },
   "footer": {
     "contact": "Contact",
