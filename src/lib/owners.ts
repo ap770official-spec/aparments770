@@ -29,29 +29,3 @@ export async function ensureOwnerRow(
     throw new Error(`Failed to create owner: ${insertError.message}`);
   }
 }
-
-export type OwnerSubscription = {
-  subscription_expires_at: string | null;
-  is_frozen: boolean;
-};
-
-/**
- * The owner's listing subscription - set by the admin on approval and
- * shared by all of the owner's listings (one payment covers them all).
- */
-export async function getOwnerSubscription(
-  supabase: SupabaseClient,
-  userId: string,
-): Promise<OwnerSubscription | null> {
-  const { data, error } = await supabase
-    .from("owners")
-    .select("subscription_expires_at, is_frozen")
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(`Failed to load subscription: ${error.message}`);
-  }
-
-  return data;
-}

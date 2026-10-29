@@ -43,28 +43,43 @@ async function requireAdmin() {
   }
 }
 
+/** The "expiresAt" date input (yyyy-mm-dd), as the end of that day. */
+function parseExpiryDate(formData: FormData): Date {
+  const input = formData.get("expiresAt");
+  const expiresAt =
+    typeof input === "string" && /^\d{4}-\d{2}-\d{2}$/.test(input)
+      ? new Date(`${input}T23:59:59`)
+      : null;
+  if (!expiresAt || Number.isNaN(expiresAt.getTime())) {
+    throw new Error("יש לבחור תאריך תוקף");
+  }
+  return expiresAt;
+}
+
+function revalidateListing(propertyId: string) {
+  revalidatePath("/admin/properties");
+  revalidatePath(`/admin/properties/${propertyId}`);
+  revalidatePath("/[locale]/property/[id]", "page");
+  revalidatePath("/[locale]/search", "page");
+  revalidatePath("/[locale]/owner/dashboard", "page");
+}
+
 /**
- * Approving a property also opens the owner's yearly (or whatever
- * length the admin picks) listing subscription and emails them a PDF
- * confirmation - approval and payment sign-off are the same action
- * here, since payment itself happens off-platform (WhatsApp + bank
- * transfer) before the admin ever clicks approve. The subscription
- * lives on the owner, not the property, since one payment covers all
- * of that owner's listings.
+ * Approving a property also sets how long it's shown on the site
+ * (properties.listing_expires_at - per listing, not per owner) and
+ * emails the owner a PDF confirmation. Approval and payment sign-off
+ * are the same action here, since payment itself happens off-platform
+ * (WhatsApp + bank transfer) before the admin ever clicks approve.
  *
- * Email delivery failures don't roll back the approval or the
- * subscription date - those are the parts that matter operationally,
- * and are already visible/correct in the DB even if the email never
- * arrives. The admin can always resend by re-approving.
+ * Email delivery failures don't roll back the approval or the expiry
+ * date - those are the parts that matter operationally, and are
+ * already visible/correct in the DB even if the email never arrives.
+ * The admin can always resend by re-approving.
  */
 export async function approveProperty(propertyId: string, formData: FormData) {
   await requireAdmin();
 
-  const expiresAtInput = formData.get("expiresAt");
-  if (typeof expiresAtInput !== "string" || !expiresAtInput) {
-    throw new Error("יש לבחור תאריך תוקף לפני אישור");
-  }
-  const expiresAt = new Date(`${expiresAtInput}T23:59:59`);
+  const expiresAt = parseExpiryDate(formData);
 
   const supabase = createAdminSupabaseClient();
 
@@ -79,18 +94,14 @@ export async function approveProperty(propertyId: string, formData: FormData) {
 
   const { error: approveError } = await supabase
     .from("properties")
-    .update({ approval_status: "approved" })
+    .update({
+      approval_status: "approved",
+      listing_expires_at: expiresAt.toISOString(),
+    })
     .eq("id", propertyId);
   if (approveError) throw new Error(approveError.message);
 
-  const { error: subscriptionError } = await supabase
-    .from("owners")
-    .update({ subscription_expires_at: expiresAt.toISOString(), is_frozen: false })
-    .eq("id", property.owner_id);
-  if (subscriptionError) throw new Error(subscriptionError.message);
-
-  revalidatePath("/admin/properties");
-  revalidatePath(`/admin/properties/${propertyId}`);
+  revalidateListing(propertyId);
 
   try {
     const { data: userData } = await supabase.auth.admin.getUserById(
@@ -129,6 +140,24 @@ export async function approveProperty(propertyId: string, formData: FormData) {
   }
 }
 
+/**
+ * Changes only how long one approved listing stays on the site - for
+ * renewals and corrections. Unlike approveProperty it sends no email,
+ * and it never touches the owner's other listings. A date in the past
+ * takes the listing off the site right away.
+ */
+export async function setListingExpiry(propertyId: string, formData: FormData) {
+  await requireAdmin();
+  const expiresAt = parseExpiryDate(formData);
+  const supabase = createAdminSupabaseClient();
+  const { error } = await supabase
+    .from("properties")
+    .update({ listing_expires_at: expiresAt.toISOString() })
+    .eq("id", propertyId);
+  if (error) throw new Error(error.message);
+  revalidateListing(propertyId);
+}
+
 export async function rejectProperty(propertyId: string) {
   await requireAdmin();
   const supabase = createAdminSupabaseClient();
@@ -137,8 +166,7 @@ export async function rejectProperty(propertyId: string) {
     .update({ approval_status: "rejected" })
     .eq("id", propertyId);
   if (error) throw new Error(error.message);
-  revalidatePath("/admin/properties");
-  revalidatePath(`/admin/properties/${propertyId}`);
+  revalidateListing(propertyId);
 }
 
 /**

@@ -135,6 +135,11 @@ create table public.properties (
 
   approval_status text not null default 'pending_approval'
     check (approval_status in ('pending_approval','approved','rejected')),
+  -- End of the paid display period, set per listing by the admin on
+  -- approval. Past this date an approved listing is hidden from the
+  -- public site (RLS below). Null = no end date. Added 2026-10-27,
+  -- replacing the owner-level owners.subscription_expires_at.
+  listing_expires_at timestamptz,
   availability_mode text not null default 'default_open_block_dates'
     check (availability_mode in ('fully_locked','default_open_block_dates','default_closed_open_dates')),
 
@@ -148,7 +153,10 @@ create policy "Public can view approved properties"
   on public.properties
   for select
   to anon, authenticated
-  using (approval_status = 'approved');
+  using (
+    approval_status = 'approved'
+    and (listing_expires_at is null or listing_expires_at > now())
+  );
 
 create policy "Owners can view their own properties"
   on public.properties

@@ -1,11 +1,12 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link, redirect } from "@/i18n/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { ensureOwnerRow, getOwnerSubscription } from "@/lib/owners";
+import { ensureOwnerRow } from "@/lib/owners";
 import { subscriptionState } from "@/lib/admin-subscription";
 import {
   getOwnerProperties,
   getPendingEditPropertyIds,
+  isListingExpired,
   mainMedia,
 } from "@/lib/properties";
 import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
@@ -19,13 +20,6 @@ const STATUS_STYLES: Record<string, string> = {
   pending_approval: "bg-[#FDF3E1] text-[#8A5A12] ring-[#F0D9AE]",
   approved: "bg-[#E8F3EC] text-[#256240] ring-[#C5E0CF]",
   rejected: "bg-[#FBEAEA] text-[#9B2C2C] ring-[#F1CACA]",
-};
-
-const LISTING_PERIOD_TONES = {
-  active: "text-[#8A8073]",
-  expiring: "font-semibold text-[#8A5A12]",
-  expired: "font-semibold text-[#9B2C2C]",
-  frozen: "font-semibold text-[#5C5349]",
 };
 
 function StatusIcon({ status }: { status: string }) {
@@ -84,46 +78,16 @@ export default async function OwnerDashboardPage({
   }
 
   await ensureOwnerRow(supabase, user!.id);
-  const [properties, pendingEditIds, ownerSubscription] = await Promise.all([
+  const [properties, pendingEditIds] = await Promise.all([
     getOwnerProperties(supabase, user!.id),
     getPendingEditPropertyIds(supabase, user!.id),
-    getOwnerSubscription(supabase, user!.id),
   ]);
 
-  // One subscription covers all of the owner's listings, so every
-  // approved listing shows the same end date.
-  const subscription = subscriptionState(ownerSubscription);
   const formatDate = new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
-  const listingPeriod =
-    subscription.kind === "none"
-      ? null
-      : subscription.kind === "frozen"
-        ? { tone: "frozen" as const, text: t("listingFrozen") }
-        : subscription.kind === "expired"
-          ? {
-              tone: "expired" as const,
-              text: t("listingExpired", {
-                date: formatDate.format(subscription.expiresAt),
-              }),
-            }
-          : subscription.kind === "expiring"
-            ? {
-                tone: "expiring" as const,
-                text: t("listedUntilSoon", {
-                  date: formatDate.format(subscription.expiresAt),
-                  days: subscription.daysLeft,
-                }),
-              }
-            : {
-                tone: "active" as const,
-                text: t("listedUntil", {
-                  date: formatDate.format(subscription.expiresAt),
-                }),
-              };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12">
@@ -221,6 +185,16 @@ export default async function OwnerDashboardPage({
             {properties.map((property) => {
               const media = mainMedia(property.property_photos);
               const status = property.approval_status;
+              // Approved but past its paid period: hidden from guests
+              // (see notExpiredFilter in lib/properties.ts).
+              const expired =
+                status === "approved" &&
+                isListingExpired(property.listing_expires_at);
+              const period = subscriptionState(property.listing_expires_at);
+              const expiryDate =
+                period.kind === "none"
+                  ? null
+                  : formatDate.format(period.expiresAt);
               return (
                 <li
                   key={property.id}
@@ -265,10 +239,10 @@ export default async function OwnerDashboardPage({
                       </div>
                     )}
                     <span
-                      className={`absolute start-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${STATUS_STYLES[status] ?? STATUS_STYLES.pending_approval}`}
+                      className={`absolute start-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${expired ? STATUS_STYLES.rejected : (STATUS_STYLES[status] ?? STATUS_STYLES.pending_approval)}`}
                     >
-                      <StatusIcon status={status} />
-                      {t(`status.${status}`)}
+                      <StatusIcon status={expired ? "rejected" : status} />
+                      {expired ? t("expiredBadge") : t(`status.${status}`)}
                     </span>
                   </div>
 
@@ -288,9 +262,13 @@ export default async function OwnerDashboardPage({
                           {t("perNight")}
                         </span>
                       </p>
-                      {status === "approved" && listingPeriod && (
+                      {status === "approved" && !expired && expiryDate && (
                         <p
-                          className={`mt-1.5 flex items-center gap-1.5 text-[13px] ${LISTING_PERIOD_TONES[listingPeriod.tone]}`}
+                          className={`mt-1.5 flex items-center gap-1.5 text-[13px] ${
+                            period.kind === "expiring"
+                              ? "font-semibold text-[#8A5A12]"
+                              : "text-[#8A8073]"
+                          }`}
                         >
                           <svg
                             width="14"
@@ -307,7 +285,20 @@ export default async function OwnerDashboardPage({
                             <rect x="3" y="4" width="18" height="18" rx="2" />
                             <path d="M16 2v4M8 2v4M3 10h18" />
                           </svg>
-                          {listingPeriod.text}
+                          {period.kind === "expiring"
+                            ? t("visibleUntilSoon", {
+                                date: expiryDate,
+                                days: period.daysLeft,
+                              })
+                            : t("visibleUntil", { date: expiryDate })}
+                        </p>
+                      )}
+                      {expired && expiryDate && (
+                        <p
+                          role="status"
+                          className="mt-2 rounded-lg bg-[#FBEAEA] px-3 py-2.5 text-[13px] leading-5 font-medium text-[#9B2C2C] ring-1 ring-[#F1CACA]"
+                        >
+                          {t("notVisible", { date: expiryDate })}
                         </p>
                       )}
                       {pendingEditIds.has(property.id) && (

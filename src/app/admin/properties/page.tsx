@@ -5,6 +5,8 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { getPendingEditPropertyIds } from "@/lib/properties";
 import {
+  expiryInputValue,
+  expiryPill,
   formatAdminDate,
   needsRenewal,
   subscriptionState,
@@ -14,6 +16,7 @@ import { approveProperty, deleteProperty, rejectProperty } from "../actions";
 import { geocodeLegacyProperties, geocodeRegions } from "../geocode-actions";
 import AdminHeader from "@/components/admin/AdminHeader";
 import PendingSubmitButton from "@/components/admin/PendingSubmitButton";
+import ListingExpiryEditor from "@/components/admin/ListingExpiryEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -33,8 +36,8 @@ const FILTERS = [
   { key: "all", label: "הכל" },
   { key: "pending_approval", label: "ממתינות לאישור" },
   { key: "edits", label: "עריכות ממתינות" },
-  { key: "approved", label: "מאושרות" },
-  { key: "renewal", label: "דורשות חידוש" },
+  { key: "live", label: "מוצגות באתר" },
+  { key: "renewal", label: "פג / עומד לפוג" },
   { key: "rejected", label: "נדחו" },
 ] as const;
 
@@ -52,11 +55,8 @@ type AdminPropertyRow = {
   max_guests: number | null;
   phone_country_code: string;
   phone_number: string;
-  owners: {
-    full_name: string | null;
-    subscription_expires_at: string | null;
-    is_frozen: boolean;
-  } | null;
+  listing_expires_at: string | null;
+  owners: { full_name: string | null } | null;
   regions: { name_he: string } | null;
   property_photos: { url: string; sort_order: number; media_type: string }[];
 };
@@ -74,6 +74,38 @@ function thumbnailUrl(photos: AdminPropertyRow["property_photos"]): string | nul
   return first
     ? first.url.replace("/upload/", "/upload/f_auto,q_auto,c_fill,w_240,h_180/")
     : null;
+}
+
+/**
+ * "live" = approved and still within its listing period, i.e. what
+ * visitors actually see. "renewal" = approved but expired (already
+ * hidden from the site) or expiring within EXPIRING_SOON_DAYS.
+ */
+function matchesFilter(
+  {
+    property,
+    subscription,
+    hasPendingEdit,
+  }: {
+    property: AdminPropertyRow;
+    subscription: SubscriptionState;
+    hasPendingEdit: boolean;
+  },
+  filter: FilterKey,
+): boolean {
+  const approved = property.approval_status === "approved";
+  switch (filter) {
+    case "all":
+      return true;
+    case "edits":
+      return hasPendingEdit;
+    case "live":
+      return approved && subscription.kind !== "expired";
+    case "renewal":
+      return approved && needsRenewal(subscription);
+    default:
+      return property.approval_status === filter;
+  }
 }
 
 function filterHref(filter: FilterKey, q: string): string {
@@ -104,7 +136,7 @@ export default async function AdminPropertiesPage({
     .select(
       `id, address, lat, lng, price_per_night, approval_status, created_at, bedrooms,
        max_guests, phone_country_code, phone_number,
-       owners(full_name, subscription_expires_at, is_frozen),
+       listing_expires_at, owners(full_name),
        regions(name_he),
        property_photos(url, sort_order, media_type)`,
     )
@@ -119,40 +151,29 @@ export default async function AdminPropertiesPage({
   const now = new Date();
   const rows = (data as unknown as AdminPropertyRow[]).map((property) => ({
     property,
-    subscription: subscriptionState(property.owners, now),
+    subscription: subscriptionState(property.listing_expires_at, now),
+    hasPendingEdit: pendingEditIds.has(property.id),
   }));
 
   const counts: Record<FilterKey, number> = {
     all: rows.length,
     pending_approval: 0,
-    approved: 0,
-    rejected: 0,
+    live: 0,
     renewal: 0,
+    rejected: 0,
     edits: 0,
   };
-  for (const { property, subscription } of rows) {
-    if (property.approval_status in counts) {
-      counts[property.approval_status as FilterKey] += 1;
-    }
-    if (property.approval_status === "approved" && needsRenewal(subscription)) {
-      counts.renewal += 1;
-    }
-    if (pendingEditIds.has(property.id)) {
-      counts.edits += 1;
+  for (const row of rows) {
+    for (const filter of FILTERS) {
+      if (filter.key !== "all" && matchesFilter(row, filter.key)) {
+        counts[filter.key] += 1;
+      }
     }
   }
 
   const needle = q.toLowerCase();
   const visible = rows
-    .filter(({ property, subscription }) => {
-      if (activeFilter === "edits") {
-        return pendingEditIds.has(property.id);
-      }
-      if (activeFilter === "renewal") {
-        return property.approval_status === "approved" && needsRenewal(subscription);
-      }
-      return activeFilter === "all" || property.approval_status === activeFilter;
-    })
+    .filter((row) => matchesFilter(row, activeFilter))
     .filter(({ property }) => {
       if (!needle) return true;
       return [
@@ -179,7 +200,7 @@ export default async function AdminPropertiesPage({
       filter: "pending_approval" as const,
       highlight: counts.pending_approval > 0,
     },
-    { label: "מאושרות", value: counts.approved, filter: "approved" as const },
+    { label: "מוצגות באתר", value: counts.live, filter: "live" as const },
     {
       label: "מנוי פג / עומד לפוג",
       value: counts.renewal,
@@ -197,7 +218,7 @@ export default async function AdminPropertiesPage({
           הדירות באתר
         </h1>
         <p className="mt-1 text-sm text-black/60">
-          כל הדירות שפורסמו, הסטטוס שלהן ומצב המנוי של בעלי הדירות.
+          כל הדירות שפורסמו, הסטטוס שלהן ועד מתי כל דירה מוצגת באתר.
         </p>
 
         <dl className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -353,6 +374,9 @@ function PropertyRow({
   const thumb = thumbnailUrl(property.property_photos);
   const detailHref = `/admin/properties/${property.id}`;
   const photoCount = property.property_photos.length;
+  const isApproved = property.approval_status === "approved";
+  const isExpired = isApproved && subscription.kind === "expired";
+  const pill = expiryPill(subscription);
 
   return (
     <li className="flex flex-col gap-3 rounded-xl border border-black/10 bg-white p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
@@ -380,15 +404,20 @@ function PropertyRow({
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
-                STATUS_BADGE_CLASSES[property.approval_status] ??
-                "bg-black/5 text-black/70 ring-black/10"
-              }`}
-            >
-              {STATUS_LABELS[property.approval_status] ?? property.approval_status}
-            </span>
-            <SubscriptionBadge state={subscription} />
+            {isExpired ? (
+              <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                פג תוקף · לא מוצג באתר
+              </span>
+            ) : (
+              <span
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
+                  STATUS_BADGE_CLASSES[property.approval_status] ??
+                  "bg-black/5 text-black/70 ring-black/10"
+                }`}
+              >
+                {STATUS_LABELS[property.approval_status] ?? property.approval_status}
+              </span>
+            )}
             {hasPendingEdit && (
               <Link
                 href={`${detailHref}#pending-edit`}
@@ -461,7 +490,14 @@ function PropertyRow({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-black/5 pt-3 sm:w-auto sm:shrink-0 sm:flex-col sm:items-stretch sm:border-t-0 sm:border-s sm:ps-4 sm:pt-0">
-        {property.approval_status !== "approved" && (
+        {isApproved ? (
+          <ListingExpiryEditor
+            propertyId={property.id}
+            label={pill.label}
+            tone={pill.tone}
+            currentDate={expiryInputValue(subscription)}
+          />
+        ) : (
           <form
             action={approveProperty.bind(null, property.id)}
             className="flex items-center gap-1.5"
@@ -493,7 +529,7 @@ function PropertyRow({
           >
             ערוך
           </Link>
-          {property.approval_status !== "rejected" && (
+          {property.approval_status === "pending_approval" && (
             <form action={rejectProperty.bind(null, property.id)} className="flex-1">
               <PendingSubmitButton
                 pendingLabel="דוחה…"
@@ -516,34 +552,6 @@ function PropertyRow({
       </div>
     </li>
   );
-}
-
-function SubscriptionBadge({ state }: { state: SubscriptionState }) {
-  const base = "inline-flex items-center rounded-full px-2 py-0.5 text-xs ring-1 ring-inset";
-  switch (state.kind) {
-    case "none":
-      return <span className={`${base} text-black/55 ring-black/10`}>ללא מנוי</span>;
-    case "frozen":
-      return <span className={`${base} bg-sky-50 text-sky-800 ring-sky-600/25`}>מנוי מוקפא</span>;
-    case "expired":
-      return (
-        <span className={`${base} bg-red-50 text-red-700 ring-red-600/20`}>
-          מנוי פג ב-{formatAdminDate(state.expiresAt)}
-        </span>
-      );
-    case "expiring":
-      return (
-        <span className={`${base} bg-amber-50 text-amber-800 ring-amber-600/25`}>
-          מנוי פג בעוד {state.daysLeft} {state.daysLeft === 1 ? "יום" : "ימים"}
-        </span>
-      );
-    case "active":
-      return (
-        <span className={`${base} text-black/60 ring-black/10`}>
-          מנוי עד {formatAdminDate(state.expiresAt)}
-        </span>
-      );
-  }
 }
 
 function PhoneIcon() {
