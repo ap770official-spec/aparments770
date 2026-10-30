@@ -61,8 +61,9 @@ function parseMedia(raw: string): MediaItem[] | null {
  * first item is the main photo). Doesn't touch approval status or the
  * owner's subscription, those stay with the approve/reject actions.
  *
- * If the address text changed, it's re-geocoded so the map pin and
- * walking time follow it. When Mapbox can't find the new address the
+ * If the address text changed (or the listing has no coordinates yet,
+ * e.g. one published before the map picker existed), it's geocoded so
+ * the map pin and walking time follow it. When Mapbox can't find the new address the
  * old coordinates are kept (better a slightly-off pin than dropping
  * the listing off the map) and the admin is told so.
  *
@@ -134,7 +135,7 @@ export async function updatePropertyAsAdmin(
   } = { lat: current.lat, lng: current.lng };
   let geocodeFailed = false;
 
-  if (address !== current.address) {
+  if (address !== current.address || current.lat == null || current.lng == null) {
     const found = await geocodeAddress(address).catch(() => null);
     if (found) {
       const landmark = current.regions as unknown as {

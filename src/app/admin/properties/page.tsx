@@ -13,7 +13,6 @@ import {
   type SubscriptionState,
 } from "@/lib/admin-subscription";
 import { approveProperty, deleteProperty, rejectProperty } from "../actions";
-import { geocodeLegacyProperties, geocodeRegions } from "../geocode-actions";
 import AdminHeader from "@/components/admin/AdminHeader";
 import PendingSubmitButton from "@/components/admin/PendingSubmitButton";
 import ListingExpiryEditor from "@/components/admin/ListingExpiryEditor";
@@ -334,29 +333,6 @@ export default async function AdminPropertiesPage({
           </ul>
         )}
 
-        <details className="mt-10 rounded-xl border border-black/10 bg-white p-4 text-sm">
-          <summary className="cursor-pointer font-medium text-black/70">
-            כלים חד-פעמיים (מילוי קואורדינטות Mapbox)
-          </summary>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <form action={geocodeRegions}>
-              <PendingSubmitButton
-                pendingLabel="ממלא…"
-                className="min-h-10 cursor-pointer rounded-md border border-black/15 px-3 hover:bg-black/5 disabled:cursor-wait disabled:opacity-60"
-              >
-                מלא קואורדינטות לאזורים
-              </PendingSubmitButton>
-            </form>
-            <form action={geocodeLegacyProperties}>
-              <PendingSubmitButton
-                pendingLabel="ממלא…"
-                className="min-h-10 cursor-pointer rounded-md border border-black/15 px-3 hover:bg-black/5 disabled:cursor-wait disabled:opacity-60"
-              >
-                מלא קואורדינטות לדירות ישנות
-              </PendingSubmitButton>
-            </form>
-          </div>
-        </details>
       </main>
     </div>
   );
@@ -426,8 +402,8 @@ function PropertyRow({
                 עריכה ממתינה לאישור
               </Link>
             )}
-            {/* No lat/lng = hidden from the search map until the
-                geocodeLegacyProperties backfill (tools below) runs. */}
+            {/* No lat/lng = hidden from the search map. Saving the listing
+                once from the edit page geocodes its address. */}
             {(property.lat == null || property.lng == null) && (
               <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
                 אין מיקום במפה
