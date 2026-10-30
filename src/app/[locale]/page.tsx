@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { getActiveRegions, getRegionBySlug } from "@/lib/regions";
+import { getDefaultRegion, getRegionBySlug } from "@/lib/regions";
 import { getUpcomingHebrewHolidays } from "@/lib/hebrewHolidays";
 import { searchProperties } from "@/lib/properties";
 import SearchForm from "@/components/SearchForm";
@@ -29,15 +29,15 @@ export default async function HomePage({
   setRequestLocale(locale);
   const t = await getTranslations("home");
   const tSearch = await getTranslations("search");
-  const regions = await getActiveRegions();
+  const defaultRegion = await getDefaultRegion();
   const holidays = getUpcomingHebrewHolidays();
   const query = await searchParams;
 
-  // No query params (first visit) falls back to the single active region
+  // No query params (first visit) falls back to the site's default region
   // and 1 guest, so the page always shows a list instead of an empty state.
   const region = query.region
     ? await getRegionBySlug(query.region)
-    : (regions[0] ?? null);
+    : defaultRegion;
   const guests = Number(query.guests) || 1;
   const maxWalking = query.maxWalking ? Number(query.maxWalking) : null;
 
@@ -67,11 +67,14 @@ export default async function HomePage({
             </p>
           </div>
 
-          <SearchForm regions={regions} holidays={holidays} />
+          <SearchForm
+            defaultRegionSlug={defaultRegion?.slug ?? ""}
+            holidays={holidays}
+          />
 
           <div className="mt-4 sm:mt-6">
             <SearchFilters
-              region={region?.slug ?? regions[0]?.slug ?? ""}
+              region={region?.slug ?? defaultRegion?.slug ?? ""}
               checkin={query.checkin}
               checkout={query.checkout}
               guests={guests}

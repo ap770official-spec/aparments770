@@ -1,7 +1,7 @@
 import { setRequestLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getActiveRegions } from "@/lib/regions";
+import { getActiveRegions, getDefaultRegion } from "@/lib/regions";
 import PropertyForm from "@/components/PropertyForm";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +23,16 @@ export default async function NewPropertyPage({
     redirect({ href: "/owner/login", locale });
   }
 
-  const regions = await getActiveRegions();
+  const [regions, defaultRegion] = await Promise.all([
+    getActiveRegions(),
+    getDefaultRegion(),
+  ]);
 
-  return <PropertyForm regions={regions} ownerId={user!.id} />;
+  return (
+    <PropertyForm
+      regions={regions}
+      defaultRegionId={defaultRegion?.id ?? ""}
+      ownerId={user!.id}
+    />
+  );
 }
