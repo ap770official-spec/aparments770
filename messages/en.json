@@ -201,11 +201,6 @@
     "pricePerNight": "Price per night (USD)",
     "phoneCountryCode": "Country code",
     "phoneNumber": "Phone number",
-    "descriptionHe": "Description in Hebrew",
-    "descriptionEn": "Description in English",
-    "descriptionSourceLang": "I wrote the description in:",
-    "descriptionSourceLangHe": "Hebrew",
-    "descriptionSourceLangEn": "English",
     "mediaLabel": "Photos / video",
     "mediaHint": "You can select several files at once. Images are compressed automatically.",
     "removeMedia": "Remove",
@@ -270,7 +265,8 @@
     "editSubtitle": "Update the apartment details, photos and amenities. Your changes will be sent to our team for approval.",
     "saveChanges": "Send changes for approval",
     "editSummaryNote": "Your changes will be sent for approval. Until our team approves them, the apartment keeps appearing on the site as it does today.",
-    "pendingEditNotice": "You already sent an edit for this apartment and it's awaiting approval. The form shows what you sent, and sending again will replace that edit."
+    "pendingEditNotice": "You already sent an edit for this apartment and it's awaiting approval. The form shows what you sent, and sending again will replace that edit.",
+    "descriptionPlaceholder": "You can write in Hebrew or English"
   },
   "footer": {
     "contact": "Contact",

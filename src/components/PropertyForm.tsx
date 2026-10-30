@@ -25,6 +25,10 @@ import type { Region } from "@/lib/regions";
 import LocationPicker from "@/components/LocationPicker";
 import { AMENITY_GROUPS } from "@/lib/amenities";
 import { AmenityIcon } from "@/lib/amenityIcons";
+import {
+  detectDescriptionLang,
+  primaryDescription,
+} from "@/lib/description";
 
 const STEP_KEYS = [
   "address",
@@ -299,15 +303,12 @@ export default function PropertyForm({
   const [minNights, setMinNights] = useState(
     initialProperty?.min_nights ?? 1,
   );
-  const [descriptionHe, setDescriptionHe] = useState(
-    initialProperty?.description_he ?? "",
-  );
-  const [descriptionEn, setDescriptionEn] = useState(
-    initialProperty?.description_en ?? "",
-  );
-  const [descriptionSourceLang, setDescriptionSourceLang] = useState<
-    "he" | "en"
-  >(initialProperty?.description_source_lang ?? "he");
+  // One description box: the language is detected from what was typed, and
+  // the text is saved into that language's column.
+  const initialDescription = initialProperty
+    ? primaryDescription(initialProperty)
+    : "";
+  const [description, setDescription] = useState(initialDescription);
   const [amenities, setAmenities] = useState<Set<string>>(
     new Set(initialAmenityKeys ?? []),
   );
@@ -408,6 +409,28 @@ export default function PropertyForm({
     goToStep(Math.max(step - 1, 0));
   }
 
+  function descriptionPayload() {
+    const text = description.trim();
+    if (!text) {
+      return {
+        descriptionHe: null,
+        descriptionEn: null,
+        descriptionSourceLang: null,
+      };
+    }
+    const lang = detectDescriptionLang(text);
+    // Untouched text keeps the listing's other-language description; once
+    // the text changes, that one is out of date and is dropped.
+    const keepOther = description === initialDescription;
+    const otherHe = keepOther ? (initialProperty?.description_he ?? null) : null;
+    const otherEn = keepOther ? (initialProperty?.description_en ?? null) : null;
+    return {
+      descriptionHe: lang === "he" ? text : otherHe,
+      descriptionEn: lang === "en" ? text : otherEn,
+      descriptionSourceLang: lang,
+    };
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -488,10 +511,7 @@ export default function PropertyForm({
         checkoutTime: checkoutTime || null,
         maxGuests,
         minNights,
-        descriptionHe: descriptionHe || null,
-        descriptionEn: descriptionEn || null,
-        descriptionSourceLang:
-          descriptionHe || descriptionEn ? descriptionSourceLang : null,
+        ...descriptionPayload(),
         amenities: amenityPayload,
         media: uploaded.map((m, index) => ({
           url: m.url,
@@ -865,50 +885,16 @@ export default function PropertyForm({
                 {t("descriptionLabel")}
               </span>
               <textarea
-                value={descriptionHe}
-                onChange={(e) => setDescriptionHe(e.target.value)}
-                rows={4}
-                placeholder={t("descriptionHe")}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={5}
+                // Follow the typed text's direction; an empty box keeps the
+                // page direction so the placeholder lines up with the label.
+                dir={description ? "auto" : undefined}
+                placeholder={t("descriptionPlaceholder")}
                 className="resize-y rounded-[10px] border border-[#E5DED3] px-3.5 py-3 text-sm leading-relaxed text-ink"
               />
             </label>
-            <label className="flex flex-col gap-1.5 text-sm">
-              <span className="text-[13px] font-semibold text-[#8A8073]">
-                {t("descriptionEn")}
-              </span>
-              <textarea
-                value={descriptionEn}
-                onChange={(e) => setDescriptionEn(e.target.value)}
-                rows={4}
-                className="resize-y rounded-[10px] border border-[#E5DED3] px-3.5 py-3 text-sm leading-relaxed text-ink"
-              />
-            </label>
-
-            {(descriptionHe || descriptionEn) && (
-              <fieldset className="flex items-center gap-4 text-sm">
-                <legend className="mb-1 w-full">
-                  {t("descriptionSourceLang")}
-                </legend>
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    name="descriptionSourceLang"
-                    checked={descriptionSourceLang === "he"}
-                    onChange={() => setDescriptionSourceLang("he")}
-                  />
-                  {t("descriptionSourceLangHe")}
-                </label>
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    name="descriptionSourceLang"
-                    checked={descriptionSourceLang === "en"}
-                    onChange={() => setDescriptionSourceLang("en")}
-                  />
-                  {t("descriptionSourceLangEn")}
-                </label>
-              </fieldset>
-            )}
           </div>
         )}
 

@@ -6,6 +6,7 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { geocodeAddress, getWalkingDirections } from "@/lib/mapbox";
 import { AMENITY_GROUPS } from "@/lib/amenities";
+import { detectDescriptionLang } from "@/lib/description";
 import type { PropertyType } from "@/lib/properties";
 
 const PROPERTY_TYPES: PropertyType[] = ["apartment", "house", "basement"];
@@ -17,6 +18,30 @@ function text(formData: FormData, name: string): string {
 
 function optionalText(formData: FormData, name: string): string | null {
   return text(formData, name) || null;
+}
+
+/**
+ * Columns to write for the single description box. Untouched text writes
+ * nothing, so a listing's other-language description survives; changed
+ * text goes into its detected language's column and clears the other,
+ * which no longer matches.
+ */
+function descriptionUpdate(formData: FormData) {
+  const description = text(formData, "description");
+  if (description === text(formData, "descriptionOriginal")) return {};
+  if (!description) {
+    return {
+      description_he: null,
+      description_en: null,
+      description_source_lang: null,
+    };
+  }
+  const lang = detectDescriptionLang(description);
+  return {
+    description_he: lang === "he" ? description : null,
+    description_en: lang === "en" ? description : null,
+    description_source_lang: lang,
+  };
 }
 
 /** Whole number in [min, max], or null when the field was left empty. */
@@ -177,8 +202,7 @@ export async function updatePropertyAsAdmin(
       phone_number: phoneNumber,
       checkin_time: optionalText(formData, "checkinTime"),
       checkout_time: optionalText(formData, "checkoutTime"),
-      description_he: optionalText(formData, "descriptionHe"),
-      description_en: optionalText(formData, "descriptionEn"),
+      ...descriptionUpdate(formData),
       updated_at: new Date().toISOString(),
     })
     .eq("id", propertyId);
