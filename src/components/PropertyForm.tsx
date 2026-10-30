@@ -7,69 +7,28 @@ import {
   type FormEvent,
 } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import {
   createProperty,
-  type PropertyForDuplication,
+  submitPropertyEdit,
+  updateProperty,
+  type PropertyForEdit,
   type PropertyType,
 } from "@/lib/properties";
-import { uploadMediaToCloudinary } from "@/lib/cloudinary";
+import {
+  optimizedCloudinaryUrl,
+  uploadMediaToCloudinary,
+} from "@/lib/cloudinary";
 import { getWalkingDirections } from "@/lib/mapbox";
 import type { Region } from "@/lib/regions";
 import LocationPicker from "@/components/LocationPicker";
-
-type AmenityCategory =
-  | "kitchen"
-  | "climate"
-  | "bathroom"
-  | "safety"
-  | "family"
-  | "outdoor"
-  | "shabbat_kosher"
-  | "proximity";
-
-const AMENITY_GROUPS: { category: AmenityCategory; keys: string[] }[] = [
-  {
-    category: "kitchen",
-    keys: [
-      "kitchen_hotplate",
-      "kitchen_urn",
-      "kitchen_fridge",
-      "kitchen_stove",
-      "kitchen_oven",
-      "kitchen_microwave",
-      "kitchen_kettle",
-      "kitchen_coffee",
-      "kitchen_utensils",
-    ],
-  },
-  { category: "climate", keys: ["wifi", "ac", "heating"] },
-  {
-    category: "bathroom",
-    keys: ["linens", "toiletries", "hairdryer", "washer", "dryer", "iron"],
-  },
-  {
-    category: "safety",
-    keys: ["safe", "smoke_detector", "fire_extinguisher", "first_aid"],
-  },
-  { category: "family", keys: ["crib", "games"] },
-  { category: "outdoor", keys: ["balcony", "sukkah", "parking"] },
-  {
-    category: "shabbat_kosher",
-    keys: [
-      "shabbat_elevator",
-      "non_electric_lock",
-      "hotplate",
-      "shabbat_clock",
-      "kosher_kitchen",
-    ],
-  },
-  {
-    category: "proximity",
-    keys: ["supermarket", "mikvah", "bakery", "subway"],
-  },
-];
+import { AMENITY_GROUPS } from "@/lib/amenities";
+import { AmenityIcon } from "@/lib/amenityIcons";
+import {
+  detectDescriptionLang,
+  primaryDescription,
+} from "@/lib/description";
 
 const STEP_KEYS = [
   "address",
@@ -80,18 +39,23 @@ const STEP_KEYS = [
 ] as const;
 const LAST_STEP = STEP_KEYS.length - 1;
 const PHOTO_SLOT_COUNT = 6;
-const BEDS_OPTIONS = Array.from({ length: 31 }, (_, i) => i);
-const TOILETS_BATHTUBS_OPTIONS = Array.from({ length: 9 }, (_, i) => i);
+const CHECKIN_PRESETS = ["14:00", "15:00", "16:00"];
+const CHECKOUT_PRESETS = ["10:00", "11:00", "12:00"];
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   const hours = String(Math.floor(i / 2)).padStart(2, "0");
   const minutes = i % 2 === 0 ? "00" : "30";
   return `${hours}:${minutes}`;
 });
 
-type PendingFile = {
-  file: File;
-  previewUrl: string;
-};
+type MediaItem =
+  | { kind: "existing"; url: string; mediaType: "image" | "video" }
+  | { kind: "new"; file: File; previewUrl: string };
+
+function isVideo(item: MediaItem): boolean {
+  return item.kind === "existing"
+    ? item.mediaType === "video"
+    : item.file.type.startsWith("video/");
+}
 
 type StepStatus = "done" | "active" | "upcoming";
 
@@ -124,19 +88,170 @@ function chipClass(active: boolean): string {
 
 function amenityChipClass(active: boolean): string {
   return active
-    ? "rounded-full border border-brand bg-brand px-4 py-2 text-[13.5px] font-semibold text-brand-foreground"
-    : "rounded-full border border-[#E5DED3] bg-white px-4 py-2 text-[13.5px] font-semibold text-ink";
+    ? "inline-flex min-h-11 items-center gap-2 rounded-full border border-brand bg-brand px-4 py-2 text-[13.5px] font-semibold text-brand-foreground"
+    : "inline-flex min-h-11 items-center gap-2 rounded-full border border-[#E5DED3] bg-white px-4 py-2 text-[13.5px] font-semibold text-ink";
+}
+
+function StepperButton({
+  label,
+  disabled,
+  onClick,
+  kind,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+  kind: "minus" | "plus";
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5DED3] text-ink disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        aria-hidden="true"
+      >
+        <path d={kind === "plus" ? "M12 5v14M5 12h14" : "M5 12h14"} />
+      </svg>
+    </button>
+  );
+}
+
+function Counter({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+  decreaseLabel,
+  increaseLabel,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+  decreaseLabel: string;
+  increaseLabel: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      <span className="text-[13px] font-semibold text-[#8A8073]">{label}</span>
+      <div className="flex items-center gap-3.5">
+        <StepperButton
+          kind="minus"
+          label={decreaseLabel}
+          disabled={value <= min}
+          onClick={() => onChange(Math.max(min, value - 1))}
+        />
+        <span
+          aria-live="polite"
+          className="min-w-5 text-center text-xl font-bold tabular-nums text-ink"
+        >
+          {value}
+        </span>
+        <StepperButton
+          kind="plus"
+          label={increaseLabel}
+          disabled={value >= max}
+          onClick={() => onChange(Math.min(max, value + 1))}
+        />
+      </div>
+    </div>
+  );
+}
+
+function TimePicker({
+  label,
+  value,
+  presets,
+  otherLabel,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  presets: string[];
+  otherLabel: string;
+  onChange: (value: string) => void;
+}) {
+  const isOther = value !== "" && !presets.includes(value);
+  return (
+    <fieldset className="flex flex-col gap-2.5">
+      <legend className="mb-2.5 text-[13px] font-semibold text-[#8A8073]">
+        {label}
+      </legend>
+      <div className="flex flex-wrap gap-2">
+        {presets.map((time) => (
+          <button
+            key={time}
+            type="button"
+            aria-pressed={value === time}
+            onClick={() => onChange(value === time ? "" : time)}
+            className={`${chipClass(value === time)} min-h-11 tabular-nums`}
+            dir="ltr"
+          >
+            {time}
+          </button>
+        ))}
+        <label className="relative">
+          <span className="sr-only">{otherLabel}</span>
+          <select
+            value={isOther ? value : ""}
+            onChange={(e) => onChange(e.target.value)}
+            className={`${chipClass(isOther)} min-h-11 cursor-pointer appearance-none pe-9 tabular-nums`}
+          >
+            <option value="">{otherLabel}</option>
+            {TIME_OPTIONS.filter((time) => !presets.includes(time)).map(
+              (time) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ),
+            )}
+          </select>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className={`pointer-events-none absolute end-3.5 top-1/2 -translate-y-1/2 ${isOther ? "text-brand-foreground" : "text-[#8A8073]"}`}
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </label>
+      </div>
+    </fieldset>
+  );
 }
 
 export default function PropertyForm({
   regions,
   ownerId,
   initialProperty,
+  hasPendingEdit = false,
 }: {
   regions: Region[];
   ownerId: string;
-  initialProperty?: PropertyForDuplication;
+  initialProperty?: PropertyForEdit;
+  hasPendingEdit?: boolean;
 }) {
+  const isEdit = initialProperty !== undefined;
+  const router = useRouter();
   const t = useTranslations("propertyForm");
   const tProperty = useTranslations("property");
   const tCategory = useTranslations("amenityCategories");
@@ -148,6 +263,8 @@ export default function PropertyForm({
 
   const regionId = initialProperty?.region_id ?? regions[0]?.id ?? "";
   const [step, setStep] = useState(0);
+  // An existing listing already has every step filled in, so all are reachable.
+  const [furthestStep, setFurthestStep] = useState(isEdit ? LAST_STEP : 0);
   const [location, setLocation] = useState<{
     lat: number;
     lng: number;
@@ -184,21 +301,22 @@ export default function PropertyForm({
     initialProperty?.checkout_time ?? "",
   );
   const [minNights, setMinNights] = useState(
-    initialProperty?.min_nights ? String(initialProperty.min_nights) : "",
+    initialProperty?.min_nights ?? 1,
   );
-  const [descriptionHe, setDescriptionHe] = useState(
-    initialProperty?.description_he ?? "",
-  );
-  const [descriptionEn, setDescriptionEn] = useState(
-    initialProperty?.description_en ?? "",
-  );
-  const [descriptionSourceLang, setDescriptionSourceLang] = useState<
-    "he" | "en"
-  >("he");
+  // One description box: the language is detected from what was typed, and
+  // the text is saved into that language's column.
+  const initialDescription = initialProperty
+    ? primaryDescription(initialProperty)
+    : "";
+  const [description, setDescription] = useState(initialDescription);
   const [amenities, setAmenities] = useState<Set<string>>(
     new Set(initialAmenityKeys ?? []),
   );
-  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [media, setMedia] = useState<MediaItem[]>(() =>
+    [...(initialProperty?.property_photos ?? [])]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((p) => ({ kind: "existing", url: p.url, mediaType: p.media_type })),
+  );
   const [phoneCountryCode, setPhoneCountryCode] = useState(
     initialProperty?.phone_country_code ?? "+1",
   );
@@ -227,20 +345,24 @@ export default function PropertyForm({
 
   function handleFilesSelected(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
-    setPendingFiles((prev) => {
+    setMedia((prev) => {
       const room = Math.max(0, PHOTO_SLOT_COUNT - prev.length);
-      const accepted = files
-        .slice(0, room)
-        .map((file) => ({ file, previewUrl: URL.createObjectURL(file) }));
+      const accepted = files.slice(0, room).map(
+        (file): MediaItem => ({
+          kind: "new",
+          file,
+          previewUrl: URL.createObjectURL(file),
+        }),
+      );
       return [...prev, ...accepted];
     });
     event.target.value = "";
   }
 
   function removeFile(index: number) {
-    setPendingFiles((prev) => {
+    setMedia((prev) => {
       const removed = prev[index];
-      if (removed) URL.revokeObjectURL(removed.previewUrl);
+      if (removed?.kind === "new") URL.revokeObjectURL(removed.previewUrl);
       return prev.filter((_, i) => i !== index);
     });
   }
@@ -258,19 +380,55 @@ export default function PropertyForm({
     return null;
   }
 
-  function goNext() {
-    const validationError = validateStep(step);
-    if (validationError) {
-      setError(validationError);
+  // Moving forward requires every step before the target to pass validation,
+  // so a required field cleared after going back still blocks progress.
+  function goToStep(target: number) {
+    if (target <= step) {
+      setError(null);
+      setStep(target);
       return;
     }
+    for (let i = step; i < target; i++) {
+      const validationError = validateStep(i);
+      if (validationError) {
+        setError(validationError);
+        setStep(i);
+        return;
+      }
+    }
     setError(null);
-    setStep((s) => Math.min(s + 1, LAST_STEP));
+    setStep(target);
+    setFurthestStep((f) => Math.max(f, target));
+  }
+
+  function goNext() {
+    goToStep(Math.min(step + 1, LAST_STEP));
   }
 
   function goBack() {
-    setError(null);
-    setStep((s) => Math.max(s - 1, 0));
+    goToStep(Math.max(step - 1, 0));
+  }
+
+  function descriptionPayload() {
+    const text = description.trim();
+    if (!text) {
+      return {
+        descriptionHe: null,
+        descriptionEn: null,
+        descriptionSourceLang: null,
+      };
+    }
+    const lang = detectDescriptionLang(text);
+    // Untouched text keeps the listing's other-language description; once
+    // the text changes, that one is out of date and is dropped.
+    const keepOther = description === initialDescription;
+    const otherHe = keepOther ? (initialProperty?.description_he ?? null) : null;
+    const otherEn = keepOther ? (initialProperty?.description_en ?? null) : null;
+    return {
+      descriptionHe: lang === "he" ? text : otherHe,
+      descriptionEn: lang === "en" ? text : otherEn,
+      descriptionSourceLang: lang,
+    };
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -283,6 +441,15 @@ export default function PropertyForm({
 
     setError(null);
 
+    for (let i = 0; i < LAST_STEP; i++) {
+      const validationError = validateStep(i);
+      if (validationError) {
+        setError(validationError);
+        setStep(i);
+        return;
+      }
+    }
+
     if (!location || !location.address) {
       setError(t("errorNoLocation"));
       return;
@@ -291,7 +458,11 @@ export default function PropertyForm({
     try {
       setUploading(true);
       const uploaded = await Promise.all(
-        pendingFiles.map((pf) => uploadMediaToCloudinary(pf.file)),
+        media.map((item) =>
+          item.kind === "new"
+            ? uploadMediaToCloudinary(item.file)
+            : { url: item.url, mediaType: item.mediaType },
+        ),
       );
       setUploading(false);
 
@@ -304,16 +475,23 @@ export default function PropertyForm({
           .map((key) => ({ category: group.category, amenityKey: key })),
       );
 
+      const locationUnchanged =
+        isEdit &&
+        initialProperty.lat === location.lat &&
+        initialProperty.lng === location.lng;
       const landmark = regions.find((r) => r.id === regionId);
-      const walking =
-        landmark?.landmark_lat != null && landmark?.landmark_lng != null
-          ? await getWalkingDirections({
-              from: { lat: location.lat, lng: location.lng },
-              to: { lat: landmark.landmark_lat, lng: landmark.landmark_lng },
-            })
+      const walkingMinutes = locationUnchanged
+        ? initialProperty.walking_minutes_to_landmark
+        : landmark?.landmark_lat != null && landmark?.landmark_lng != null
+          ? ((
+              await getWalkingDirections({
+                from: { lat: location.lat, lng: location.lng },
+                to: { lat: landmark.landmark_lat, lng: landmark.landmark_lng },
+              })
+            )?.minutes ?? null)
           : null;
 
-      await createProperty(supabase, {
+      const input = {
         ownerId,
         regionId,
         address: location.address,
@@ -321,7 +499,7 @@ export default function PropertyForm({
         lng: location.lng,
         propertyType,
         addressNotes: addressNotes || null,
-        walkingMinutesToLandmark: walking?.minutes ?? null,
+        walkingMinutesToLandmark: walkingMinutes,
         bedrooms,
         beds,
         toilets,
@@ -332,19 +510,33 @@ export default function PropertyForm({
         checkinTime: checkinTime || null,
         checkoutTime: checkoutTime || null,
         maxGuests,
-        minNights: minNights ? Number(minNights) : null,
-        descriptionHe: descriptionHe || null,
-        descriptionEn: descriptionEn || null,
-        descriptionSourceLang:
-          descriptionHe || descriptionEn ? descriptionSourceLang : null,
+        minNights,
+        ...descriptionPayload(),
         amenities: amenityPayload,
         media: uploaded.map((m, index) => ({
           url: m.url,
           mediaType: m.mediaType,
           sortOrder: index,
         })),
-      });
+      };
 
+      if (isEdit) {
+        // An approved listing stays live as-is until the admin reviews
+        // the edit; one that isn't live yet is updated directly and
+        // (if it was rejected) goes back into the review queue.
+        if (initialProperty.approval_status === "approved") {
+          await submitPropertyEdit(supabase, initialProperty.id, input);
+        } else {
+          await updateProperty(supabase, initialProperty.id, input, {
+            resubmit: initialProperty.approval_status === "rejected",
+          });
+        }
+        router.push("/owner/dashboard?edit=sent");
+        router.refresh();
+        return;
+      }
+
+      await createProperty(supabase, input);
       setSubmitting(false);
       setSuccess(true);
     } catch {
@@ -384,6 +576,7 @@ export default function PropertyForm({
             onClick={() => {
               setSuccess(false);
               setStep(0);
+              setFurthestStep(LAST_STEP);
             }}
             className="rounded-lg border border-ink px-6 py-3 text-sm font-semibold text-ink"
           >
@@ -407,7 +600,7 @@ export default function PropertyForm({
     >
       <div className="mb-1 flex items-center justify-between">
         <h1 className="font-serif-brand text-[28px] font-bold text-ink">
-          {t("title")}
+          {isEdit ? t("editTitle") : t("title")}
         </h1>
         <Link
           href="/owner/dashboard"
@@ -416,26 +609,58 @@ export default function PropertyForm({
           {t("exit")}
         </Link>
       </div>
-      <p className="mb-7 text-[15px] text-[#5C5349]">{t("subtitle")}</p>
+      <p className="mb-7 text-[15px] text-[#5C5349]">
+        {isEdit ? t("editSubtitle") : t("subtitle")}
+      </p>
+      {hasPendingEdit && (
+        <div
+          role="status"
+          className="mb-7 flex items-start gap-2.5 rounded-xl border border-[#F0D9AE] bg-[#FDF3E1] px-4 py-3 text-sm text-[#8A5A12]"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mt-0.5 shrink-0"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 2" />
+          </svg>
+          <span>{t("pendingEditNotice")}</span>
+        </div>
+      )}
 
       <div className="mb-9 flex items-start">
         {STEP_KEYS.map((key, i) => {
           const status: StepStatus =
-            i < step ? "done" : i === step ? "active" : "upcoming";
+            i === step ? "active" : i <= furthestStep ? "done" : "upcoming";
+          const reachable = i <= furthestStep && i !== step;
           return (
-            <div
+            <button
               key={key}
-              className="flex flex-1 flex-col items-center gap-2"
+              type="button"
+              onClick={() => goToStep(i)}
+              disabled={!reachable}
+              aria-current={i === step ? "step" : undefined}
+              className="flex min-h-11 flex-1 flex-col items-center gap-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand enabled:cursor-pointer enabled:hover:opacity-80 disabled:cursor-default"
             >
               <div className="flex w-full items-center">
-                <span className={lineClass(i - 1 < step, i === 0)} />
+                <span className={lineClass(i - 1 < furthestStep, i === 0)} />
                 <span className={circleClass(status)}>
                   {status === "done" ? "✓" : i + 1}
                 </span>
-                <span className={lineClass(i < step, i === LAST_STEP)} />
+                <span
+                  className={lineClass(i < furthestStep, i === LAST_STEP)}
+                />
               </div>
               <span className={labelClass(status)}>{t(`steps.${key}`)}</span>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -525,9 +750,17 @@ export default function PropertyForm({
                     <button
                       key={key}
                       type="button"
+                      aria-pressed={amenities.has(key)}
                       onClick={() => toggleAmenity(key)}
                       className={amenityChipClass(amenities.has(key))}
                     >
+                      <AmenityIcon
+                        amenityKey={key}
+                        size={18}
+                        className={
+                          amenities.has(key) ? undefined : "text-[#8A8073]"
+                        }
+                      />
                       {tAmenity(key)}
                     </button>
                   ))}
@@ -547,107 +780,28 @@ export default function PropertyForm({
             </div>
 
             <div className="flex flex-wrap gap-8">
-              <div className="flex flex-col gap-2.5">
-                <span className="text-[13px] font-semibold text-[#8A8073]">
-                  {t("roomsLabel")}
-                </span>
-                <div className="flex items-center gap-3.5">
-                  <button
-                    type="button"
-                    aria-label={t("roomsLabel")}
-                    onClick={() =>
-                      setBedrooms((n) => Math.max(0, n - 1))
-                    }
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5DED3]"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.4"
-                      strokeLinecap="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M5 12h14" />
-                    </svg>
-                  </button>
-                  <span className="min-w-5 text-center text-xl font-bold text-ink">
-                    {bedrooms}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={t("roomsLabel")}
-                    onClick={() => setBedrooms((n) => Math.min(30, n + 1))}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5DED3]"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.4"
-                      strokeLinecap="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2.5">
-                <span className="text-[13px] font-semibold text-[#8A8073]">
-                  {t("maxGuestsStepperLabel")}
-                </span>
-                <div className="flex items-center gap-3.5">
-                  <button
-                    type="button"
-                    aria-label={t("maxGuestsStepperLabel")}
-                    onClick={() =>
-                      setMaxGuests((n) => Math.max(1, n - 1))
-                    }
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5DED3]"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.4"
-                      strokeLinecap="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M5 12h14" />
-                    </svg>
-                  </button>
-                  <span className="min-w-5 text-center text-xl font-bold text-ink">
-                    {maxGuests}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={t("maxGuestsStepperLabel")}
-                    onClick={() => setMaxGuests((n) => Math.min(20, n + 1))}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5DED3]"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.4"
-                      strokeLinecap="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
+              <Counter
+                label={t("roomsLabel")}
+                value={bedrooms}
+                min={0}
+                max={30}
+                onChange={setBedrooms}
+                decreaseLabel={t("decrease", { label: t("roomsLabel") })}
+                increaseLabel={t("increase", { label: t("roomsLabel") })}
+              />
+              <Counter
+                label={t("maxGuestsStepperLabel")}
+                value={maxGuests}
+                min={1}
+                max={20}
+                onChange={setMaxGuests}
+                decreaseLabel={t("decrease", {
+                  label: t("maxGuestsStepperLabel"),
+                })}
+                increaseLabel={t("increase", {
+                  label: t("maxGuestsStepperLabel"),
+                })}
+              />
             </div>
 
             <label className="flex max-w-[240px] flex-col gap-1.5 text-sm">
@@ -670,89 +824,60 @@ export default function PropertyForm({
               </div>
             </label>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <label className="flex flex-col gap-1 text-sm">
-                {tProperty("beds")}
-                <select
-                  value={beds}
-                  onChange={(e) => setBeds(Number(e.target.value))}
-                  className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                >
-                  {BEDS_OPTIONS.map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                {tProperty("toilets")}
-                <select
-                  value={toilets}
-                  onChange={(e) => setToilets(Number(e.target.value))}
-                  className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                >
-                  {TOILETS_BATHTUBS_OPTIONS.map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                {tProperty("bathtubs")}
-                <select
-                  value={bathtubs}
-                  onChange={(e) => setBathtubs(Number(e.target.value))}
-                  className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                >
-                  {TOILETS_BATHTUBS_OPTIONS.map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                {tProperty("checkin")}
-                <select
-                  value={checkinTime}
-                  onChange={(e) => setCheckinTime(e.target.value)}
-                  className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                >
-                  <option value="">--:--</option>
-                  {TIME_OPTIONS.map((time) => (
-                    <option key={time} value={time}>
-                      {time}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                {tProperty("checkout")}
-                <select
-                  value={checkoutTime}
-                  onChange={(e) => setCheckoutTime(e.target.value)}
-                  className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                >
-                  <option value="">--:--</option>
-                  {TIME_OPTIONS.map((time) => (
-                    <option key={time} value={time}>
-                      {time}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                {tProperty("minNights")}
-                <input
-                  type="number"
-                  min={1}
-                  value={minNights}
-                  onChange={(e) => setMinNights(e.target.value)}
-                  className="rounded-md border border-[#E5DED3] bg-transparent px-3 py-2"
-                />
-              </label>
+            <div className="flex flex-wrap gap-8">
+              <Counter
+                label={tProperty("beds")}
+                value={beds}
+                min={0}
+                max={30}
+                onChange={setBeds}
+                decreaseLabel={t("decrease", { label: tProperty("beds") })}
+                increaseLabel={t("increase", { label: tProperty("beds") })}
+              />
+              <Counter
+                label={tProperty("toilets")}
+                value={toilets}
+                min={0}
+                max={8}
+                onChange={setToilets}
+                decreaseLabel={t("decrease", { label: tProperty("toilets") })}
+                increaseLabel={t("increase", { label: tProperty("toilets") })}
+              />
+              <Counter
+                label={tProperty("bathtubs")}
+                value={bathtubs}
+                min={0}
+                max={8}
+                onChange={setBathtubs}
+                decreaseLabel={t("decrease", { label: tProperty("bathtubs") })}
+                increaseLabel={t("increase", { label: tProperty("bathtubs") })}
+              />
+              <Counter
+                label={tProperty("minNights")}
+                value={minNights}
+                min={1}
+                max={30}
+                onChange={setMinNights}
+                decreaseLabel={t("decrease", { label: tProperty("minNights") })}
+                increaseLabel={t("increase", { label: tProperty("minNights") })}
+              />
+            </div>
+
+            <div className="flex flex-col gap-6 sm:flex-row sm:gap-10">
+              <TimePicker
+                label={tProperty("checkin")}
+                value={checkinTime}
+                presets={CHECKIN_PRESETS}
+                otherLabel={t("otherTime")}
+                onChange={setCheckinTime}
+              />
+              <TimePicker
+                label={tProperty("checkout")}
+                value={checkoutTime}
+                presets={CHECKOUT_PRESETS}
+                otherLabel={t("otherTime")}
+                onChange={setCheckoutTime}
+              />
             </div>
 
             <label className="flex flex-col gap-1.5 text-sm">
@@ -760,50 +885,16 @@ export default function PropertyForm({
                 {t("descriptionLabel")}
               </span>
               <textarea
-                value={descriptionHe}
-                onChange={(e) => setDescriptionHe(e.target.value)}
-                rows={4}
-                placeholder={t("descriptionHe")}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={5}
+                // Follow the typed text's direction; an empty box keeps the
+                // page direction so the placeholder lines up with the label.
+                dir={description ? "auto" : undefined}
+                placeholder={t("descriptionPlaceholder")}
                 className="resize-y rounded-[10px] border border-[#E5DED3] px-3.5 py-3 text-sm leading-relaxed text-ink"
               />
             </label>
-            <label className="flex flex-col gap-1.5 text-sm">
-              <span className="text-[13px] font-semibold text-[#8A8073]">
-                {t("descriptionEn")}
-              </span>
-              <textarea
-                value={descriptionEn}
-                onChange={(e) => setDescriptionEn(e.target.value)}
-                rows={4}
-                className="resize-y rounded-[10px] border border-[#E5DED3] px-3.5 py-3 text-sm leading-relaxed text-ink"
-              />
-            </label>
-
-            {(descriptionHe || descriptionEn) && (
-              <fieldset className="flex items-center gap-4 text-sm">
-                <legend className="mb-1 w-full">
-                  {t("descriptionSourceLang")}
-                </legend>
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    name="descriptionSourceLang"
-                    checked={descriptionSourceLang === "he"}
-                    onChange={() => setDescriptionSourceLang("he")}
-                  />
-                  {t("descriptionSourceLangHe")}
-                </label>
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    name="descriptionSourceLang"
-                    checked={descriptionSourceLang === "en"}
-                    onChange={() => setDescriptionSourceLang("en")}
-                  />
-                  {t("descriptionSourceLangEn")}
-                </label>
-              </fieldset>
-            )}
           </div>
         )}
 
@@ -830,34 +921,42 @@ export default function PropertyForm({
               />
               <div className="grid grid-cols-3 gap-3">
                 {Array.from({ length: PHOTO_SLOT_COUNT }).map((_, index) => {
-                  const pf = pendingFiles[index];
+                  const item = media[index];
                   const isMain = index === 0;
                   return (
                     <div
                       key={index}
                       onClick={() =>
-                        !pf && fileInputRef.current?.click()
+                        !item && fileInputRef.current?.click()
                       }
                       className={`relative flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed ${
-                        pf
+                        item
                           ? "border-[#E5DED3]"
                           : isMain
                             ? "border-brand text-brand"
                             : "border-[#E5DED3] text-[#8A8073]"
-                      } ${!pf ? "cursor-pointer" : ""}`}
+                      } ${!item ? "cursor-pointer" : ""}`}
                     >
-                      {pf ? (
+                      {item ? (
                         <>
-                          {pf.file.type.startsWith("video/") ? (
+                          {isVideo(item) ? (
                             <video
-                              src={pf.previewUrl}
+                              src={
+                                item.kind === "new"
+                                  ? item.previewUrl
+                                  : optimizedCloudinaryUrl(item.url)
+                              }
                               className="h-full w-full rounded-[10px] object-cover"
                               muted
                             />
                           ) : (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={pf.previewUrl}
+                              src={
+                                item.kind === "new"
+                                  ? item.previewUrl
+                                  : optimizedCloudinaryUrl(item.url)
+                              }
                               alt=""
                               className="h-full w-full rounded-[10px] object-cover"
                             />
@@ -868,7 +967,7 @@ export default function PropertyForm({
                               e.stopPropagation();
                               removeFile(index);
                             }}
-                            className="absolute end-1 top-1 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white"
+                            className="absolute end-1.5 top-1.5 inline-flex min-h-8 items-center rounded-full bg-black/70 px-3 text-xs font-semibold text-white transition-colors duration-150 hover:bg-black/85"
                           >
                             {t("removeMedia")}
                           </button>
@@ -987,11 +1086,13 @@ export default function PropertyForm({
                   {t("summaryPhotosLabel")}
                 </span>
                 <span className="font-semibold text-ink">
-                  {t("summaryPhotosValue", { count: pendingFiles.length })}
+                  {t("summaryPhotosValue", { count: media.length })}
                 </span>
               </div>
             </div>
-            <p className="text-[13px] text-[#8A8073]">{t("summaryNote")}</p>
+            <p className="text-[13px] text-[#8A8073]">
+              {isEdit ? t("editSummaryNote") : t("summaryNote")}
+            </p>
           </div>
         )}
 
@@ -1016,7 +1117,9 @@ export default function PropertyForm({
               : submitting
                 ? t("submitting")
                 : step === LAST_STEP
-                  ? t("submitForApproval")
+                  ? isEdit
+                    ? t("saveChanges")
+                    : t("submitForApproval")
                   : t("continue")}
           </button>
         </div>

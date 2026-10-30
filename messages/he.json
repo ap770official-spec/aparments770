@@ -170,18 +170,26 @@
     "noProperties": "עדיין לא פרסמת אף דירה.",
     "perNight": "ללילה",
     "addProperty": "הוסף דירה",
+    "edit": "עריכה",
     "status": {
       "pending_approval": "ממתין לאישור",
       "approved": "מאושר",
       "rejected": "נדחה"
     },
-    "duplicate": "שכפל",
     "availabilityMode": {
       "label": "מצב תפוסה",
       "fully_locked": "נעילה מלאה",
       "default_open_block_dates": "פתוח (סוגר תאריכים ידנית)",
       "default_closed_open_dates": "סגור (פותח תאריכים ידנית)"
-    }
+    },
+    "expiredBadge": "פג תוקף",
+    "visibleUntil": "מוצגת באתר עד {date}",
+    "visibleUntilSoon": "מוצגת באתר עד {date} · {days, plural, one {נשאר יום אחד} other {נשארו # ימים}}",
+    "notVisible": "הדירה לא מוצגת יותר ללקוחות — תוקף הפרסום פג ב-{date}. לחידוש, צרו קשר עם מנהל האתר.",
+    "editSentTitle": "העריכה נשלחה לאישור",
+    "editSentBody": "הצוות שלנו יבדוק את השינויים. עד שהם יאושרו, הדירה תמשיך להופיע באתר כפי שהופיעה לפני העריכה.",
+    "editSentClose": "הבנתי",
+    "editPending": "עריכה ממתינה לאישור"
   },
   "propertyForm": {
     "title": "פרסום דירה חדשה",
@@ -193,11 +201,6 @@
     "pricePerNight": "מחיר ללילה (בדולר)",
     "phoneCountryCode": "קידומת",
     "phoneNumber": "מספר טלפון",
-    "descriptionHe": "תיאור בעברית",
-    "descriptionEn": "תיאור באנגלית",
-    "descriptionSourceLang": "כתבתי את התיאור בשפה:",
-    "descriptionSourceLangHe": "עברית",
-    "descriptionSourceLangEn": "אנגלית",
     "mediaLabel": "תמונות / וידאו",
     "mediaHint": "אפשר לבחור כמה קבצים יחד. תמונות דחוסות אוטומטית.",
     "removeMedia": "הסר",
@@ -254,11 +257,25 @@
     "summaryPhotosLabel": "תמונות",
     "summaryPhotosValue": "{count} תמונות",
     "summaryNote": "לאחר השליחה, הדירה לא תופיע באתר עד לאישור ידני של הצוות שלנו.",
-    "summaryNoAddress": "טרם הוזנה כתובת"
+    "summaryNoAddress": "טרם הוזנה כתובת",
+    "decrease": "הפחת {label}",
+    "increase": "הוסף {label}",
+    "otherTime": "שעה אחרת",
+    "editTitle": "עריכת דירה",
+    "editSubtitle": "עדכנו את פרטי הדירה, התמונות והמתקנים. השינויים יישלחו לאישור הצוות.",
+    "saveChanges": "שליחת השינויים לאישור",
+    "editSummaryNote": "השינויים יישלחו לאישור. עד שהצוות יאשר אותם, הדירה תמשיך להופיע באתר כפי שהיא היום.",
+    "pendingEditNotice": "כבר שלחתם עריכה לדירה הזו והיא ממתינה לאישור. הטופס מציג את מה ששלחתם, ושליחה חדשה תחליף את העריכה הקודמת.",
+    "descriptionPlaceholder": "אפשר לכתוב בעברית או באנגלית"
   },
   "footer": {
     "contact": "צור קשר",
     "terms": "תנאי שימוש",
     "copyright": "© Apartments770"
+  },
+  "underConstructionNotice": {
+    "title": "האתר בבנייה",
+    "body": "האתר עדיין בבנייה. אנו מתנצלים על כך — הוא אינו מוכן לשימוש מלא בשלב זה.",
+    "close": "הבנתי, סגור"
   }
 }

@@ -4,7 +4,7 @@
 -- if something goes wrong in the Supabase project, and so a second
 -- environment (e.g. staging) could be recreated from it.
 --
--- Run order matters: regions -> owners -> properties -> property_amenities -> property_photos -> admin-only column triggers
+-- Run order matters: regions -> owners -> properties -> property_amenities -> property_photos -> property_edits -> admin-only column triggers
 -- (each later table references an earlier one via foreign key).
 
 -- =========================================================
@@ -135,6 +135,11 @@ create table public.properties (
 
   approval_status text not null default 'pending_approval'
     check (approval_status in ('pending_approval','approved','rejected')),
+  -- End of the paid display period, set per listing by the admin on
+  -- approval. Past this date an approved listing is hidden from the
+  -- public site (RLS below). Null = no end date. Added 2026-10-27,
+  -- replacing the owner-level owners.subscription_expires_at.
+  listing_expires_at timestamptz,
   availability_mode text not null default 'default_open_block_dates'
     check (availability_mode in ('fully_locked','default_open_block_dates','default_closed_open_dates')),
 
@@ -148,7 +153,10 @@ create policy "Public can view approved properties"
   on public.properties
   for select
   to anon, authenticated
-  using (approval_status = 'approved');
+  using (
+    approval_status = 'approved'
+    and (listing_expires_at is null or listing_expires_at > now())
+  );
 
 create policy "Owners can view their own properties"
   on public.properties
@@ -340,16 +348,76 @@ create policy "Owners can delete photos of their own properties"
 
 
 -- =========================================================
--- 6. Admin-only columns (security, 2026-10-27)
+-- 6. property_edits
+-- Owner edits to an already-approved listing wait here for admin
+-- review, so the live listing keeps showing its approved version
+-- until then. payload holds the full proposed listing (the
+-- NewPropertyInput shape from src/lib/properties.ts, minus ownerId):
+-- fields, amenities and media. Approving applies it to properties /
+-- property_amenities / property_photos via the service-role client
+-- (src/app/admin/actions.ts). At most one pending edit per property;
+-- a new submission replaces the previous pending one.
+--
+-- Added 2026-10-27 (owner edit approval) - see
+-- docs/handoff-2026-10-27-property-edits-sql.md for the statements run
+-- manually against the live database.
+-- =========================================================
+
+create table public.property_edits (
+  id uuid primary key default gen_random_uuid(),
+  property_id uuid not null references public.properties(id) on delete cascade,
+  owner_id uuid not null references public.owners(id) on delete cascade,
+  payload jsonb not null,
+  status text not null default 'pending'
+    check (status in ('pending','approved','rejected')),
+  created_at timestamptz not null default now(),
+  reviewed_at timestamptz
+);
+
+create unique index property_edits_one_pending_per_property
+  on public.property_edits (property_id)
+  where status = 'pending';
+
+alter table public.property_edits enable row level security;
+
+create policy "Owners can view their own property edits"
+  on public.property_edits
+  for select
+  to authenticated
+  using (owner_id = auth.uid());
+
+create policy "Owners can submit edits for their own properties"
+  on public.property_edits
+  for insert
+  to authenticated
+  with check (
+    owner_id = auth.uid()
+    and status = 'pending'
+    and exists (
+      select 1 from public.properties p
+      where p.id = property_edits.property_id
+        and p.owner_id = auth.uid()
+    )
+  );
+
+create policy "Owners can withdraw their own pending edits"
+  on public.property_edits
+  for delete
+  to authenticated
+  using (owner_id = auth.uid() and status = 'pending');
+
+
+-- =========================================================
+-- 7. Admin-only columns and live listings (security, 2026-10-27)
 -- The RLS policies above let an owner insert/update their own rows -
 -- but RLS is row-level, not column-level, so on its own it would also
 -- let an owner (straight through the public Supabase API, with their
--- own login token) set approval_status = 'approved' on their listing,
--- or extend their own subscription_expires_at / un-freeze themselves.
--- These triggers pin those columns for the public roles (anon,
--- authenticated): on insert they get the default, on update they keep
--- their old value. The admin panel uses the service_role key, and the
--- SQL Editor runs as postgres, so neither is affected.
+-- own login token) approve their own listing, extend its
+-- listing_expires_at or their subscription_expires_at, un-freeze
+-- themselves, or change a live listing without admin review. These
+-- triggers apply to the public roles (anon, authenticated) only: the
+-- admin panel uses the service_role key and the SQL Editor runs as
+-- postgres, so neither is affected.
 -- See docs/handoff-2026-10-27-security-sql.md.
 -- =========================================================
 
@@ -391,10 +459,25 @@ begin
   if current_user in ('anon', 'authenticated') then
     if tg_op = 'INSERT' then
       new.approval_status := 'pending_approval';
+      new.listing_expires_at := null;
     else
-      new.approval_status := old.approval_status;
       new.owner_id := old.owner_id;
       new.created_at := old.created_at;
+      new.listing_expires_at := old.listing_expires_at;
+      -- The one status change an owner may make: resubmitting a
+      -- rejected listing for review.
+      if not (old.approval_status = 'rejected'
+              and new.approval_status = 'pending_approval') then
+        new.approval_status := old.approval_status;
+      end if;
+      -- A live listing changes only through admin review
+      -- (property_edits); the owner may still flip its availability.
+      if old.approval_status = 'approved'
+         and (to_jsonb(new) - 'availability_mode' - 'updated_at')
+             is distinct from
+             (to_jsonb(old) - 'availability_mode' - 'updated_at') then
+        raise exception 'Edits to an approved listing go through admin review (property_edits)';
+      end if;
     end if;
   end if;
   return new;
@@ -404,3 +487,36 @@ $$;
 create trigger protect_property_admin_columns
   before insert or update on public.properties
   for each row execute function public.protect_property_admin_columns();
+
+-- Same rule for a live listing's photos and amenities: an owner can't
+-- add, swap or remove them directly, only via property_edits.
+create or replace function public.protect_live_listing_children()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user in ('anon', 'authenticated') then
+    if (tg_op <> 'INSERT' and exists (
+          select 1 from public.properties p
+          where p.id = old.property_id and p.approval_status = 'approved'))
+       or (tg_op <> 'DELETE' and exists (
+          select 1 from public.properties p
+          where p.id = new.property_id and p.approval_status = 'approved')) then
+      raise exception 'Edits to an approved listing go through admin review (property_edits)';
+    end if;
+  end if;
+  if tg_op = 'DELETE' then
+    return old;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger protect_live_listing_amenities
+  before insert or update or delete on public.property_amenities
+  for each row execute function public.protect_live_listing_children();
+
+create trigger protect_live_listing_photos
+  before insert or update or delete on public.property_photos
+  for each row execute function public.protect_live_listing_children();
