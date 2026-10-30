@@ -3,7 +3,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { ADMIN_COOKIE_NAME, adminSessionToken, isAdminAuthenticated } from "@/lib/admin-auth";
+import {
+  ADMIN_COOKIE_NAME,
+  adminSessionToken,
+  isAdminAuthenticated,
+  safeEqual,
+} from "@/lib/admin-auth";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { generateSubscriptionPdf } from "@/lib/subscription-pdf";
 import { sendEmail } from "@/lib/email";
@@ -15,7 +20,7 @@ export async function loginAdmin(formData: FormData) {
   if (
     typeof password === "string" &&
     process.env.ADMIN_PASSWORD &&
-    password === process.env.ADMIN_PASSWORD
+    safeEqual(password, process.env.ADMIN_PASSWORD)
   ) {
     const cookieStore = await cookies();
     cookieStore.set(ADMIN_COOKIE_NAME, adminSessionToken(), {
@@ -28,13 +33,27 @@ export async function loginAdmin(formData: FormData) {
     redirect("/admin/properties");
   }
 
+  // Slows down password guessing - there's no rate limiter in front of
+  // this form, so every failed attempt at least costs the guesser time.
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   redirect("/admin/login?error=1");
 }
 
 export async function logoutAdmin() {
   const cookieStore = await cookies();
-  cookieStore.delete(ADMIN_COOKIE_NAME);
+  // Must match the path the cookie was set with, or the browser keeps it
+  // and the admin stays logged in after "logout".
+  cookieStore.delete({ name: ADMIN_COOKIE_NAME, path: "/admin" });
   redirect("/admin/login");
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 async function requireAdmin() {
@@ -128,7 +147,7 @@ export async function approveProperty(propertyId: string, formData: FormData) {
       await sendEmail({
         to: ownerEmail,
         subject: "הדירה שלך אושרה ופורסמה באתר",
-        html: `<p>שלום,</p><p>הדירה בכתובת ${property.address} אושרה ותופיע באתר עד ${expiresAt.toLocaleDateString("en-GB")}.</p><p>מסמך אישור מצורף.</p>`,
+        html: `<p>שלום,</p><p>הדירה בכתובת ${escapeHtml(property.address)} אושרה ותופיע באתר עד ${expiresAt.toLocaleDateString("en-GB")}.</p><p>מסמך אישור מצורף.</p>`,
         attachment: {
           filename: "אישור-פרסום-דירה.pdf",
           content: pdfBytes,

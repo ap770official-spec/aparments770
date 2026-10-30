@@ -4,7 +4,7 @@
 -- if something goes wrong in the Supabase project, and so a second
 -- environment (e.g. staging) could be recreated from it.
 --
--- Run order matters: regions -> owners -> properties -> property_amenities -> property_photos -> property_edits
+-- Run order matters: regions -> owners -> properties -> property_amenities -> property_photos -> property_edits -> admin-only column triggers
 -- (each later table references an earlier one via foreign key).
 
 -- =========================================================
@@ -405,3 +405,118 @@ create policy "Owners can withdraw their own pending edits"
   for delete
   to authenticated
   using (owner_id = auth.uid() and status = 'pending');
+
+
+-- =========================================================
+-- 7. Admin-only columns and live listings (security, 2026-10-27)
+-- The RLS policies above let an owner insert/update their own rows -
+-- but RLS is row-level, not column-level, so on its own it would also
+-- let an owner (straight through the public Supabase API, with their
+-- own login token) approve their own listing, extend its
+-- listing_expires_at or their subscription_expires_at, un-freeze
+-- themselves, or change a live listing without admin review. These
+-- triggers apply to the public roles (anon, authenticated) only: the
+-- admin panel uses the service_role key and the SQL Editor runs as
+-- postgres, so neither is affected.
+-- See docs/handoff-2026-10-27-security-sql.md.
+-- =========================================================
+
+create or replace function public.protect_owner_admin_columns()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user in ('anon', 'authenticated') then
+    if tg_op = 'INSERT' then
+      new.is_verified := false;
+      new.is_first_100 := false;
+      new.subscription_expires_at := null;
+      new.is_frozen := false;
+    else
+      new.id := old.id;
+      new.is_verified := old.is_verified;
+      new.is_first_100 := old.is_first_100;
+      new.subscription_expires_at := old.subscription_expires_at;
+      new.is_frozen := old.is_frozen;
+      new.created_at := old.created_at;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger protect_owner_admin_columns
+  before insert or update on public.owners
+  for each row execute function public.protect_owner_admin_columns();
+
+create or replace function public.protect_property_admin_columns()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user in ('anon', 'authenticated') then
+    if tg_op = 'INSERT' then
+      new.approval_status := 'pending_approval';
+      new.listing_expires_at := null;
+    else
+      new.owner_id := old.owner_id;
+      new.created_at := old.created_at;
+      new.listing_expires_at := old.listing_expires_at;
+      -- The one status change an owner may make: resubmitting a
+      -- rejected listing for review.
+      if not (old.approval_status = 'rejected'
+              and new.approval_status = 'pending_approval') then
+        new.approval_status := old.approval_status;
+      end if;
+      -- A live listing changes only through admin review
+      -- (property_edits); the owner may still flip its availability.
+      if old.approval_status = 'approved'
+         and (to_jsonb(new) - 'availability_mode' - 'updated_at')
+             is distinct from
+             (to_jsonb(old) - 'availability_mode' - 'updated_at') then
+        raise exception 'Edits to an approved listing go through admin review (property_edits)';
+      end if;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger protect_property_admin_columns
+  before insert or update on public.properties
+  for each row execute function public.protect_property_admin_columns();
+
+-- Same rule for a live listing's photos and amenities: an owner can't
+-- add, swap or remove them directly, only via property_edits.
+create or replace function public.protect_live_listing_children()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user in ('anon', 'authenticated') then
+    if (tg_op <> 'INSERT' and exists (
+          select 1 from public.properties p
+          where p.id = old.property_id and p.approval_status = 'approved'))
+       or (tg_op <> 'DELETE' and exists (
+          select 1 from public.properties p
+          where p.id = new.property_id and p.approval_status = 'approved')) then
+      raise exception 'Edits to an approved listing go through admin review (property_edits)';
+    end if;
+  end if;
+  if tg_op = 'DELETE' then
+    return old;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger protect_live_listing_amenities
+  before insert or update or delete on public.property_amenities
+  for each row execute function public.protect_live_listing_children();
+
+create trigger protect_live_listing_photos
+  before insert or update or delete on public.property_photos
+  for each row execute function public.protect_live_listing_children();
