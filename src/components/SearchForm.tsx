@@ -17,7 +17,6 @@ import {
 import { he as heLocale, enUS as enLocale } from "react-day-picker/locale";
 import "react-day-picker/style.css";
 import { useRouter } from "@/i18n/navigation";
-import type { Region } from "@/lib/regions";
 import type { HolidayMarker } from "@/lib/hebrewHolidays";
 
 function toISODate(date: Date): string {
@@ -28,17 +27,17 @@ function toISODate(date: Date): string {
 }
 
 export default function SearchForm({
-  regions,
+  defaultRegionSlug,
   holidays,
 }: {
-  regions: Region[];
+  defaultRegionSlug: string;
   holidays: HolidayMarker[];
 }) {
   const t = useTranslations("searchForm");
   const locale = useLocale();
   const router = useRouter();
 
-  const region = regions[0]?.slug ?? "";
+  const region = defaultRegionSlug;
   const [range, setRange] = useState<DateRange | undefined>();
   const [guests, setGuests] = useState(1);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);

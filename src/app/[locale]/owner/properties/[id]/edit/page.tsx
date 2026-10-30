@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getActiveRegions } from "@/lib/regions";
+import { getActiveRegions, getDefaultRegion } from "@/lib/regions";
 import {
   getOwnerPropertyForEdit,
   getPendingPropertyEdit,
@@ -29,8 +29,9 @@ export default async function EditPropertyPage({
     redirect({ href: "/owner/login", locale });
   }
 
-  const [regions, property] = await Promise.all([
+  const [regions, defaultRegion, property] = await Promise.all([
     getActiveRegions(),
+    getDefaultRegion(),
     getOwnerPropertyForEdit(supabase, id, user!.id),
   ]);
 
@@ -43,6 +44,7 @@ export default async function EditPropertyPage({
   return (
     <PropertyForm
       regions={regions}
+      defaultRegionId={defaultRegion?.id ?? ""}
       ownerId={user!.id}
       initialProperty={
         pendingEdit ? withPendingEdit(property, pendingEdit.payload) : property
