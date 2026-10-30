@@ -24,6 +24,7 @@ import { getWalkingDirections } from "@/lib/mapbox";
 import type { Region } from "@/lib/regions";
 import LocationPicker from "@/components/LocationPicker";
 import { AMENITY_GROUPS } from "@/lib/amenities";
+import { AmenityIcon } from "@/lib/amenityIcons";
 
 const STEP_KEYS = [
   "address",
@@ -83,8 +84,8 @@ function chipClass(active: boolean): string {
 
 function amenityChipClass(active: boolean): string {
   return active
-    ? "rounded-full border border-brand bg-brand px-4 py-2 text-[13.5px] font-semibold text-brand-foreground"
-    : "rounded-full border border-[#E5DED3] bg-white px-4 py-2 text-[13.5px] font-semibold text-ink";
+    ? "inline-flex min-h-11 items-center gap-2 rounded-full border border-brand bg-brand px-4 py-2 text-[13.5px] font-semibold text-brand-foreground"
+    : "inline-flex min-h-11 items-center gap-2 rounded-full border border-[#E5DED3] bg-white px-4 py-2 text-[13.5px] font-semibold text-ink";
 }
 
 function StepperButton({
@@ -729,9 +730,17 @@ export default function PropertyForm({
                     <button
                       key={key}
                       type="button"
+                      aria-pressed={amenities.has(key)}
                       onClick={() => toggleAmenity(key)}
                       className={amenityChipClass(amenities.has(key))}
                     >
+                      <AmenityIcon
+                        amenityKey={key}
+                        size={18}
+                        className={
+                          amenities.has(key) ? undefined : "text-[#8A8073]"
+                        }
+                      />
                       {tAmenity(key)}
                     </button>
                   ))}
