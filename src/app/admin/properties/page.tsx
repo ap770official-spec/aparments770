@@ -404,10 +404,20 @@ function PropertyRow({
             )}
             {/* No lat/lng = hidden from the search map. Saving the listing
                 once from the edit page geocodes its address. */}
-            {(property.lat == null || property.lng == null) && (
+            {property.lat == null || property.lng == null ? (
               <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
                 אין מיקום במפה
               </span>
+            ) : (
+              <a
+                href={`https://www.google.com/maps?q=${property.lat},${property.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center rounded-full bg-black/5 px-2 py-0.5 text-xs font-medium text-black/60 underline-offset-2 hover:underline"
+                title="פתח במפה כדי לוודא שהמיקום נכון"
+              >
+                מיקום: {property.lat.toFixed(4)}, {property.lng.toFixed(4)}
+              </a>
             )}
           </div>
 

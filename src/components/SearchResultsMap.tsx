@@ -53,21 +53,10 @@ export default function SearchResultsMap({
 
     const bounds = new mapboxgl.LngLatBounds();
 
-    for (const property of located) {
-      const el = document.createElement("button");
-      el.type = "button";
-      el.dataset.propertyId = property.id;
-      el.className = markerClassName(property.id === selectedId);
-      el.textContent = `$${property.price_per_night}`;
-      el.addEventListener("click", () => onSelectRef.current(property.id));
-      markerElsRef.current[property.id] = el;
-
-      new mapboxgl.Marker({ element: el, anchor: "bottom" })
-        .setLngLat([property.lng, property.lat])
-        .addTo(map);
-      bounds.extend([property.lng, property.lat]);
-    }
-
+    // Landmark marker is added first so it paints *under* property pins -
+    // when listings cluster near it (or the view is zoomed out because one
+    // listing's geocoded location is far off), the price pins stay visible
+    // instead of being hidden behind the landmark marker drawn on top.
     if (landmark) {
       const el = document.createElement("div");
       el.className = "flex flex-col items-center gap-1";
@@ -83,6 +72,21 @@ export default function SearchResultsMap({
         .setLngLat([landmark.lng, landmark.lat])
         .addTo(map);
       bounds.extend([landmark.lng, landmark.lat]);
+    }
+
+    for (const property of located) {
+      const el = document.createElement("button");
+      el.type = "button";
+      el.dataset.propertyId = property.id;
+      el.className = markerClassName(property.id === selectedId);
+      el.textContent = `$${property.price_per_night}`;
+      el.addEventListener("click", () => onSelectRef.current(property.id));
+      markerElsRef.current[property.id] = el;
+
+      new mapboxgl.Marker({ element: el, anchor: "bottom" })
+        .setLngLat([property.lng, property.lat])
+        .addTo(map);
+      bounds.extend([property.lng, property.lat]);
     }
 
     if (located.length > 1 || landmark) {
