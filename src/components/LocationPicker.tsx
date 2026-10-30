@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { BROOKLYN_BBOX } from "@/lib/serviceArea";
 
 type Suggestion = {
   id: string;
@@ -122,7 +123,7 @@ export default function LocationPicker({
       return;
     }
 
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${token}&proximity=${NYC_CENTER[0]},${NYC_CENTER[1]}&limit=5`;
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${token}&proximity=${NYC_CENTER[0]},${NYC_CENTER[1]}&country=us&bbox=${BROOKLYN_BBOX.join(",")}&limit=5`;
     const res = await fetch(url);
     if (!res.ok) return;
     const data = await res.json();

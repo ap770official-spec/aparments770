@@ -213,6 +213,7 @@
     "backToDashboard": "חזרה לאזור האישי",
     "errorGeneric": "משהו השתבש בשליחת הדירה. נסה שוב.",
     "errorNoLocation": "יש לסמן את מיקום הדירה על המפה לפני השליחה.",
+    "errorOutsideServiceArea": "אפשר לפרסם רק דירות בברוקלין, ניו יורק. בדקו שהכתובת נכונה.",
     "errorPriceRequired": "יש להזין מחיר ללילה.",
     "errorPhoneRequired": "יש להזין מספר וואטסאפ ליצירת קשר.",
     "steps": {
