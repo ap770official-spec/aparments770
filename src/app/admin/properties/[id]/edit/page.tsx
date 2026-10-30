@@ -5,6 +5,7 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getAdminPropertyById } from "@/lib/properties";
 import { AMENITY_GROUPS } from "@/lib/amenities";
+import { primaryDescription } from "@/lib/description";
 import { updatePropertyAsAdmin } from "../../../edit-actions";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminMediaEditor from "@/components/admin/AdminMediaEditor";
@@ -89,6 +90,8 @@ export default async function AdminEditPropertyPage({
   if (!property) {
     notFound();
   }
+
+  const initialDescription = primaryDescription(property);
 
   const detailHref = `/admin/properties/${property.id}`;
   const selectedAmenities = new Set(
@@ -268,25 +271,22 @@ export default async function AdminEditPropertyPage({
 
             <Section title={he.property.aboutTitle}>
               <div className="flex flex-col gap-4">
-                <Field label={he.propertyForm.descriptionHe} htmlFor="descriptionHe">
+                <Field label={he.propertyForm.descriptionLabel} htmlFor="description">
                   <textarea
-                    id="descriptionHe"
-                    name="descriptionHe"
+                    id="description"
+                    name="description"
                     rows={5}
-                    defaultValue={property.description_he ?? ""}
+                    dir={initialDescription ? "auto" : undefined}
+                    placeholder={he.propertyForm.descriptionPlaceholder}
+                    defaultValue={initialDescription}
                     className={`${inputClass} py-2.5 leading-7`}
                   />
                 </Field>
-                <Field label={he.propertyForm.descriptionEn} htmlFor="descriptionEn">
-                  <textarea
-                    id="descriptionEn"
-                    name="descriptionEn"
-                    rows={5}
-                    dir="ltr"
-                    defaultValue={property.description_en ?? ""}
-                    className={`${inputClass} py-2.5 leading-7`}
-                  />
-                </Field>
+                <input
+                  type="hidden"
+                  name="descriptionOriginal"
+                  value={initialDescription}
+                />
               </div>
             </Section>
 

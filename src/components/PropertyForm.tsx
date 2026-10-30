@@ -25,6 +25,10 @@ import type { Region } from "@/lib/regions";
 import LocationPicker from "@/components/LocationPicker";
 import { AMENITY_GROUPS } from "@/lib/amenities";
 import { AmenityIcon } from "@/lib/amenityIcons";
+import {
+  detectDescriptionLang,
+  primaryDescription,
+} from "@/lib/description";
 
 const STEP_KEYS = [
   "address",
@@ -86,13 +90,6 @@ function amenityChipClass(active: boolean): string {
   return active
     ? "inline-flex min-h-11 items-center gap-2 rounded-full border border-brand bg-brand px-4 py-2 text-[13.5px] font-semibold text-brand-foreground"
     : "inline-flex min-h-11 items-center gap-2 rounded-full border border-[#E5DED3] bg-white px-4 py-2 text-[13.5px] font-semibold text-ink";
-}
-
-// Hebrew if Hebrew letters outnumber Latin ones, English otherwise.
-function detectDescriptionLang(text: string): "he" | "en" {
-  const hebrew = text.match(/[\u0590-\u05FF]/g)?.length ?? 0;
-  const latin = text.match(/[A-Za-z]/g)?.length ?? 0;
-  return hebrew >= latin ? "he" : "en";
 }
 
 function StepperButton({
@@ -308,13 +305,9 @@ export default function PropertyForm({
   );
   // One description box: the language is detected from what was typed, and
   // the text is saved into that language's column.
-  const initialDescription =
-    (initialProperty?.description_source_lang === "en"
-      ? initialProperty.description_en
-      : initialProperty?.description_he) ??
-    initialProperty?.description_he ??
-    initialProperty?.description_en ??
-    "";
+  const initialDescription = initialProperty
+    ? primaryDescription(initialProperty)
+    : "";
   const [description, setDescription] = useState(initialDescription);
   const [amenities, setAmenities] = useState<Set<string>>(
     new Set(initialAmenityKeys ?? []),

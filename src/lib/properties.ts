@@ -207,6 +207,7 @@ export type AdminPropertyDetail = PropertyDetail & {
   created_at: string;
   updated_at: string;
   address_notes: string | null;
+  description_source_lang: "he" | "en" | null;
   regions: {
     name_he: string;
     landmark_lat: number | null;
@@ -233,7 +234,7 @@ export async function getAdminPropertyById(
        max_guests, min_nights, checkin_time, checkout_time, approval_status,
        availability_mode, listing_expires_at, phone_country_code, phone_number,
        created_at, updated_at,
-       description_he, description_en,
+       description_he, description_en, description_source_lang,
        property_photos(url, sort_order, media_type),
        property_amenities(category, amenity_key),
        regions(name_he, landmark_lat, landmark_lng), owners(full_name)`,

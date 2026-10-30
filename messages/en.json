@@ -201,8 +201,6 @@
     "pricePerNight": "Price per night (USD)",
     "phoneCountryCode": "Country code",
     "phoneNumber": "Phone number",
-    "descriptionHe": "Description in Hebrew",
-    "descriptionEn": "Description in English",
     "mediaLabel": "Photos / video",
     "mediaHint": "You can select several files at once. Images are compressed automatically.",
     "removeMedia": "Remove",
