@@ -213,6 +213,7 @@
     "backToDashboard": "Back to your account",
     "errorGeneric": "Something went wrong submitting the apartment. Please try again.",
     "errorNoLocation": "Please pin the apartment's location on the map before submitting.",
+    "errorOutsideServiceArea": "Only apartments in Brooklyn, New York can be listed. Please check the address.",
     "errorPriceRequired": "Please enter a price per night.",
     "errorPhoneRequired": "Please enter a WhatsApp contact number.",
     "steps": {

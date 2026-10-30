@@ -24,6 +24,7 @@ import { getWalkingDirections } from "@/lib/mapbox";
 import type { Region } from "@/lib/regions";
 import LocationPicker from "@/components/LocationPicker";
 import { AMENITY_GROUPS } from "@/lib/amenities";
+import { isBrooklynAddress } from "@/lib/serviceArea";
 import { AmenityIcon } from "@/lib/amenityIcons";
 import {
   detectDescriptionLang,
@@ -370,6 +371,9 @@ export default function PropertyForm({
   function validateStep(currentStep: number): string | null {
     if (currentStep === 0 && (!location || !location.address)) {
       return t("errorNoLocation");
+    }
+    if (currentStep === 0 && !isBrooklynAddress(location!.address)) {
+      return t("errorOutsideServiceArea");
     }
     if (currentStep === 2 && !pricePerNight) {
       return t("errorPriceRequired");
