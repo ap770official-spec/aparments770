@@ -242,11 +242,13 @@ function TimePicker({
 
 export default function PropertyForm({
   regions,
+  defaultRegionId,
   ownerId,
   initialProperty,
   hasPendingEdit = false,
 }: {
   regions: Region[];
+  defaultRegionId: string;
   ownerId: string;
   initialProperty?: PropertyForEdit;
   hasPendingEdit?: boolean;
@@ -262,7 +264,7 @@ export default function PropertyForm({
     (a) => a.amenity_key,
   );
 
-  const regionId = initialProperty?.region_id ?? regions[0]?.id ?? "";
+  const regionId = initialProperty?.region_id ?? defaultRegionId;
   const [step, setStep] = useState(0);
   // An existing listing already has every step filled in, so all are reachable.
   const [furthestStep, setFurthestStep] = useState(isEdit ? LAST_STEP : 0);
