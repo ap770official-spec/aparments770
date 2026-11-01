@@ -16,6 +16,7 @@ import { approveProperty, deleteProperty, rejectProperty } from "../actions";
 import AdminHeader from "@/components/admin/AdminHeader";
 import PendingSubmitButton from "@/components/admin/PendingSubmitButton";
 import ListingExpiryEditor from "@/components/admin/ListingExpiryEditor";
+import AdminDateField from "@/components/admin/AdminDatePicker";
 
 export const dynamic = "force-dynamic";
 
@@ -61,8 +62,9 @@ type AdminPropertyRow = {
 };
 
 function defaultExpiryDate(): string {
+  // Same day next year - matches the calendar's "שנה" quick pick.
   const d = new Date();
-  d.setDate(d.getDate() + 365);
+  d.setFullYear(d.getFullYear() + 1);
   return d.toISOString().slice(0, 10);
 }
 
@@ -216,7 +218,7 @@ export default async function AdminPropertiesPage({
         <h1 className="font-serif-brand text-2xl font-semibold text-ink sm:text-3xl">
           הדירות באתר
         </h1>
-        <p className="mt-1 text-sm text-black/60">
+        <p className="mt-1 text-sm text-ink-soft">
           כל הדירות שפורסמו, הסטטוס שלהן ועד מתי כל דירה מוצגת באתר.
         </p>
 
@@ -226,10 +228,10 @@ export default async function AdminPropertiesPage({
               key={stat.filter}
               href={filterHref(stat.filter, q)}
               className={`rounded-xl border bg-white p-4 transition-colors hover:border-brand/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-                stat.highlight ? "border-amber-400/70" : "border-black/10"
+                stat.highlight ? "border-amber-400/70" : "border-line"
               }`}
             >
-              <dt className="text-sm text-black/60">{stat.label}</dt>
+              <dt className="text-sm text-ink-soft">{stat.label}</dt>
               <dd className="mt-1 text-3xl font-semibold tabular-nums text-ink">
                 {stat.value}
               </dd>
@@ -255,7 +257,7 @@ export default async function AdminPropertiesPage({
 
         <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <nav aria-label="סינון לפי סטטוס" className="-mx-4 overflow-x-auto px-4">
-            <ul className="flex w-max gap-1 rounded-lg bg-black/5 p-1">
+            <ul className="flex w-max gap-1 rounded-lg bg-line/60 p-1">
               {FILTERS.map((filter) => {
                 const isActive = filter.key === activeFilter;
                 return (
@@ -263,14 +265,14 @@ export default async function AdminPropertiesPage({
                     <Link
                       href={filterHref(filter.key, q)}
                       aria-current={isActive ? "page" : undefined}
-                      className={`flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-md px-3 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-brand ${
+                      className={`flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-brand ${
                         isActive
                           ? "bg-white font-medium text-ink shadow-sm"
-                          : "text-black/65 hover:text-ink"
+                          : "text-ink-soft hover:text-ink"
                       }`}
                     >
                       {filter.label}
-                      <span className="tabular-nums text-black/45">
+                      <span className="tabular-nums text-ink-muted">
                         {counts[filter.key]}
                       </span>
                     </Link>
@@ -293,11 +295,11 @@ export default async function AdminPropertiesPage({
               name="q"
               defaultValue={q}
               placeholder="חיפוש: כתובת, בעלים, טלפון"
-              className="min-h-10 w-full rounded-md border border-black/15 bg-white px-3 text-base sm:w-72 sm:text-sm"
+              className="min-h-10 w-full rounded-lg border border-line bg-white px-3 text-base sm:w-72 sm:text-sm"
             />
             <button
               type="submit"
-              className="min-h-10 cursor-pointer rounded-md bg-brand px-4 text-sm font-medium text-brand-foreground transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              className="min-h-10 cursor-pointer rounded-lg bg-brand px-4 text-sm font-medium text-brand-foreground transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
               חיפוש
             </button>
@@ -305,7 +307,7 @@ export default async function AdminPropertiesPage({
         </div>
 
         {visible.length === 0 ? (
-          <div className="mt-6 rounded-xl border border-dashed border-black/15 bg-white px-6 py-12 text-center">
+          <div className="mt-6 rounded-xl border border-dashed border-line bg-white px-6 py-12 text-center">
             <p className="font-medium text-ink">
               {rows.length === 0
                 ? "אין עדיין דירות במערכת."
@@ -355,7 +357,7 @@ function PropertyRow({
   const pill = expiryPill(subscription);
 
   return (
-    <li className="flex flex-col gap-3 rounded-xl border border-black/10 bg-white p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
+    <li className="flex flex-col gap-3 rounded-xl border border-line bg-white p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
       <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center sm:gap-4">
         <Link
           href={detailHref}
@@ -372,7 +374,7 @@ function PropertyRow({
               className="h-full w-full object-cover"
             />
           ) : (
-            <span className="flex h-full items-center justify-center text-xs text-black/50">
+            <span className="flex h-full items-center justify-center text-xs text-ink-muted">
               אין תמונה
             </span>
           )}
@@ -388,7 +390,7 @@ function PropertyRow({
               <span
                 className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
                   STATUS_BADGE_CLASSES[property.approval_status] ??
-                  "bg-black/5 text-black/70 ring-black/10"
+                  "bg-line/60 text-ink-soft ring-line"
                 }`}
               >
                 {STATUS_LABELS[property.approval_status] ?? property.approval_status}
@@ -413,7 +415,7 @@ function PropertyRow({
                 href={`https://www.google.com/maps?q=${property.lat},${property.lng}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center rounded-full bg-black/5 px-2 py-0.5 text-xs font-medium text-black/60 underline-offset-2 hover:underline"
+                className="inline-flex items-center rounded-full bg-line/60 px-2 py-0.5 text-xs font-medium text-ink-soft underline-offset-2 hover:underline"
                 title="פתח במפה כדי לוודא שהמיקום נכון"
               >
                 מיקום: {property.lat.toFixed(4)}, {property.lng.toFixed(4)}
@@ -428,7 +430,7 @@ function PropertyRow({
             <bdi>{property.address}</bdi>
           </Link>
 
-          <p className="mt-0.5 text-sm text-black/65">
+          <p className="mt-0.5 text-sm text-ink-soft">
             {[
               property.regions?.name_he,
               `$${property.price_per_night} ללילה`,
@@ -441,7 +443,7 @@ function PropertyRow({
           </p>
 
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-            <span className="break-words text-black/80">
+            <span className="break-words text-ink">
               {property.owners?.full_name ? (
                 <bdi>{property.owners.full_name}</bdi>
               ) : (
@@ -450,7 +452,7 @@ function PropertyRow({
             </span>
             <a
               href={`tel:${property.phone_country_code}${property.phone_number}`}
-              className="inline-flex items-center gap-1 text-black/70 hover:text-ink"
+              className="inline-flex items-center gap-1 text-ink-soft hover:text-ink"
               dir="ltr"
             >
               <PhoneIcon />
@@ -468,14 +470,14 @@ function PropertyRow({
               <ChatIcon />
               וואטסאפ
             </a>
-            <span className="text-black/50">
+            <span className="text-ink-muted">
               נוסף {formatAdminDate(new Date(property.created_at))}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-black/5 pt-3 sm:w-auto sm:shrink-0 sm:flex-col sm:items-stretch sm:border-t-0 sm:border-s sm:ps-4 sm:pt-0">
+      <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3 sm:w-auto sm:shrink-0 sm:flex-col sm:items-stretch sm:border-t-0 sm:border-s sm:ps-4 sm:pt-0">
         {isApproved ? (
           <ListingExpiryEditor
             propertyId={property.id}
@@ -488,21 +490,14 @@ function PropertyRow({
             action={approveProperty.bind(null, property.id)}
             className="flex items-center gap-1.5"
           >
-            <label className="sr-only" htmlFor={`expires-${property.id}`}>
-              מנוי בתוקף עד
-            </label>
-            <input
-              id={`expires-${property.id}`}
-              type="date"
+            <AdminDateField
               name="expiresAt"
               defaultValue={defaultExpiryDate()}
-              required
-              title="מנוי בתוקף עד"
-              className="min-h-10 rounded-md border border-black/15 px-2 text-sm"
+              label="אישור והצגה באתר עד"
             />
             <PendingSubmitButton
               pendingLabel="מאשר…"
-              className="min-h-10 cursor-pointer rounded-md bg-brand px-4 text-sm font-medium text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+              className="min-h-10 cursor-pointer rounded-lg bg-brand px-4 text-sm font-medium text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
             >
               אשר
             </PendingSubmitButton>
@@ -511,7 +506,7 @@ function PropertyRow({
         <div className="flex gap-2">
           <Link
             href={`${detailHref}/edit`}
-            className="flex min-h-10 flex-1 items-center justify-center rounded-md border border-black/15 px-3 text-sm hover:bg-black/5"
+            className="flex min-h-10 flex-1 items-center justify-center rounded-lg border border-line px-3 text-sm hover:bg-canvas"
           >
             ערוך
           </Link>
@@ -519,7 +514,7 @@ function PropertyRow({
             <form action={rejectProperty.bind(null, property.id)} className="flex-1">
               <PendingSubmitButton
                 pendingLabel="דוחה…"
-                className="min-h-10 w-full cursor-pointer rounded-md border border-black/15 px-3 text-sm hover:bg-black/5 disabled:cursor-wait disabled:opacity-60"
+                className="min-h-10 w-full cursor-pointer rounded-lg border border-line px-3 text-sm hover:bg-canvas disabled:cursor-wait disabled:opacity-60"
               >
                 דחה
               </PendingSubmitButton>
@@ -529,7 +524,7 @@ function PropertyRow({
             <PendingSubmitButton
               pendingLabel="מוחק…"
               confirmMessage={`למחוק לצמיתות את הדירה ב-${property.address}? לא ניתן לבטל.`}
-              className="min-h-10 w-full cursor-pointer rounded-md border border-red-600/40 px-3 text-sm text-red-700 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
+              className="min-h-10 w-full cursor-pointer rounded-lg border border-red-600/40 px-3 text-sm text-red-700 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
             >
               מחק
             </PendingSubmitButton>
