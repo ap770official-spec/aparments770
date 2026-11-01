@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { Logo } from "@/components/brand/Logo";
 
 const localeLabels: Record<string, string> = {
   he: "עברית",
@@ -74,9 +75,9 @@ export default function Header() {
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
         <Link
           href="/"
-          className="font-serif-brand text-lg font-semibold text-brand"
+          className="-my-1 shrink-0 rounded-md py-1 text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
-          Apartments770
+          <Logo />
         </Link>
 
         <div className="flex items-center gap-3">
