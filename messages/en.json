@@ -194,12 +194,6 @@
       "approved": "Approved",
       "rejected": "Rejected"
     },
-    "availabilityMode": {
-      "label": "Availability mode",
-      "fully_locked": "Fully locked",
-      "default_open_block_dates": "Open (block dates manually)",
-      "default_closed_open_dates": "Closed (open dates manually)"
-    },
     "expiredBadge": "Expired",
     "visibleUntil": "Shown on the site until {date}",
     "visibleUntilSoon": "Shown on the site until {date} · {days, plural, one {1 day left} other {# days left}}",
@@ -215,7 +209,14 @@
     "statPending": "Awaiting approval",
     "statNextExpiry": "Next listing ends",
     "liveBadge": "Live on the site",
-    "publishAfterApproval": "Goes live once our team approves it"
+    "publishAfterApproval": "Goes live once our team approves it",
+    "availabilityCalendar": "Availability calendar",
+    "pausedBadge": "Paused",
+    "availabilitySummary": {
+      "paused": "Paused and not shown on the site",
+      "open": "Open all year · {count, plural, =0 {no nights taken} one {1 night taken} other {# nights taken}}",
+      "closed": "On chosen dates · {count, plural, =0 {no free nights} one {1 free night} other {# free nights}}"
+    }
   },
   "propertyForm": {
     "title": "List a new apartment",
@@ -346,5 +347,47 @@
     "errorOwnerRole": "Please choose how you are connected to the apartment",
     "errorTerms": "Please accept the terms of use to continue",
     "errorSave": "We couldn't save your details. Please try again in a moment."
+  },
+  "availability": {
+    "back": "Back to your account",
+    "title": "Availability calendar",
+    "modeQuestion": "How do you rent out your apartment?",
+    "modes": {
+      "default_open_block_dates": {
+        "title": "Open all year",
+        "description": "Mark only the nights that are already taken"
+      },
+      "default_closed_open_dates": {
+        "title": "Open on dates I choose",
+        "description": "Mark the nights when the apartment is free"
+      },
+      "fully_locked": {
+        "title": "Paused",
+        "description": "The apartment won't appear on the site until you bring it back"
+      }
+    },
+    "pausedTitle": "The apartment is paused",
+    "pausedBody": "Once you save, the apartment won't appear in search or on the site. To bring it back, choose one of the other two options here and save.",
+    "calendarHeading": "Calendar",
+    "hintOpen": "Tap a night, or two nights to pick a range, and mark them as taken. Each date is one night.",
+    "hintClosed": "Tap a night, or two nights to pick a range, and mark them as free. Each date is one night.",
+    "legendAvailable": "Free",
+    "legendUnavailable": "Taken",
+    "legendHoliday": "Holiday",
+    "legendUnsaved": "Unsaved change",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "selectionRegion": "Your selection",
+    "nights": "{count, plural, one {1 night} other {# nights}}",
+    "rangeHint": "Tap another date to pick a range",
+    "markUnavailable": "Mark as taken",
+    "markAvailable": "Mark as free",
+    "cancelSelection": "Clear selection",
+    "unsaved": "{count, plural, one {1 unsaved change} other {# unsaved changes}}",
+    "discard": "Discard",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Changes saved ✓",
+    "saveError": "Couldn't save. Please try again."
   }
 }

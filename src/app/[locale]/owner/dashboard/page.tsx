@@ -10,7 +10,7 @@ import {
 } from "@/lib/properties";
 import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 import LogoutButton from "@/components/LogoutButton";
-import AvailabilityModeSelect from "@/components/AvailabilityModeSelect";
+import { getAvailabilityDates, groupAvailability } from "@/lib/availability";
 import EditSentDialog from "@/components/EditSentDialog";
 
 export const dynamic = "force-dynamic";
@@ -68,6 +68,18 @@ export default async function OwnerDashboardPage({
     getOwnerProperties(supabase, user.id),
     getPendingEditPropertyIds(supabase, user.id),
   ]);
+  const todayIso = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+  }).format(new Date());
+  // Upcoming marked nights per listing, for the availability summary.
+  const upcomingDates = groupAvailability(
+    await getAvailabilityDates(
+      supabase,
+      properties.map((p) => p.id),
+      todayIso,
+      "9999-12-31",
+    ),
+  );
 
   const formatDate = new Intl.DateTimeFormat(locale, {
     day: "numeric",
@@ -83,6 +95,7 @@ export default async function OwnerDashboardPage({
   const liveListings = properties.filter(
     (p) =>
       p.approval_status === "approved" &&
+      p.availability_mode !== "fully_locked" &&
       !isListingExpired(p.listing_expires_at),
   );
   const pendingCount = properties.filter(
@@ -219,6 +232,23 @@ export default async function OwnerDashboardPage({
                 const expired =
                   status === "approved" &&
                   isListingExpired(property.listing_expires_at);
+                const paused =
+                  status === "approved" &&
+                  !expired &&
+                  property.availability_mode === "fully_locked";
+                const marked = [
+                  ...(upcomingDates.get(property.id)?.values() ?? []),
+                ];
+                const availabilitySummary =
+                  property.availability_mode === "fully_locked"
+                    ? t("availabilitySummary.paused")
+                    : property.availability_mode === "default_open_block_dates"
+                      ? t("availabilitySummary.open", {
+                          count: marked.filter((m) => m === "blocked").length,
+                        })
+                      : t("availabilitySummary.closed", {
+                          count: marked.filter((m) => m === "open").length,
+                        });
                 const period = subscriptionState(property.listing_expires_at);
                 const expiryDate =
                   period.kind === "none"
@@ -269,8 +299,9 @@ export default async function OwnerDashboardPage({
                       )}
                       <span
                         className={`absolute start-3.5 top-3.5 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold shadow-sm backdrop-blur-sm ${
-                          STATUS_TONES[expired ? "rejected" : status] ??
-                          STATUS_TONES.pending_approval
+                          STATUS_TONES[
+                            expired ? "rejected" : paused ? "pending_approval" : status
+                          ] ?? STATUS_TONES.pending_approval
                         }`}
                       >
                         <span
@@ -279,7 +310,9 @@ export default async function OwnerDashboardPage({
                         />
                         {expired
                           ? t("expiredBadge")
-                          : status === "approved"
+                          : paused
+                            ? t("pausedBadge")
+                            : status === "approved"
                             ? t("liveBadge")
                             : t(`status.${status}`)}
                       </span>
@@ -367,15 +400,48 @@ export default async function OwnerDashboardPage({
                       )}
 
                       <div aria-hidden="true" className="min-h-5 flex-1" />
-                      <div className="flex items-end gap-2.5 border-t border-[#F0E8DC] pt-4">
-                        <div className="min-w-0 flex-1">
-                          <AvailabilityModeSelect
-                            propertyId={property.id}
-                            initialMode={property.availability_mode}
-                            hideLabel
-                            selectClassName="border border-transparent bg-[#FAF6F0] hover:border-[#E6DCCB]"
-                          />
-                        </div>
+                      <div className="flex items-center gap-2.5 border-t border-[#F0E8DC] pt-4">
+                        <Link
+                          href={`/owner/properties/${property.id}/availability`}
+                          className="group flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-xl bg-[#FAF6F0] px-3.5 py-2 transition-colors duration-150 hover:bg-[#F3ECE1] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                        >
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.75"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="shrink-0 text-gold"
+                            aria-hidden="true"
+                          >
+                            {CALENDAR_PATHS}
+                          </svg>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-bold text-ink">
+                              {t("availabilityCalendar")}
+                            </span>
+                            <span className="block truncate text-xs text-ink-muted">
+                              {availabilitySummary}
+                            </span>
+                          </span>
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="shrink-0 text-ink-muted transition-transform duration-150 group-hover:-translate-x-0.5 ltr:rotate-180 ltr:group-hover:translate-x-0.5"
+                            aria-hidden="true"
+                          >
+                            <path d="m15 18-6-6 6-6" />
+                          </svg>
+                        </Link>
                         <Link
                           href={`/owner/properties/${property.id}/edit`}
                           className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-gold-soft px-4 text-sm font-bold text-brand transition-[background-color,transform] duration-150 hover:bg-[#FAF6F0] active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"

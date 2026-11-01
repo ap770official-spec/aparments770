@@ -4,7 +4,7 @@
 -- if something goes wrong in the Supabase project, and so a second
 -- environment (e.g. staging) could be recreated from it.
 --
--- Run order matters: regions -> owners -> properties -> property_amenities -> property_photos -> property_edits
+-- Run order matters: regions -> owners -> properties -> property_amenities -> property_photos -> property_edits -> property_availability_dates
 -- (each later table references an earlier one via foreign key).
 
 -- =========================================================
@@ -425,3 +425,98 @@ create policy "Owners can withdraw their own pending edits"
   for delete
   to authenticated
   using (owner_id = auth.uid() and status = 'pending');
+
+
+-- =========================================================
+-- 7. property_availability_dates
+-- Per-night exceptions to a listing's availability_mode, set by the
+-- owner on their availability calendar (one row = one night, keyed by
+-- the check-in date of that night):
+--   default_open_block_dates  -> rows with status 'blocked' are taken
+--   default_closed_open_dates -> rows with status 'open' are bookable
+--   fully_locked              -> rows are ignored; listing is hidden
+-- status is stored explicitly (rather than inferred from the mode) so
+-- switching modes keeps both sets instead of flipping their meaning.
+-- Search reads this to hide listings that aren't free for every night
+-- of the requested stay (searchProperties in src/lib/properties.ts).
+--
+-- Added 2026-11-01 (availability calendar) - see
+-- docs/handoff-2026-11-01-availability-sql.md for the statements run
+-- manually against the live database.
+-- =========================================================
+
+create table public.property_availability_dates (
+  property_id uuid not null references public.properties(id) on delete cascade,
+  date date not null,
+  status text not null check (status in ('blocked', 'open')),
+  primary key (property_id, date)
+);
+
+alter table public.property_availability_dates enable row level security;
+
+create policy "Public can view availability of approved properties"
+  on public.property_availability_dates
+  for select
+  to anon, authenticated
+  using (
+    exists (
+      select 1 from public.properties p
+      where p.id = property_availability_dates.property_id
+        and p.approval_status = 'approved'
+    )
+  );
+
+create policy "Owners can view availability of their own properties"
+  on public.property_availability_dates
+  for select
+  to authenticated
+  using (
+    exists (
+      select 1 from public.properties p
+      where p.id = property_availability_dates.property_id
+        and p.owner_id = auth.uid()
+    )
+  );
+
+create policy "Owners can add availability for their own properties"
+  on public.property_availability_dates
+  for insert
+  to authenticated
+  with check (
+    exists (
+      select 1 from public.properties p
+      where p.id = property_availability_dates.property_id
+        and p.owner_id = auth.uid()
+    )
+  );
+
+create policy "Owners can change availability of their own properties"
+  on public.property_availability_dates
+  for update
+  to authenticated
+  using (
+    exists (
+      select 1 from public.properties p
+      where p.id = property_availability_dates.property_id
+        and p.owner_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.properties p
+      where p.id = property_availability_dates.property_id
+        and p.owner_id = auth.uid()
+    )
+  );
+
+create policy "Owners can remove availability of their own properties"
+  on public.property_availability_dates
+  for delete
+  to authenticated
+  using (
+    exists (
+      select 1 from public.properties p
+      where p.id = property_availability_dates.property_id
+        and p.owner_id = auth.uid()
+    )
+  );

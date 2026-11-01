@@ -37,7 +37,12 @@ export default async function SearchPage({
   const guests = Number(query.guests) || 1;
 
   const properties = region
-    ? await searchProperties({ regionId: region.id, guests })
+    ? await searchProperties({
+        regionId: region.id,
+        guests,
+        checkin: query.checkin,
+        checkout: query.checkout,
+      })
     : [];
 
   const searchQuery = new URLSearchParams({

@@ -2,7 +2,9 @@
 
 import { redirect } from "@/i18n/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 import type { AvailabilityMode } from "@/lib/properties";
+import { isIsoDate, type AvailabilityStatus } from "@/lib/availability";
 import {
   getOwnerProfile,
   OWNER_ROLES,
@@ -13,28 +15,84 @@ import {
 import { safeOwnerNext } from "@/lib/owner-session";
 import { dialForCountry } from "@/lib/countries";
 
-export async function updateAvailabilityMode(
+const AVAILABILITY_MODES: AvailabilityMode[] = [
+  "default_open_block_dates",
+  "default_closed_open_dates",
+  "fully_locked",
+];
+
+/** Upper bound on one save, well above a year and a half of nights. */
+const MAX_AVAILABILITY_CHANGES = 1000;
+
+/**
+ * Saves an owner's availability calendar: the listing's mode plus the
+ * nights they marked or cleared since the page loaded. Takes effect
+ * immediately - availability isn't reviewed by the admin.
+ */
+export async function saveAvailability(
   propertyId: string,
   mode: AvailabilityMode,
-) {
+  changes: { date: string; status: AvailabilityStatus | null }[],
+): Promise<{ ok: boolean }> {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    throw new Error("Not authenticated");
+  if (
+    !user ||
+    !AVAILABILITY_MODES.includes(mode) ||
+    changes.length > MAX_AVAILABILITY_CHANGES ||
+    !changes.every(
+      (c) =>
+        isIsoDate(c.date) &&
+        (c.status === null || c.status === "blocked" || c.status === "open"),
+    )
+  ) {
+    return { ok: false };
   }
 
-  const { error } = await supabase
+  // Doubles as the ownership check: no row updated = not their listing.
+  const { data: updated, error: modeError } = await supabase
     .from("properties")
     .update({ availability_mode: mode })
     .eq("id", propertyId)
-    .eq("owner_id", user.id);
-
-  if (error) {
-    throw new Error(`Failed to update availability: ${error.message}`);
+    .eq("owner_id", user.id)
+    .select("id");
+  if (modeError || !updated?.length) {
+    console.error("Failed to save availability mode:", modeError?.message);
+    return { ok: false };
   }
+
+  const upserts = changes
+    .filter((c) => c.status !== null)
+    .map((c) => ({ property_id: propertyId, date: c.date, status: c.status }));
+  const removals = changes.filter((c) => c.status === null).map((c) => c.date);
+
+  if (upserts.length > 0) {
+    const { error } = await supabase
+      .from("property_availability_dates")
+      .upsert(upserts, { onConflict: "property_id,date" });
+    if (error) {
+      console.error("Failed to save availability dates:", error.message);
+      return { ok: false };
+    }
+  }
+
+  if (removals.length > 0) {
+    const { error } = await supabase
+      .from("property_availability_dates")
+      .delete()
+      .eq("property_id", propertyId)
+      .in("date", removals);
+    if (error) {
+      console.error("Failed to clear availability dates:", error.message);
+      return { ok: false };
+    }
+  }
+
+  revalidatePath("/[locale]/owner/dashboard", "page");
+  return { ok: true };
 }
 
 export type OwnerProfileField =
