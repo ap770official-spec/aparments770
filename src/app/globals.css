@@ -134,9 +134,9 @@ body {
 }
 
 /* ---------- Homepage hero (src/components/home/HeroScene.tsx) ----------
-   Plays once on load: the building draws in, its walls fill, windows light
-   up one by one, then the lamp rises. Each element sets its own
-   --hero-delay. */
+   Plays once on load: the building turns into place while its lines draw
+   and its windows light up one by one, then the lamp rises. Each element
+   sets its own --hero-delay. */
 :root {
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
@@ -164,14 +164,34 @@ body {
   -webkit-mask-image: radial-gradient(ellipse 50% 100% at 50% 100%, #000 45%, transparent 100%);
   mask-image: radial-gradient(ellipse 50% 100% at 50% 100%, #000 45%, transparent 100%);
 }
-/* Below xl the building is a faint silhouette behind the headline. */
-@media (max-width: 79.999rem) {
-  .hero-scene .hero-fill {
-    display: none;
+/* The scene's inner edge (towards the text) fades into the page instead of
+   ending in hard lines. The building sits at the inline end, so its inner
+   edge is on the left in LTR and on the right in RTL. */
+@media (min-width: 80rem) {
+  .hero-scene {
+    -webkit-mask-image: linear-gradient(to right, rgb(0 0 0 / 0.2), #000 34%);
+    mask-image: linear-gradient(to right, rgb(0 0 0 / 0.2), #000 34%);
   }
-  .hero-scene .hero-gold {
-    display: none;
+  [dir="rtl"] .hero-scene {
+    -webkit-mask-image: linear-gradient(to left, rgb(0 0 0 / 0.2), #000 34%);
+    mask-image: linear-gradient(to left, rgb(0 0 0 / 0.2), #000 34%);
   }
+}
+/* 3D: planes of the facade sit at different depths (translateZ). The
+   vanishing point is at the ground so the building stays on its line
+   while it turns. */
+.hero-3d {
+  perspective: 1400px;
+  perspective-origin: 50% 100%;
+}
+.hero-tilt,
+.hero-enter {
+  transform-style: preserve-3d;
+  transform-origin: 50% 100%;
+}
+.hero-enter {
+  transform: rotateY(-22deg) rotateX(6deg) scale(0.94);
+  animation: hero-enter 2.4s var(--ease-out) forwards;
 }
 @keyframes hero-draw {
   from {
@@ -187,6 +207,11 @@ body {
     opacity: 1;
   }
 }
+@keyframes hero-enter {
+  to {
+    transform: none;
+  }
+}
 @keyframes hero-rise {
   to {
     opacity: 1;
@@ -199,7 +224,8 @@ body {
   .hero-draw,
   .hero-fade,
   .hero-light,
-  .hero-rise {
+  .hero-rise,
+  .hero-enter {
     animation: none;
     opacity: 1;
     stroke-dashoffset: 0;

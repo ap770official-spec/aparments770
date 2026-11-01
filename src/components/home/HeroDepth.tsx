@@ -7,6 +7,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 // data-lift adds vertical pointer drift and data-scroll a scroll offset
 // (far layers sink behind the ground as the page scrolls); layers standing
 // on the ground line leave both at 0 so they never float off it.
+// A [data-tilt] element turns in 3D with the pointer instead.
 // Transforms are written straight onto each layer inside one rAF loop
 // that stops once the layers settle, so React never re-renders.
 export default function HeroDepth({
@@ -31,6 +32,7 @@ export default function HeroDepth({
       lift: Number(el.dataset.lift) || 0,
       scroll: Number(el.dataset.scroll) || 0,
     }));
+    const tilt = root.querySelector<HTMLElement>("[data-tilt]");
     const finePointer = window.matchMedia("(pointer: fine)").matches;
 
     let targetX = 0;
@@ -48,6 +50,9 @@ export default function HeroDepth({
         const dx = x * layer.depth * 16;
         const dy = y * layer.lift * 10 + scroll * layer.scroll;
         layer.el.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0)`;
+      }
+      if (tilt) {
+        tilt.style.transform = `rotateX(${(-y * 4).toFixed(3)}deg) rotateY(${(x * 10).toFixed(3)}deg)`;
       }
       const settled =
         Math.abs(targetX - x) < 0.001 && Math.abs(targetY - y) < 0.001;

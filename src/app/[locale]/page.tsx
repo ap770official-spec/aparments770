@@ -138,7 +138,7 @@ export default async function HomePage({
               <PinIcon />
               {t("eyebrow")}
             </span>
-            <h1 className="font-serif-brand text-[32px] leading-[1.1] font-bold text-balance text-ink sm:text-[56px]">
+            <h1 className="font-serif-brand text-[32px] leading-[1.1] font-bold text-balance text-ink sm:text-[56px] xl:max-w-[620px]">
               {t("title")}
             </h1>
             <p className="max-w-[560px] text-[15px] leading-relaxed text-ink-soft sm:text-[18px]">
