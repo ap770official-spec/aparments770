@@ -75,7 +75,14 @@
     "viewDetails": "View details",
     "whatsappCta": "WhatsApp",
     "noResultsForDates": "No apartments are free on these dates. Try other dates or fewer nights.",
-    "cardStayTotal": "{total} total for {nights, plural, one {# night} other {# nights}}"
+    "cardStayTotal": "{total} total for {nights, plural, one {# night} other {# nights}}",
+    "mapZoomIn": "Zoom in",
+    "mapZoomOut": "Zoom out",
+    "mapCtrlScroll": "Use Ctrl + scroll to zoom the map",
+    "mapCmdScroll": "Use ⌘ + scroll to zoom the map",
+    "mapTwoFingers": "Use two fingers to move the map",
+    "mapNoLocations": "The apartments in these results don't have a map location yet. You can see them in the list view.",
+    "mapUnlocated": "{count, plural, one {# apartment isn't on the map because it has no location – it's in the list.} other {# apartments aren't on the map because they have no location – they're in the list.}}"
   },
   "favorites": {
     "add": "Add to favorites",
@@ -104,8 +111,8 @@
     "notFound": "This apartment wasn't found, or is no longer available.",
     "back": "Back",
     "backToSearch": "Back to search results",
-    "roomsGuestsLine": "{rooms} rooms · up to {guests} guests",
-    "roomsOnlyLine": "{rooms} rooms",
+    "roomsGuestsLine": "{rooms, plural, one {# room} other {# rooms}} · {guests, plural, one {# guest} other {up to # guests}}",
+    "roomsOnlyLine": "{rooms, plural, one {# room} other {# rooms}}",
     "walkingTimePill": "{minutes} min walk from {landmark}",
     "walkingDistanceTitle": "Walking distance from {landmark}",
     "walkingTimeApprox": "About {minutes} minutes' walk from {landmark}",

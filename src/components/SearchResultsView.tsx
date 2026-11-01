@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
+import { useTranslations } from "next-intl";
 import type { PropertySummary } from "@/lib/properties";
 import PropertyCard from "@/components/PropertyCard";
 import CompactPropertyCard from "@/components/CompactPropertyCard";
@@ -55,6 +56,27 @@ export default function SearchResultsView({
   const selectedProperty =
     properties.find((p) => p.id === selectedId) ?? properties[0] ?? null;
   const isDesktop = useIsDesktop();
+  const t = useTranslations("search");
+  const listRef = useRef<HTMLUListElement>(null);
+  const unlocatedCount = properties.filter(
+    (p) => p.lat == null || p.lng == null,
+  ).length;
+  const hasLocated = unlocatedCount < properties.length;
+
+  // A pin clicked on the desktop map scrolls its card into view in the list.
+  function selectFromMap(id: string) {
+    setSelectedId(id);
+    const card = listRef.current?.querySelector(`[data-card-id="${id}"]`);
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    card?.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+  }
+
+  const unlocatedNote =
+    hasLocated && unlocatedCount > 0 ? (
+      <p className="text-[14px] text-ink-soft">
+        {t("mapUnlocated", { count: unlocatedCount })}
+      </p>
+    ) : null;
 
   return (
     <div>
@@ -109,33 +131,43 @@ export default function SearchResultsView({
           {isDesktop ? (
             // Desktop: side list + map, matching the map-view mockup
             <div className="flex gap-7" style={{ height: "40rem" }}>
-              <ul className="flex h-full w-[380px] shrink-0 flex-col gap-3.5 overflow-y-auto ps-0.5">
+              <ul
+                ref={listRef}
+                className="flex h-full w-[380px] shrink-0 flex-col gap-3.5 overflow-y-auto p-0.5"
+              >
                 {properties.map((property) => (
-                  <CompactPropertyCard
-                    key={property.id}
-                    property={property}
-                    detailHref={`/property/${property.id}?${searchQuery}`}
-                    landmarkLabel={landmarkLabel}
-                    orientation="vertical"
-                    selected={selectedId === property.id}
-                    onMouseEnter={() => setSelectedId(property.id)}
-                  />
+                  // shrink-0: in this fixed-height column the cards would
+                  // otherwise squash their photos instead of scrolling.
+                  <li key={property.id} data-card-id={property.id} className="shrink-0">
+                    <CompactPropertyCard
+                      property={property}
+                      detailHref={`/property/${property.id}?${searchQuery}`}
+                      landmarkLabel={landmarkLabel}
+                      orientation="vertical"
+                      selected={selectedId === property.id}
+                      onMouseEnter={() => setSelectedId(property.id)}
+                      searchQuery={searchQuery}
+                    />
+                  </li>
                 ))}
               </ul>
-              <div className="h-full flex-1 overflow-hidden rounded-2xl">
-                <SearchResultsMap
-                  properties={properties}
-                  landmark={landmark}
-                  landmarkLabel={landmarkLabel}
-                  selectedId={selectedId}
-                  onSelect={setSelectedId}
-                />
+              <div className="flex h-full flex-1 flex-col gap-2">
+                <div className="min-h-0 flex-1 overflow-hidden rounded-2xl">
+                  <SearchResultsMap
+                    properties={properties}
+                    landmark={landmark}
+                    landmarkLabel={landmarkLabel}
+                    selectedId={selectedId}
+                    onSelect={selectFromMap}
+                  />
+                </div>
+                {unlocatedNote}
               </div>
             </div>
           ) : (
             // Mobile: map on top, one summary card for the selected pin below
             <div className="flex flex-col gap-3">
-              <div className="h-80 w-full overflow-hidden rounded-2xl">
+              <div className="h-[60svh] max-h-[560px] min-h-80 w-full overflow-hidden rounded-2xl">
                 <SearchResultsMap
                   properties={properties}
                   landmark={landmark}
@@ -144,11 +176,14 @@ export default function SearchResultsView({
                   onSelect={setSelectedId}
                 />
               </div>
+              {unlocatedNote}
               {selectedProperty && (
                 <CompactPropertyCard
                   property={selectedProperty}
                   detailHref={`/property/${selectedProperty.id}?${searchQuery}`}
+                  landmarkLabel={landmarkLabel}
                   orientation="horizontal"
+                  searchQuery={searchQuery}
                 />
               )}
             </div>

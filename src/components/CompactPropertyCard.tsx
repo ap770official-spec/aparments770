@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { PropertySummary } from "@/lib/properties";
-import { CardMedia } from "@/components/PropertyCard";
+import { CardMedia, nightsFromQuery } from "@/components/PropertyCard";
 
 /**
  * Smaller card used in the map view's side list (vertical) and as the
@@ -17,6 +17,7 @@ export default function CompactPropertyCard({
   selected,
   onMouseEnter,
   onClick,
+  searchQuery,
 }: {
   property: PropertySummary;
   detailHref: string;
@@ -25,8 +26,12 @@ export default function CompactPropertyCard({
   selected?: boolean;
   onMouseEnter?: () => void;
   onClick?: () => void;
+  /** Search query, for the stay total when dates were picked. */
+  searchQuery?: string;
 }) {
   const tProperty = useTranslations("property");
+  const t = useTranslations("search");
+  const nights = nightsFromQuery(searchQuery);
 
   const details =
     property.max_guests !== null
@@ -37,15 +42,34 @@ export default function CompactPropertyCard({
       : tProperty("roomsOnlyLine", { rooms: property.bedrooms });
 
   const price = (
-    <p className="flex items-baseline gap-1">
-      <span className="text-[15px] font-bold text-ink">
-        ${property.price_per_night.toLocaleString("en-US")}
+    <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      <span className="flex items-baseline gap-1">
+        <span className="text-[15px] font-bold text-ink">
+          ${property.price_per_night.toLocaleString("en-US")}
+        </span>
+        <span className="text-[13px] text-ink-soft">
+          {tProperty("perNightSuffix")}
+        </span>
       </span>
-      <span className="text-[13px] text-ink-soft">
-        {tProperty("perNightSuffix")}
-      </span>
+      {nights > 0 && (
+        <span className="text-[13px] font-semibold text-ink">
+          {t("cardStayTotal", {
+            total: `$${(nights * property.price_per_night).toLocaleString("en-US")}`,
+            nights,
+          })}
+        </span>
+      )}
     </p>
   );
+  const walkingLine =
+    property.walking_minutes_to_landmark != null ? (
+      <p className="text-[13px] font-semibold text-ink">
+        {tProperty("walkingTimePill", {
+          minutes: property.walking_minutes_to_landmark,
+          landmark: landmarkLabel ?? "770",
+        })}
+      </p>
+    ) : null;
 
   if (orientation === "horizontal") {
     return (
@@ -54,12 +78,13 @@ export default function CompactPropertyCard({
         onClick={onClick}
         className="flex overflow-hidden rounded-xl border border-line bg-white"
       >
-        <CardMedia property={property} className="h-24 w-24 shrink-0" />
+        <CardMedia property={property} className="min-h-24 w-24 shrink-0 self-stretch" />
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-3 py-2.5">
           <h3 className="truncate text-[15px] font-bold text-ink">
             {property.address}
           </h3>
           <p className="truncate text-[13px] text-ink-soft">{details}</p>
+          {walkingLine}
           {price}
         </div>
         <span
