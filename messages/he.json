@@ -126,8 +126,6 @@
     "notFound": "הדירה לא נמצאה, או שאינה זמינה יותר.",
     "back": "חזרה",
     "backToSearch": "חזרה לתוצאות החיפוש",
-    "roomsGuestsLine": "{rooms, plural, one {חדר אחד} other {# חדרים}} · {guests, plural, one {אורח אחד} other {עד # אורחים}}",
-    "roomsOnlyLine": "{rooms, plural, one {חדר אחד} other {# חדרים}}",
     "walkingTimePill": "{minutes} דק׳ הליכה מ-{landmark}",
     "walkingDistanceTitle": "מרחק הליכה מ-{landmark}",
     "walkingTimeApprox": "כ-{minutes} דקות הליכה מ-{landmark}",
@@ -199,7 +197,10 @@
     "chooseDates": "בחירה",
     "changeDates": "שינוי",
     "saveDates": "שמירה",
-    "nightsCount": "{count, plural, one {לילה אחד} other {# לילות}}"
+    "nightsCount": "{count, plural, one {לילה אחד} other {# לילות}}",
+    "listingTitle": "{type} · {rooms, plural, =0 {סטודיו} one {חדר שינה אחד} other {# חדרי שינה}}",
+    "capacityLine": "{guests, plural, one {אורח אחד} other {עד # אורחים}} · {beds, plural, one {מיטה אחת} other {# מיטות}}",
+    "bedsOnlyLine": "{beds, plural, one {מיטה אחת} other {# מיטות}}"
   },
   "amenityCategories": {
     "kitchen": "מטבח",

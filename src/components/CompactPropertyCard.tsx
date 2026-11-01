@@ -1,8 +1,9 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { mainMedia, type PropertySummary } from "@/lib/properties";
-import { nightsFromQuery } from "@/components/PropertyCard";
+import { AddressPinIcon, nightsFromQuery } from "@/components/PropertyCard";
 import { CardMedia } from "@/components/CardMedia";
+import { listingTitle, capacityLine, shortAddress } from "@/lib/listingText";
 
 /**
  * Smaller card used in the map view's side list (vertical) and as the
@@ -34,13 +35,15 @@ export default function CompactPropertyCard({
   const t = useTranslations("search");
   const nights = nightsFromQuery(searchQuery);
 
-  const details =
-    property.max_guests !== null
-      ? tProperty("roomsGuestsLine", {
-          rooms: property.bedrooms,
-          guests: property.max_guests,
-        })
-      : tProperty("roomsOnlyLine", { rooms: property.bedrooms });
+  const title = listingTitle(tProperty, property);
+  const addressLine = (
+    <p className="flex min-w-0 items-center gap-1 text-[13px] text-ink-soft">
+      <AddressPinIcon />
+      <span dir="auto" className="truncate" title={property.address}>
+        {shortAddress(property.address)}
+      </span>
+    </p>
+  );
 
   const price = (
     <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -81,10 +84,8 @@ export default function CompactPropertyCard({
       >
         <CardMedia media={mainMedia(property.property_photos)} className="min-h-24 w-24 shrink-0 self-stretch" />
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-3 py-2.5">
-          <h3 className="truncate text-[15px] font-bold text-ink">
-            {property.address}
-          </h3>
-          <p className="truncate text-[13px] text-ink-soft">{details}</p>
+          <h3 className="truncate text-[15px] font-bold text-ink">{title}</h3>
+          {addressLine}
           {walkingLine}
           {price}
         </div>
@@ -121,8 +122,11 @@ export default function CompactPropertyCard({
         )}
       </div>
       <div className="flex flex-col gap-1 px-3.5 py-3">
-        <h3 className="text-[15px] font-bold text-ink">{property.address}</h3>
-        <p className="text-[13px] text-ink-soft">{details}</p>
+        <h3 className="text-[15px] font-bold text-ink">{title}</h3>
+        {addressLine}
+        <p className="text-[13px] text-ink-soft">
+          {capacityLine(tProperty, property)}
+        </p>
         {price}
       </div>
     </Link>

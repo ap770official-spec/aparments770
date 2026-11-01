@@ -126,8 +126,6 @@
     "notFound": "This apartment wasn't found, or is no longer available.",
     "back": "Back",
     "backToSearch": "Back to search results",
-    "roomsGuestsLine": "{rooms, plural, one {# room} other {# rooms}} · {guests, plural, one {# guest} other {up to # guests}}",
-    "roomsOnlyLine": "{rooms, plural, one {# room} other {# rooms}}",
     "walkingTimePill": "{minutes} min walk from {landmark}",
     "walkingDistanceTitle": "Walking distance from {landmark}",
     "walkingTimeApprox": "About {minutes} minutes' walk from {landmark}",
@@ -199,7 +197,10 @@
     "chooseDates": "Choose",
     "changeDates": "Change",
     "saveDates": "Save",
-    "nightsCount": "{count, plural, one {# night} other {# nights}}"
+    "nightsCount": "{count, plural, one {# night} other {# nights}}",
+    "listingTitle": "{type} · {rooms, plural, =0 {Studio} one {# bedroom} other {# bedrooms}}",
+    "capacityLine": "{guests, plural, one {# guest} other {Up to # guests}} · {beds, plural, one {# bed} other {# beds}}",
+    "bedsOnlyLine": "{beds, plural, one {# bed} other {# beds}}"
   },
   "amenityCategories": {
     "kitchen": "Kitchen",
