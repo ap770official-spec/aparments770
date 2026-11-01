@@ -91,7 +91,7 @@
     "datesCheckin": "כניסה",
     "datesCheckout": "יציאה",
     "datesGuestsLabel": "מספר אורחים",
-    "datesGuestsValue": "{count} אורחים",
+    "datesGuestsValue": "{count, plural, one {אורח אחד} other {# אורחים}}",
     "bookingNote": "מענה ישיר מבעל הדירה · בלי הרשמה ובלי המתנה",
     "shareButtonLabel": "שתף דירה זו",
     "shareCopyLink": "העתק קישור",
@@ -118,7 +118,18 @@
     "factBathtubs": "{count, plural, one {אמבטיה אחת} other {# אמבטיות}}",
     "factMinNights": "{count, plural, one {מינימום לילה אחד} other {מינימום # לילות}}",
     "factCheckin": "צ'ק-אין מ-{time}",
-    "factCheckout": "צ'ק-אאוט עד {time}"
+    "factCheckout": "צ'ק-אאוט עד {time}",
+    "bookingTitle": "מתי מגיעים?",
+    "addDate": "הוספת תאריך",
+    "guestsDecrease": "פחות אורחים",
+    "guestsIncrease": "יותר אורחים",
+    "selectCheckin": "בחרו תאריך כניסה",
+    "selectCheckout": "עכשיו בחרו תאריך יציאה",
+    "selectCheckoutMin": "עכשיו בחרו תאריך יציאה (מינימום {count} לילות)",
+    "clearDates": "ניקוי תאריכים",
+    "nightsLine": "{price} × {nights, plural, one {לילה אחד} other {# לילות}}",
+    "totalLabel": "סה״כ",
+    "totalForNights": "{nights, plural, one {סה״כ ללילה אחד} other {סה״כ ל-# לילות}}"
   },
   "amenityCategories": {
     "kitchen": "מטבח",
