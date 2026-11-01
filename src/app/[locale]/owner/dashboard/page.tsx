@@ -13,6 +13,7 @@ import LogoutButton from "@/components/LogoutButton";
 import { getAvailabilityDates, groupAvailability } from "@/lib/availability";
 import EditSentDialog from "@/components/EditSentDialog";
 import DeletePropertyButton from "@/components/DeletePropertyButton";
+import { listingTitle, shortAddress } from "@/lib/listingText";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,7 @@ export default async function OwnerDashboardPage({
   const { edit } = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("dashboard");
+  const tProperty = await getTranslations("property");
 
   const { supabase, user, profile } = await requireOwner(
     locale,
@@ -274,7 +276,7 @@ export default async function OwnerDashboardPage({
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={optimizedCloudinaryUrl(media.url)}
-                            alt={property.address}
+                            alt={shortAddress(property.address)}
                             loading="lazy"
                             className="absolute inset-0 h-full w-full object-cover"
                           />
@@ -321,11 +323,14 @@ export default async function OwnerDashboardPage({
 
                     <div className="flex flex-1 flex-col px-6 pt-5 pb-6">
                       <div className="flex items-baseline justify-between gap-3">
+                        {/* Street and number only - the owner's way to tell
+                            their listings apart; full address on hover. */}
                         <h3
                           dir="auto"
-                          className="line-clamp-2 min-w-0 text-start text-[19px] font-semibold break-words text-ink"
+                          title={property.address}
+                          className="min-w-0 truncate text-start text-[19px] font-semibold text-ink"
                         >
-                          {property.address}
+                          {shortAddress(property.address)}
                         </h3>
                         <p className="flex shrink-0 items-baseline gap-1 whitespace-nowrap">
                           <span className="font-serif-brand text-2xl font-medium text-ink tabular-nums">
@@ -336,6 +341,9 @@ export default async function OwnerDashboardPage({
                           </span>
                         </p>
                       </div>
+                      <p className="mt-1 text-[14px] text-ink-soft">
+                        {listingTitle(tProperty, property)}
+                      </p>
 
                       {status === "approved" && !expired && expiryDate && (
                         <p
@@ -451,7 +459,7 @@ export default async function OwnerDashboardPage({
                         </Link>
                         <DeletePropertyButton
                           propertyId={property.id}
-                          address={property.address}
+                          address={shortAddress(property.address)}
                         />
                       </div>
                     </div>
