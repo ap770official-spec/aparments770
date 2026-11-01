@@ -4,7 +4,9 @@ import {
   createContext,
   useContext,
   useEffect,
+  useId,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -89,6 +91,20 @@ function formatDisplayDate(date: Date, locale: string): string {
   const month = parts.find((p) => p.type === "month")?.value ?? "";
   const weekday = date.toLocaleDateString("he-IL", { weekday: "short" });
   return `${weekday} ${gematriyaDay(day)} ${month}`;
+}
+
+/** Compact date for the mobile summary row: "ה׳ כסלו" / "Nov 5". */
+function formatShortDate(date: Date, locale: string): string {
+  if (locale !== "he") {
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+  const parts = new Intl.DateTimeFormat("he-u-ca-hebrew", {
+    day: "numeric",
+    month: "long",
+  }).formatToParts(date);
+  const day = Number(parts.find((p) => p.type === "day")?.value);
+  const month = parts.find((p) => p.type === "month")?.value ?? "";
+  return `${gematriyaDay(day)} ${month}`;
 }
 
 /** Unambiguous Gregorian date for the WhatsApp message to the owner. */
@@ -328,7 +344,33 @@ function GuestStepper() {
   );
 }
 
-function DateFields({ idPrefix }: { idPrefix: string }) {
+function DroppedDatesNotice({ className = "" }: { className?: string }) {
+  const t = useTranslations("property");
+  const { droppedDatesReason, minNights } = useBooking();
+  if (!droppedDatesReason) return null;
+  return (
+    <p
+      role="status"
+      className={`rounded-[10px] border border-[#E8C9A0] bg-[#FBF3E8] px-3.5 py-2.5 text-[14px] leading-relaxed text-ink ${className}`}
+    >
+      {droppedDatesReason === "unavailable"
+        ? t("searchDatesUnavailable")
+        : t("searchDatesTooShort", { count: minNights })}
+    </p>
+  );
+}
+
+/**
+ * The range picker itself, with its availability rules, legend and hint.
+ * Shared by the desktop card (inline) and the mobile dates sheet.
+ */
+function StayCalendar({
+  id,
+  onRangeComplete,
+}: {
+  id: string;
+  onRangeComplete?: () => void;
+}) {
   const t = useTranslations("property");
   const locale = useLocale();
   const {
@@ -338,10 +380,7 @@ function DateFields({ idPrefix }: { idPrefix: string }) {
     holidays,
     isNightAvailable,
     lastBookableDate,
-    droppedDatesReason,
   } = useBooking();
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const calendarId = `${idPrefix}-calendar`;
 
   const holidayNameByDate = useMemo(() => {
     const map = new Map<string, string>();
@@ -413,24 +452,75 @@ function DateFields({ idPrefix }: { idPrefix: string }) {
       return;
     }
     setRange(next);
-    if (next?.from && next?.to) setIsCalendarOpen(false);
+    if (next?.from && next?.to) onRangeComplete?.();
   }
+
+  const hint = !range?.from
+    ? t("selectCheckin")
+    : !range.to
+      ? noValidCheckout
+        ? t("notEnoughFreeNights", { count: minNights })
+        : minNights > 1
+          ? t("selectCheckoutMin", { count: minNights })
+          : t("selectCheckout")
+      : `${formatShortDate(range.from, locale)} – ${formatShortDate(range.to, locale)} · ${t("nightsCount", { count: nightsBetween(range.from, range.to) })}`;
+
+  return (
+    <div id={id} className="flex flex-col items-center">
+      <p
+        className="min-h-6 w-full px-1 pb-1 text-[14px] font-semibold text-ink"
+        aria-live="polite"
+      >
+        {hint}
+      </p>
+      <DayPicker
+        mode="range"
+        selected={range}
+        onSelect={handleSelect}
+        resetOnSelect
+        disabled={disabled}
+        startMonth={today}
+        endMonth={lastBookableDate}
+        defaultMonth={range?.from ?? today}
+        locale={locale === "he" ? heLocale : enLocale}
+        dir={locale === "he" ? "rtl" : "ltr"}
+        modifiers={{ holiday: holidayDates, booked: bookedNights }}
+        modifiersClassNames={{
+          holiday: "rdp-holiday",
+          booked: "rdp-booked",
+        }}
+        components={{
+          DayButton: (props) => (
+            <DefaultDayButton
+              {...props}
+              title={holidayNameByDate.get(toISODate(props.day.date))}
+            />
+          ),
+        }}
+      />
+      <p className="w-full px-1 pt-1 text-xs text-ink-soft">
+        {t.rich("bookedLegend", {
+          s: (chunks) => <s>{chunks}</s>,
+        })}
+      </p>
+    </div>
+  );
+}
+
+/** Desktop card: check-in/out fields + guests, calendar expands inline. */
+function DateFields({ idPrefix }: { idPrefix: string }) {
+  const t = useTranslations("property");
+  const locale = useLocale();
+  const { range, setRange } = useBooking();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const calendarId = `${idPrefix}-calendar`;
 
   const fieldClass =
     "flex min-h-14 flex-col items-start justify-center gap-0.5 px-3.5 py-2 text-start transition-colors duration-150 hover:bg-canvas";
 
   return (
     <div className="flex flex-col">
-      {droppedDatesReason && (
-        <p
-          role="status"
-          className="mb-2 rounded-[10px] border border-[#E8C9A0] bg-[#FBF3E8] px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink"
-        >
-          {droppedDatesReason === "unavailable"
-            ? t("searchDatesUnavailable")
-            : t("searchDatesTooShort", { count: minNights })}
-        </p>
-      )}
+      <DroppedDatesNotice className="mb-2" />
       <div className="overflow-hidden rounded-[10px] border border-line">
         <div className="grid grid-cols-2 border-b border-line">
           {(["checkin", "checkout"] as const).map((field) => {
@@ -460,65 +550,159 @@ function DateFields({ idPrefix }: { idPrefix: string }) {
       </div>
 
       {isCalendarOpen && (
-        <div
-          id={calendarId}
-          className="mt-2 flex flex-col items-center rounded-[10px] border border-line p-2"
-        >
-          <DayPicker
-            mode="range"
-            selected={range}
-            onSelect={handleSelect}
-            resetOnSelect
-            disabled={disabled}
-            startMonth={today}
-            endMonth={lastBookableDate}
-            defaultMonth={range?.from ?? today}
-            locale={locale === "he" ? heLocale : enLocale}
-            dir={locale === "he" ? "rtl" : "ltr"}
-            modifiers={{ holiday: holidayDates, booked: bookedNights }}
-            modifiersClassNames={{
-              holiday: "rdp-holiday",
-              booked: "rdp-booked",
-            }}
-            components={{
-              DayButton: (props) => (
-                <DefaultDayButton
-                  {...props}
-                  title={holidayNameByDate.get(toISODate(props.day.date))}
-                />
-              ),
-            }}
+        <div className="mt-2 flex flex-col rounded-[10px] border border-line p-2">
+          <StayCalendar
+            id={calendarId}
+            onRangeComplete={() => setIsCalendarOpen(false)}
           />
-          <p className="w-full px-2 pt-1 text-xs text-ink-soft">
-            {t.rich("bookedLegend", {
-              s: (chunks) => <s>{chunks}</s>,
-            })}
-          </p>
-          <div className="flex w-full items-center justify-between gap-3 px-2 pb-1 pt-2">
-            <span className="text-[13px] text-ink-soft" aria-live="polite">
-              {!range?.from
-                ? t("selectCheckin")
-                : !range.to
-                  ? noValidCheckout
-                    ? t("notEnoughFreeNights", { count: minNights })
-                    : minNights > 1
-                      ? t("selectCheckoutMin", { count: minNights })
-                      : t("selectCheckout")
-                  : null}
-            </span>
-            {range?.from && (
-              <button
-                type="button"
-                onClick={() => setRange(undefined)}
-                className="shrink-0 py-2 text-[13px] font-semibold text-ink underline underline-offset-2"
-              >
-                {t("clearDates")}
-              </button>
-            )}
-          </div>
+          {range?.from && (
+            <button
+              type="button"
+              onClick={() => setRange(undefined)}
+              className="self-start px-1 py-2 text-[13px] font-semibold text-ink underline underline-offset-2"
+            >
+              {t("clearDates")}
+            </button>
+          )}
         </div>
       )}
     </div>
+  );
+}
+
+/** A modal dialog doesn't stop the page behind it from scrolling. */
+function setPageScrollLocked(locked: boolean) {
+  document.documentElement.style.overflow = locked ? "hidden" : "";
+}
+
+/**
+ * Mobile: one compact summary row in the page; the calendar and guests live
+ * in a bottom sheet, so a full month grid never sits in the reading flow.
+ */
+function MobileDatesPicker() {
+  const t = useTranslations("property");
+  const locale = useLocale();
+  const { range, setRange, guests, nights, total } = useBooking();
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+
+  useEffect(() => () => setPageScrollLocked(false), []);
+
+  function open() {
+    setPageScrollLocked(true);
+    dialogRef.current?.showModal();
+  }
+  function close() {
+    dialogRef.current?.close();
+  }
+
+  const datesLabel = range?.from
+    ? range.to
+      ? `${formatShortDate(range.from, locale)} – ${formatShortDate(range.to, locale)}`
+      : `${formatShortDate(range.from, locale)} – ${t("addDate")}`
+    : t("addDates");
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={open}
+        aria-haspopup="dialog"
+        className="flex min-h-16 w-full items-center gap-3 rounded-[12px] border border-line px-3.5 py-3 text-start transition-colors duration-150 active:bg-canvas"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-canvas text-ink">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="16" rx="2" />
+            <path d="M3 10h18M8 3v4M16 3v4" />
+          </svg>
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span
+            className={`truncate text-[15px] font-semibold ${range?.from ? "text-ink" : "text-ink-soft"}`}
+          >
+            {datesLabel}
+          </span>
+          <span className="text-[14px] text-ink-soft">
+            {nights > 0
+              ? `${t("nightsCount", { count: nights })} · ${t("datesGuestsValue", { count: guests })}`
+              : t("datesGuestsValue", { count: guests })}
+          </span>
+        </span>
+        <span className="shrink-0 text-[14px] font-semibold text-ink underline underline-offset-4">
+          {range?.from ? t("changeDates") : t("chooseDates")}
+        </span>
+      </button>
+
+      <dialog
+        ref={dialogRef}
+        aria-labelledby={titleId}
+        onClose={() => setPageScrollLocked(false)}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) close();
+        }}
+        className="fixed inset-x-0 top-auto bottom-0 m-0 max-h-[92dvh] w-full max-w-none rounded-t-2xl bg-white p-0 text-ink translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] backdrop:bg-black/40 starting:translate-y-full motion-reduce:transition-opacity motion-reduce:starting:translate-y-0 motion-reduce:starting:opacity-0"
+      >
+        <div className="flex max-h-[92dvh] flex-col">
+          <div className="flex shrink-0 flex-col gap-2 px-4 pt-3">
+            <span className="mx-auto h-1 w-10 rounded-full bg-line" aria-hidden="true" />
+            <div className="flex items-center justify-between gap-3">
+              <h2 id={titleId} className="text-lg font-bold text-ink">
+                {t("bookingTitle")}
+              </h2>
+              <button
+                type="button"
+                onClick={close}
+                aria-label={t("contactClose")}
+                className="-me-2 flex h-11 w-11 items-center justify-center rounded-full text-ink hover:bg-canvas"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3">
+            <StayCalendar id="booking-mobile-calendar" />
+            <div className="mt-3 overflow-hidden rounded-[10px] border border-line">
+              <GuestStepper />
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-3 border-t border-line px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="flex min-w-0 flex-1 flex-col leading-tight">
+              {nights > 0 ? (
+                <>
+                  <span className="text-base font-bold text-ink tabular-nums">
+                    {formatPrice(total)}
+                  </span>
+                  <span className="text-xs text-ink-soft">
+                    {t("totalForNights", { nights })}
+                  </span>
+                </>
+              ) : (
+                range?.from && (
+                  <button
+                    type="button"
+                    onClick={() => setRange(undefined)}
+                    className="w-fit py-2 text-[14px] font-semibold text-ink underline underline-offset-2"
+                  >
+                    {t("clearDates")}
+                  </button>
+                )
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={close}
+              className="flex min-h-12 items-center justify-center rounded-[10px] bg-brand px-8 text-base font-bold text-brand-foreground"
+            >
+              {t("saveDates")}
+            </button>
+          </div>
+        </div>
+      </dialog>
+    </>
   );
 }
 
@@ -593,8 +777,8 @@ export function MobileBookingSection() {
         </h2>
         <PerNight />
       </div>
-      <DateFields idPrefix="booking-mobile" />
-      <PriceSummary />
+      <DroppedDatesNotice />
+      <MobileDatesPicker />
     </section>
   );
 }
