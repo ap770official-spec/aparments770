@@ -129,7 +129,18 @@
     "clearDates": "Clear dates",
     "nightsLine": "{price} × {nights, plural, one {# night} other {# nights}}",
     "totalLabel": "Total",
-    "totalForNights": "{nights, plural, one {Total for # night} other {Total for # nights}}"
+    "totalForNights": "{nights, plural, one {Total for # night} other {Total for # nights}}",
+    "contactCta": "Contact the owner",
+    "contactTitle": "Contact the owner",
+    "contactWhatsAppHintDates": "Opens a ready message with your dates and guests",
+    "contactWhatsAppHint": "Opens a ready message. Pick dates above to include them",
+    "contactOr": "or",
+    "contactPhoneLabel": "Prefer to call?",
+    "contactCall": "Call",
+    "copyPhone": "Copy",
+    "phoneCopied": "Copied",
+    "contactClose": "Close",
+    "copyPhoneLabel": "Copy number"
   },
   "amenityCategories": {
     "kitchen": "Kitchen",

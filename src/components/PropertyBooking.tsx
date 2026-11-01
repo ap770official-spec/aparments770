@@ -17,7 +17,16 @@ import {
 } from "react-day-picker";
 import { he as heLocale, enUS as enLocale } from "react-day-picker/locale";
 import "react-day-picker/style.css";
-import { buildWhatsAppLink } from "@/lib/whatsapp";
+import {
+  buildWhatsAppLink,
+  buildTelLink,
+  formatPhoneForDisplay,
+} from "@/lib/whatsapp";
+import {
+  ContactInline,
+  ContactSheetButton,
+  type ContactDetails,
+} from "@/components/ContactOptions";
 import type { HolidayMarker } from "@/lib/hebrewHolidays";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -96,7 +105,7 @@ type BookingState = {
   maxGuests: number;
   minNights: number;
   holidays: HolidayMarker[];
-  whatsappLink: string;
+  contact: ContactDetails;
 };
 
 const BookingContext = createContext<BookingState | null>(null);
@@ -199,7 +208,12 @@ export function BookingProvider({
         maxGuests: guestCap,
         minNights: Math.max(1, minNights ?? 1),
         holidays,
-        whatsappLink,
+        contact: {
+          whatsappLink,
+          telLink: buildTelLink(phoneCountryCode, phoneNumber),
+          phoneDisplay: formatPhoneForDisplay(phoneCountryCode, phoneNumber),
+          hasStayDetails: nights > 0,
+        },
       }}
     >
       {children}
@@ -209,20 +223,6 @@ export function BookingProvider({
 
 function formatPrice(amount: number): string {
   return `$${amount.toLocaleString("en-US")}`;
-}
-
-function WhatsAppIcon({ size }: { size: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.5.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3C4.3 15 4 13.5 4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8z" />
-    </svg>
-  );
 }
 
 function GuestStepper() {
@@ -433,22 +433,14 @@ function PerNight({ large = false }: { large?: boolean }) {
 /** Desktop: sticky side card. */
 export function BookingCard() {
   const t = useTranslations("property");
-  const { whatsappLink } = useBooking();
+  const { contact } = useBooking();
 
   return (
     <div className="sticky top-6 flex flex-col gap-4 rounded-2xl border border-line p-6 shadow-[0_4px_24px_rgba(26,21,18,0.08)]">
       <PerNight large />
       <DateFields idPrefix="booking-desktop" />
       <PriceSummary />
-      <a
-        href={whatsappLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center justify-center gap-2 rounded-[10px] bg-accent-whatsapp px-4 py-3.5 text-base font-bold text-white transition-[filter] duration-150 hover:brightness-110"
-      >
-        <WhatsAppIcon size={18} />
-        {t("contactWhatsApp")}
-      </a>
+      <ContactInline details={contact} />
       <span className="text-center text-xs leading-relaxed text-ink-soft">
         {t("bookingNote")}
       </span>
@@ -482,7 +474,7 @@ export function MobileBookingSection() {
 /** Mobile: fixed bottom bar with the price (or stay total) and WhatsApp. */
 export function MobileBookingBar() {
   const t = useTranslations("property");
-  const { whatsappLink, nights, total, pricePerNight } = useBooking();
+  const { contact, nights, total, pricePerNight } = useBooking();
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-line bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:hidden">
@@ -496,15 +488,10 @@ export function MobileBookingBar() {
             : t("perNightSuffix")}
         </span>
       </div>
-      <a
-        href={whatsappLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-[10px] bg-accent-whatsapp px-3 py-3 text-[15px] font-bold text-white"
-      >
-        <WhatsAppIcon size={17} />
-        {t("contactWhatsApp")}
-      </a>
+      <ContactSheetButton
+        details={contact}
+        className="flex min-h-12 flex-1 items-center justify-center rounded-[10px] bg-brand px-3 py-3 text-[15px] font-bold text-brand-foreground"
+      />
     </div>
   );
 }

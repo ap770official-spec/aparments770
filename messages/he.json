@@ -129,7 +129,18 @@
     "clearDates": "ניקוי תאריכים",
     "nightsLine": "{price} × {nights, plural, one {לילה אחד} other {# לילות}}",
     "totalLabel": "סה״כ",
-    "totalForNights": "{nights, plural, one {סה״כ ללילה אחד} other {סה״כ ל-# לילות}}"
+    "totalForNights": "{nights, plural, one {סה״כ ללילה אחד} other {סה״כ ל-# לילות}}",
+    "contactCta": "ליצירת קשר",
+    "contactTitle": "יצירת קשר עם בעל הדירה",
+    "contactWhatsAppHintDates": "תיפתח הודעה מוכנה עם התאריכים ומספר האורחים",
+    "contactWhatsAppHint": "תיפתח הודעה מוכנה. בחירת תאריכים למעלה תוסיף אותם להודעה",
+    "contactOr": "או",
+    "contactPhoneLabel": "מעדיפים להתקשר?",
+    "contactCall": "התקשרו",
+    "copyPhone": "העתקה",
+    "phoneCopied": "הועתק",
+    "contactClose": "סגירה",
+    "copyPhoneLabel": "העתקת המספר"
   },
   "amenityCategories": {
     "kitchen": "מטבח",
