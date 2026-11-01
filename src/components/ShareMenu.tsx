@@ -87,7 +87,7 @@ export default function ShareMenu({
       {isOpen && (
         <div
           role="menu"
-          className="absolute end-0 top-full z-10 mt-2 w-52 flex-col rounded-xl border border-[#E5DED3] bg-white p-2 text-sm shadow-lg"
+          className="absolute end-0 top-full z-10 mt-2 w-52 flex-col rounded-xl border border-line bg-white p-2 text-sm shadow-lg"
         >
           <button
             type="button"

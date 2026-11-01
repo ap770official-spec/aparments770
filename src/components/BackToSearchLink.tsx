@@ -11,7 +11,7 @@ export default function BackToSearchLink() {
     <button
       type="button"
       onClick={() => router.back()}
-      className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#5C5349]"
+      className="inline-flex items-center gap-1.5 min-h-11 text-sm font-semibold text-ink-soft"
     >
       <svg
         width="15"
