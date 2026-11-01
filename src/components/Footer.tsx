@@ -12,7 +12,7 @@ export default async function Footer() {
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
           <Link
             href="/"
-            className="rounded-md text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            className="rounded-md text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             <LogoMark
               withNumerals
