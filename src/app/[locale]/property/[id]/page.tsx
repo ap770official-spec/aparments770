@@ -8,6 +8,8 @@ import ShareMenu from "@/components/ShareMenu";
 import PropertyGallery from "@/components/PropertyGallery";
 import PropertyAmenities from "@/components/PropertyAmenities";
 import BackToSearchLink from "@/components/BackToSearchLink";
+import PropertyDescription from "@/components/PropertyDescription";
+import { Link } from "@/i18n/navigation";
 import PropertyFacts from "@/components/PropertyFacts";
 import {
   BookingProvider,
@@ -49,8 +51,36 @@ export default async function PropertyPage({
 
   if (!property) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
-        <p>{t("notFound")}</p>
+      <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-16 text-center sm:py-24">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-canvas text-ink">
+          <svg
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 10.5L12 3l9 7.5" />
+            <path d="M5 9v12h14V9" />
+            <path d="M10 14l4 4M14 14l-4 4" />
+          </svg>
+        </span>
+        <h1 className="font-serif-brand text-2xl font-bold text-ink">
+          {t("notFoundTitle")}
+        </h1>
+        <p className="text-[15px] leading-relaxed text-ink-soft">
+          {t("notFound")}
+        </p>
+        <Link
+          href="/"
+          className="mt-2 flex min-h-12 items-center justify-center rounded-[10px] bg-brand px-6 text-base font-bold text-brand-foreground transition-[filter] duration-150 hover:brightness-110"
+        >
+          {t("notFoundCta")}
+        </Link>
       </div>
     );
   }
@@ -126,7 +156,7 @@ export default async function PropertyPage({
               <h1 className="font-serif-brand text-xl font-bold leading-tight text-ink sm:text-[32px]">
                 {title}
               </h1>
-              <div className="flex flex-wrap items-center gap-2 text-[13px] text-[#5C5349] sm:text-sm">
+              <div className="flex flex-wrap items-center gap-2 text-[15px] text-ink-soft">
                 <span>
                   {property.max_guests !== null
                     ? t("roomsGuestsLine", {
@@ -175,18 +205,16 @@ export default async function PropertyPage({
               <PropertyFacts property={property} />
 
               {description && (
-                <div className="flex flex-col gap-2.5 border-b border-[#E5DED3] pb-6">
+                <div className="flex flex-col gap-2.5 border-b border-line pb-6">
                   <h2 className="text-lg font-bold text-ink sm:text-[19px]">
                     {t("aboutTitle")}
                   </h2>
-                  <p className="text-sm leading-7 text-[#5C5349] sm:text-[15px]">
-                    {description}
-                  </p>
+                  <PropertyDescription text={description.trim()} />
                 </div>
               )}
 
               {amenityGroups.length > 0 && (
-                <div className="border-b border-[#E5DED3] pb-6">
+                <div className="border-b border-line pb-6">
                   <PropertyAmenities groups={amenityGroups} />
                 </div>
               )}
@@ -197,7 +225,7 @@ export default async function PropertyPage({
                     {t("walkingDistanceTitle", { landmark: landmarkName })}
                   </h2>
                   {walking && (
-                    <div className="flex items-center gap-3.5 rounded-xl border border-[#E5DED3] p-4">
+                    <div className="flex items-center gap-3.5 rounded-xl border border-line p-4">
                       <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-ink sm:h-11 sm:w-11">
                         <svg
                           width="18"
@@ -212,7 +240,7 @@ export default async function PropertyPage({
                           <circle cx="12" cy="10" r="2.5" />
                         </svg>
                       </div>
-                      <span className="text-[13.5px] font-semibold text-ink sm:text-[15px]">
+                      <span className="text-[15px] font-semibold text-ink">
                         {t("walkingTimeApprox", {
                           minutes: walking.minutes,
                           landmark: landmarkName,
@@ -236,6 +264,31 @@ export default async function PropertyPage({
                         : []),
                     ]}
                   />
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <a
+                      href={`https://waze.com/ul?ll=${property.lat},${property.lng}&navigate=yes`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-ink px-3 text-[15px] font-semibold text-ink transition-colors duration-150 hover:bg-canvas"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M3 11l18-8-8 18-2-8-8-2z" />
+                      </svg>
+                      {t("navigateWaze")}
+                    </a>
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${property.lat},${property.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-ink px-3 text-[15px] font-semibold text-ink transition-colors duration-150 hover:bg-canvas"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11z" />
+                        <circle cx="12" cy="10" r="2.5" />
+                      </svg>
+                      {t("navigateGoogleMaps")}
+                    </a>
+                  </div>
                 </div>
               )}
             </div>

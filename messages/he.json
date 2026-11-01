@@ -145,7 +145,13 @@
     "bookedLegend": "<s>12</s> תאריך עם קו חוצה – תפוס",
     "notEnoughFreeNights": "אין {count} לילות פנויים ברצף מהתאריך הזה. בחרו תאריך כניסה אחר",
     "searchDatesUnavailable": "הדירה לא פנויה בתאריכים שבחרת בחיפוש. בחרו תאריכים אחרים בלוח.",
-    "searchDatesTooShort": "בדירה הזו מינימום {count} לילות, לכן התאריכים מהחיפוש לא נבחרו. בחרו תאריכים בלוח."
+    "searchDatesTooShort": "בדירה הזו מינימום {count} לילות, לכן התאריכים מהחיפוש לא נבחרו. בחרו תאריכים בלוח.",
+    "readMore": "קרא עוד",
+    "readLess": "הצג פחות",
+    "notFoundTitle": "הדירה לא נמצאה",
+    "notFoundCta": "חזרה לחיפוש דירות",
+    "navigateWaze": "נווט ב-Waze",
+    "navigateGoogleMaps": "Google Maps"
   },
   "amenityCategories": {
     "kitchen": "מטבח",

@@ -51,7 +51,7 @@ export default function PropertyAmenities({
         <div className="flex flex-col gap-5">
           {groups.map((group) => (
             <div key={group.category} className="flex flex-col gap-3">
-              <h3 className="text-sm font-bold text-[#5C5349]">
+              <h3 className="text-sm font-bold text-ink-soft">
                 {tCategory(group.category)}
               </h3>
               <div className="grid grid-cols-2 gap-x-5 gap-y-4 sm:grid-cols-3">

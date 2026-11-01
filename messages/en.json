@@ -145,7 +145,13 @@
     "bookedLegend": "<s>12</s> Struck-through dates are taken",
     "notEnoughFreeNights": "There aren't {count} free nights in a row from this date. Pick another check-in",
     "searchDatesUnavailable": "This apartment isn't free on the dates from your search. Pick other dates in the calendar.",
-    "searchDatesTooShort": "This apartment has a {count}-night minimum, so your search dates weren't applied. Pick dates in the calendar."
+    "searchDatesTooShort": "This apartment has a {count}-night minimum, so your search dates weren't applied. Pick dates in the calendar.",
+    "readMore": "Read more",
+    "readLess": "Show less",
+    "notFoundTitle": "Apartment not found",
+    "notFoundCta": "Back to apartment search",
+    "navigateWaze": "Navigate with Waze",
+    "navigateGoogleMaps": "Google Maps"
   },
   "amenityCategories": {
     "kitchen": "Kitchen",
