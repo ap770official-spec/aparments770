@@ -133,6 +133,106 @@ body {
   }
 }
 
+/* ---------- Homepage hero (src/components/home/HeroScene.tsx) ----------
+   Plays once on load: the building turns into place while its lines draw
+   and its windows light up one by one, then the lamp rises. Each element
+   sets its own --hero-delay. */
+:root {
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+.hero-draw {
+  /* Hidden until its turn, or the round caps show as dots. */
+  opacity: 0;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: hero-draw 1.1s var(--ease-in-out) var(--hero-delay, 0s) forwards;
+}
+.hero-fade {
+  opacity: 0;
+  animation: hero-fade 0.8s var(--ease-out) var(--hero-delay, 0s) forwards;
+}
+.hero-light {
+  opacity: 0;
+  animation: hero-fade 0.5s var(--ease-out) var(--hero-delay, 0s) forwards;
+}
+.hero-rise {
+  opacity: 0;
+  transform: translateY(24px);
+  animation: hero-rise 0.7s var(--ease-out) var(--hero-delay, 0s) forwards;
+}
+.hero-skyline {
+  -webkit-mask-image: radial-gradient(ellipse 50% 100% at 50% 100%, #000 45%, transparent 100%);
+  mask-image: radial-gradient(ellipse 50% 100% at 50% 100%, #000 45%, transparent 100%);
+}
+/* The scene's inner edge (towards the text) fades into the page instead of
+   ending in hard lines. The building sits at the inline end, so its inner
+   edge is on the left in LTR and on the right in RTL. */
+@media (min-width: 80rem) {
+  .hero-scene {
+    -webkit-mask-image: linear-gradient(to right, rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.3) 24%, #000 50%);
+    mask-image: linear-gradient(to right, rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.3) 24%, #000 50%);
+  }
+  [dir="rtl"] .hero-scene {
+    -webkit-mask-image: linear-gradient(to left, rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.3) 24%, #000 50%);
+    mask-image: linear-gradient(to left, rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.3) 24%, #000 50%);
+  }
+}
+/* 3D: planes of the facade sit at different depths (translateZ). The
+   vanishing point is at the ground so the building stays on its line
+   while it turns. */
+.hero-3d {
+  perspective: 1400px;
+  perspective-origin: 50% 100%;
+}
+.hero-tilt,
+.hero-enter {
+  transform-style: preserve-3d;
+  transform-origin: 50% 100%;
+}
+.hero-enter {
+  transform: rotateY(-22deg) rotateX(6deg) scale(0.94);
+  animation: hero-enter 2.4s var(--ease-out) forwards;
+}
+@keyframes hero-draw {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes hero-fade {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes hero-enter {
+  to {
+    transform: none;
+  }
+}
+@keyframes hero-rise {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* Reduced motion: the finished scene, no drawing (HeroDepth also stays
+   still). */
+@media (prefers-reduced-motion: reduce) {
+  .hero-draw,
+  .hero-fade,
+  .hero-light,
+  .hero-rise,
+  .hero-enter {
+    animation: none;
+    opacity: 1;
+    stroke-dashoffset: 0;
+    transform: none;
+  }
+}
+
 /* ---- Admin calendar (src/components/admin/AdminDatePicker.tsx) ---- */
 
 .admin-calendar.rdp-root {

@@ -5,6 +5,7 @@ import { searchProperties } from "@/lib/properties";
 import { isIsoDate } from "@/lib/availability";
 import { formatHebrewDateShort } from "@/lib/hebrewDate";
 import SearchForm from "@/components/SearchForm";
+import HeroScene from "@/components/home/HeroScene";
 import SearchFilters from "@/components/SearchFilters";
 import SearchResultsView from "@/components/SearchResultsView";
 import FavoritesButton from "@/components/FavoritesButton";
@@ -114,7 +115,7 @@ export default async function HomePage({
 
   return (
     <div className="flex flex-col">
-      <section className="relative isolate overflow-hidden border-b border-line bg-cream">
+      <section className="relative isolate overflow-hidden bg-cream">
         {/* Soft warm light from the top corner - decoration only. */}
         <div
           aria-hidden="true"
@@ -124,13 +125,20 @@ export default async function HomePage({
           aria-hidden="true"
           className="pointer-events-none absolute -bottom-48 -start-32 -z-10 h-[420px] w-[420px] rounded-full bg-white/70 blur-3xl"
         />
+        <HeroScene />
+        {/* Ground line: the building stands on it, and it closes the hero.
+            Fades out at both ends instead of stopping hard. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-[linear-gradient(to_right,transparent,var(--brand)_4%,var(--brand)_96%,transparent)] opacity-80"
+        />
         <div className="mx-auto max-w-6xl px-4 pt-10 pb-8 sm:px-10 sm:pt-16 sm:pb-12">
           <div className="flex flex-col items-start gap-3 sm:gap-4">
             <span className="flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1.5 text-[13px] font-semibold text-brand ring-1 ring-line">
               <PinIcon />
               {t("eyebrow")}
             </span>
-            <h1 className="font-serif-brand text-[32px] leading-[1.1] font-bold text-balance text-ink sm:text-[56px]">
+            <h1 className="font-serif-brand text-[32px] leading-[1.1] font-bold text-balance text-ink sm:text-[56px] xl:max-w-[620px]">
               {t("title")}
             </h1>
             <p className="max-w-[560px] text-[15px] leading-relaxed text-ink-soft sm:text-[18px]">
@@ -138,14 +146,24 @@ export default async function HomePage({
             </p>
           </div>
 
-          <SearchForm
-            defaultRegionSlug={defaultRegion?.slug ?? ""}
-            holidays={holidays}
-            initialCheckin={query.checkin}
-            initialCheckout={query.checkout}
-            initialGuests={guests}
-            currentQuery={currentQuery.toString()}
-          />
+          <div className="relative xl:max-w-[780px]">
+            {/* From xl the building passes behind the search: a soft cream
+                glow around the form clears the lines next to it. */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -inset-x-10 top-2 -bottom-6 hidden rounded-full bg-cream/85 blur-xl xl:block"
+            />
+            <div className="relative">
+              <SearchForm
+                defaultRegionSlug={defaultRegion?.slug ?? ""}
+                holidays={holidays}
+                initialCheckin={query.checkin}
+                initialCheckout={query.checkout}
+                initialGuests={guests}
+                currentQuery={currentQuery.toString()}
+              />
+            </div>
+          </div>
 
           <div className="mt-4 sm:mt-6">
             <SearchFilters
