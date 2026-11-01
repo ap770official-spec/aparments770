@@ -91,7 +91,7 @@
     "datesCheckin": "Check-in",
     "datesCheckout": "Check-out",
     "datesGuestsLabel": "Number of guests",
-    "datesGuestsValue": "{count} guests",
+    "datesGuestsValue": "{count, plural, one {# guest} other {# guests}}",
     "bookingNote": "Direct reply from the owner · no signup, no waiting",
     "shareButtonLabel": "Share this apartment",
     "shareCopyLink": "Copy link",
@@ -118,7 +118,18 @@
     "factBathtubs": "{count, plural, one {# bathtub} other {# bathtubs}}",
     "factMinNights": "{count, plural, one {# night minimum} other {# nights minimum}}",
     "factCheckin": "Check-in from {time}",
-    "factCheckout": "Check-out by {time}"
+    "factCheckout": "Check-out by {time}",
+    "bookingTitle": "When are you coming?",
+    "addDate": "Add date",
+    "guestsDecrease": "Fewer guests",
+    "guestsIncrease": "More guests",
+    "selectCheckin": "Pick a check-in date",
+    "selectCheckout": "Now pick a check-out date",
+    "selectCheckoutMin": "Now pick a check-out date ({count} nights minimum)",
+    "clearDates": "Clear dates",
+    "nightsLine": "{price} × {nights, plural, one {# night} other {# nights}}",
+    "totalLabel": "Total",
+    "totalForNights": "{nights, plural, one {Total for # night} other {Total for # nights}}"
   },
   "amenityCategories": {
     "kitchen": "Kitchen",
