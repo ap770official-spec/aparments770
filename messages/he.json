@@ -23,7 +23,7 @@
   },
   "home": {
     "title": "מצאו דירה קרובה ל-770",
-    "about": "חיפוש פשוט, יצירת קשר ישירה עם בעלי הדירות בוואטסאפ — בלי הרשמה ובלי המתנה.",
+    "about": "חיפוש פשוט, יצירת קשר ישירה עם בעלי הדירות בוואטסאפ או בטלפון — בלי הרשמה ובלי המתנה.",
     "distanceLabel": "מרחק הליכה מ-770:",
     "distanceAll": "הכל",
     "distanceUpTo5": "עד 5 דק׳",
@@ -32,9 +32,10 @@
     "filterPrice": "מחיר",
     "filterRooms": "חדרים",
     "filterAmenities": "שירותים בדירה",
-    "resultsCount": "{count} דירות זמינות",
+    "resultsCount": "{count, plural, =0 {אין דירות} one {דירה אחת} other {# דירות}}",
     "sortLabel": "מיון לפי:",
-    "sortByDistance": "מרחק מ-770"
+    "sortByDistance": "מרחק מ-770",
+    "resultsCountForDates": "{count, plural, =0 {אין דירות פנויות} one {דירה אחת פנויה} other {# דירות פנויות}} ב-{dates}"
   },
   "searchForm": {
     "checkin": "תאריך כניסה",
@@ -54,7 +55,8 @@
     "perNight": "ללילה",
     "viewDetails": "פרטים נוספים",
     "whatsappCta": "וואטסאפ",
-    "noResultsForDates": "אין דירות פנויות בתאריכים האלה. נסו תאריכים אחרים או פחות לילות."
+    "noResultsForDates": "אין דירות פנויות בתאריכים האלה. נסו תאריכים אחרים או פחות לילות.",
+    "cardStayTotal": "סה״כ {total} ל-{nights, plural, one {לילה אחד} other {# לילות}}"
   },
   "favorites": {
     "add": "הוסף למועדפים",

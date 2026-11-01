@@ -2,6 +2,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getDefaultRegion, getRegionBySlug } from "@/lib/regions";
 import { getUpcomingHebrewHolidays } from "@/lib/hebrewHolidays";
 import { searchProperties } from "@/lib/properties";
+import { isIsoDate } from "@/lib/availability";
+import { formatHebrewDateShort } from "@/lib/hebrewDate";
 import SearchForm from "@/components/SearchForm";
 import SearchFilters from "@/components/SearchFilters";
 import SearchResultsView from "@/components/SearchResultsView";
@@ -11,6 +13,14 @@ import FavoritesButton from "@/components/FavoritesButton";
 // redeploy, and the results list now depends on searchParams too -
 // render this per-request instead of baking it in at build time.
 export const dynamic = "force-dynamic";
+
+function formatStayDate(isoDate: string, locale: string): string {
+  if (locale === "he") return formatHebrewDateShort(isoDate);
+  return new Date(`${isoDate}T00:00:00`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
 
 export default async function HomePage({
   params,
@@ -53,6 +63,14 @@ export default async function HomePage({
       })
     : [];
 
+  // "Available" is only a claim we can make once dates were searched.
+  const hasDates = Boolean(
+    query.checkin &&
+      query.checkout &&
+      isIsoDate(query.checkin) &&
+      isIsoDate(query.checkout),
+  );
+
   const detailQuery = new URLSearchParams();
   if (query.checkin) detailQuery.set("checkin", query.checkin);
   if (query.checkout) detailQuery.set("checkout", query.checkout);
@@ -92,7 +110,12 @@ export default async function HomePage({
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-10 sm:py-10">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3 sm:mb-6">
             <h2 className="text-base font-bold text-ink sm:text-xl">
-              {t("resultsCount", { count: properties.length })}
+              {hasDates
+                ? t("resultsCountForDates", {
+                    count: properties.length,
+                    dates: `${formatStayDate(query.checkin!, locale)} – ${formatStayDate(query.checkout!, locale)}`,
+                  })
+                : t("resultsCount", { count: properties.length })}
             </h2>
             <div className="flex items-center gap-4">
               <FavoritesButton />

@@ -23,7 +23,7 @@
   },
   "home": {
     "title": "Find an apartment near 770",
-    "about": "Simple search, direct contact with owners on WhatsApp — no signup, no waiting.",
+    "about": "Simple search, direct contact with owners on WhatsApp or by phone — no signup, no waiting.",
     "distanceLabel": "Walking distance from 770:",
     "distanceAll": "All",
     "distanceUpTo5": "Up to 5 min",
@@ -32,9 +32,10 @@
     "filterPrice": "Price",
     "filterRooms": "Rooms",
     "filterAmenities": "Amenities",
-    "resultsCount": "{count} apartments available",
+    "resultsCount": "{count, plural, =0 {No apartments} one {# apartment} other {# apartments}}",
     "sortLabel": "Sort by:",
-    "sortByDistance": "Distance from 770"
+    "sortByDistance": "Distance from 770",
+    "resultsCountForDates": "{count, plural, =0 {No apartments free} one {# apartment free} other {# apartments free}} on {dates}"
   },
   "searchForm": {
     "checkin": "Check-in date",
@@ -54,7 +55,8 @@
     "perNight": "per night",
     "viewDetails": "View details",
     "whatsappCta": "WhatsApp",
-    "noResultsForDates": "No apartments are free on these dates. Try other dates or fewer nights."
+    "noResultsForDates": "No apartments are free on these dates. Try other dates or fewer nights.",
+    "cardStayTotal": "{total} total for {nights, plural, one {# night} other {# nights}}"
   },
   "favorites": {
     "add": "Add to favorites",

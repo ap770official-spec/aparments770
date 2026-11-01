@@ -9,10 +9,16 @@ const HEART_PATH =
 export default function FavoriteButton({
   propertyId,
   className,
+  iconClassName,
   showLabel = false,
 }: {
   propertyId: string;
   className?: string;
+  /**
+   * Visible circle inside a larger (transparent) hit area: lets a card show
+   * a small heart while the button itself stays 44px for touch.
+   */
+  iconClassName?: string;
   showLabel?: boolean;
 }) {
   const t = useTranslations("favorites");
@@ -37,19 +43,37 @@ export default function FavoriteButton({
           : "flex h-9 w-9 items-center justify-center rounded-full bg-background/85 shadow")
       }
     >
-      <svg
-        viewBox="0 0 24 24"
-        width={showLabel ? "17" : "20"}
-        height={showLabel ? "17" : "20"}
-        fill={active ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-        aria-hidden="true"
-        className={showLabel ? "" : active ? "text-red-500" : "text-black/50"}
-      >
-        <path d={HEART_PATH} />
-      </svg>
+      {iconClassName ? (
+        <span className={iconClassName}>
+          <svg
+            viewBox="0 0 24 24"
+            width={showLabel ? "17" : "20"}
+            height={showLabel ? "17" : "20"}
+            fill={active ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className={showLabel ? "" : active ? "text-red-500" : "text-black/50"}
+          >
+            <path d={HEART_PATH} />
+          </svg>
+        </span>
+      ) : (
+        <svg
+          viewBox="0 0 24 24"
+          width={showLabel ? "17" : "20"}
+          height={showLabel ? "17" : "20"}
+          fill={active ? "currentColor" : "none"}
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          className={showLabel ? "" : active ? "text-red-500" : "text-black/50"}
+        >
+          <path d={HEART_PATH} />
+        </svg>
+      )}
       {showLabel && <span>{active ? t("saved") : t("add")}</span>}
     </button>
   );

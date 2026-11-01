@@ -36,8 +36,8 @@ export default function SearchFilters({
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] sm:flex-wrap sm:gap-2.5 sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden">
-        <span className="shrink-0 text-[13px] font-semibold text-[#8A8073]">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+        <span className="w-full shrink-0 text-sm font-semibold text-ink-soft sm:w-auto">
           {t("distanceLabel")}
         </span>
         {DISTANCE_OPTIONS.map((option) => {

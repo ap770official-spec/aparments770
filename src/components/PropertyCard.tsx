@@ -2,8 +2,67 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { mainMedia, type PropertySummary } from "@/lib/properties";
 import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
-import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { stayNights, isIsoDate } from "@/lib/availability";
 import FavoriteButton from "@/components/FavoriteButton";
+
+/** Nights in the search's stay, or 0 when the query has no valid dates. */
+export function nightsFromQuery(searchQuery: string | undefined): number {
+  const params = new URLSearchParams(searchQuery ?? "");
+  const checkin = params.get("checkin");
+  const checkout = params.get("checkout");
+  if (!checkin || !checkout || !isIsoDate(checkin) || !isIsoDate(checkout)) {
+    return 0;
+  }
+  return stayNights(checkin, checkout).length;
+}
+
+export function CardMedia({
+  property,
+  className,
+}: {
+  property: PropertySummary;
+  className: string;
+}) {
+  const media = mainMedia(property.property_photos);
+  if (!media) return <div className={`${className} bg-placeholder`} />;
+  if (media.media_type === "video") {
+    // A still first frame with a play badge: the card is a link, so a video
+    // with its own controls would swallow the tap meant to open the listing.
+    return (
+      <div className={`relative ${className}`}>
+        <video
+          src={`${optimizedCloudinaryUrl(media.url)}#t=0.1`}
+          className="pointer-events-none h-full w-full object-cover"
+          preload="metadata"
+          muted
+          playsInline
+          tabIndex={-1}
+          aria-hidden="true"
+        />
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/55 text-white">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5.5v13a1 1 0 0 0 1.5.86l11-6.5a1 1 0 0 0 0-1.72l-11-6.5A1 1 0 0 0 8 5.5z" />
+            </svg>
+          </span>
+        </span>
+      </div>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={optimizedCloudinaryUrl(media.url)}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      className={`${className} object-cover`}
+    />
+  );
+}
 
 export default function PropertyCard({
   property,
@@ -22,69 +81,43 @@ export default function PropertyCard({
 }) {
   const t = useTranslations("search");
   const tProperty = useTranslations("property");
-  const media = mainMedia(property.property_photos);
-
-  const params = new URLSearchParams(searchQuery ?? "");
-  const checkin = params.get("checkin");
-  const checkout = params.get("checkout");
-  const guests = params.get("guests");
-  const message =
-    checkin && checkout && guests
-      ? tProperty("whatsappMessage", {
-          address: property.address,
-          checkin,
-          checkout,
-          guests,
-        })
-      : tProperty("whatsappMessageGeneric", { address: property.address });
-  const whatsappLink = buildWhatsAppLink({
-    countryCode: property.phone_country_code,
-    phoneNumber: property.phone_number,
-    message,
-  });
+  const nights = nightsFromQuery(searchQuery);
 
   return (
     <li
       onMouseEnter={onMouseEnter}
-      className={`relative flex flex-col overflow-hidden rounded-[14px] border border-[#E5DED3] bg-white ${className ?? ""}`}
+      className={`group relative flex flex-col overflow-hidden rounded-[14px] border border-line bg-white transition-shadow duration-200 ease-out focus-within:shadow-[0_0_0_2px_var(--ink)] [@media(hover:hover)]:hover:shadow-[0_6px_24px_rgba(26,21,18,0.10)] ${className ?? ""}`}
     >
-      <div className="relative h-[180px] w-full">
-        <FavoriteButton
-          propertyId={property.id}
-          className="absolute end-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow"
-        />
+      <div className="relative aspect-[3/2] w-full overflow-hidden">
+        <CardMedia property={property} className="h-full w-full" />
         {property.walking_minutes_to_landmark != null && (
-          <span className="absolute bottom-3 start-3 z-10 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white">
+          <span className="absolute bottom-3 start-3 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white">
             {tProperty("walkingTimePill", {
               minutes: property.walking_minutes_to_landmark,
               landmark: landmarkLabel ?? "770",
             })}
           </span>
         )}
-        {media ? (
-          media.media_type === "video" ? (
-            <video
-              src={optimizedCloudinaryUrl(media.url)}
-              className="h-full w-full object-cover"
-              muted
-              controls
-            />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={optimizedCloudinaryUrl(media.url)}
-              alt={property.address}
-              className="h-full w-full object-cover"
-            />
-          )
-        ) : (
-          <div className="h-full w-full bg-placeholder" />
-        )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2.5 p-4">
-        <h3 className="text-[17px] font-bold text-ink">{property.address}</h3>
-        <p className="text-sm text-[#5C5349]">
+      {/* Sits above the stretched link so the heart doesn't open the listing. */}
+      <FavoriteButton
+        propertyId={property.id}
+        className="absolute end-2 top-2 z-10 flex h-11 w-11 items-center justify-center rounded-full"
+        iconClassName="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow"
+      />
+
+      <div className="flex flex-1 flex-col gap-1.5 p-4">
+        <h3 className="text-[17px] font-bold leading-snug text-ink">
+          {/* The whole card is the link (stretched ::after), one tab stop. */}
+          <Link
+            href={detailHref}
+            className="outline-none after:absolute after:inset-0 after:content-['']"
+          >
+            {property.address}
+          </Link>
+        </h3>
+        <p className="text-[15px] text-ink-soft">
           {property.max_guests !== null
             ? tProperty("roomsGuestsLine", {
                 rooms: property.bedrooms,
@@ -92,39 +125,23 @@ export default function PropertyCard({
               })
             : tProperty("roomsOnlyLine", { rooms: property.bedrooms })}
         </p>
-        <div className="flex items-baseline gap-1">
-          <span className="text-lg font-bold text-ink">
-            ${property.price_per_night}
+        <div className="mt-auto flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pt-2">
+          <span className="flex items-baseline gap-1">
+            <span className="text-lg font-bold text-ink">
+              ${property.price_per_night.toLocaleString("en-US")}
+            </span>
+            <span className="text-sm text-ink-soft">
+              {tProperty("perNightSuffix")}
+            </span>
           </span>
-          <span className="text-[13px] text-[#8A8073]">
-            {tProperty("perNightSuffix")}
-          </span>
-        </div>
-        <div className="mt-auto flex gap-2 pt-2">
-          <Link
-            href={detailHref}
-            className="flex-1 rounded-lg border border-ink px-3 py-2.5 text-center text-sm font-semibold text-ink"
-          >
-            {t("viewDetails")}
-          </Link>
-          <a
-            href={whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(event) => event.stopPropagation()}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-accent-whatsapp px-3 py-2.5 text-sm font-semibold text-white"
-          >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="white"
-              aria-hidden="true"
-            >
-              <path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.5.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3C4.3 15 4 13.5 4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8z" />
-            </svg>
-            {t("whatsappCta")}
-          </a>
+          {nights > 0 && (
+            <span className="text-sm font-semibold text-ink">
+              {t("cardStayTotal", {
+                total: `$${(nights * property.price_per_night).toLocaleString("en-US")}`,
+                nights,
+              })}
+            </span>
+          )}
         </div>
       </div>
     </li>
