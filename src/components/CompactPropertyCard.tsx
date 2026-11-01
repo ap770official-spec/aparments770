@@ -1,7 +1,8 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import type { PropertySummary } from "@/lib/properties";
-import { CardMedia, nightsFromQuery } from "@/components/PropertyCard";
+import { mainMedia, type PropertySummary } from "@/lib/properties";
+import { nightsFromQuery } from "@/components/PropertyCard";
+import { CardMedia } from "@/components/CardMedia";
 
 /**
  * Smaller card used in the map view's side list (vertical) and as the
@@ -78,7 +79,7 @@ export default function CompactPropertyCard({
         onClick={onClick}
         className="flex overflow-hidden rounded-xl border border-line bg-white"
       >
-        <CardMedia property={property} className="min-h-24 w-24 shrink-0 self-stretch" />
+        <CardMedia media={mainMedia(property.property_photos)} className="min-h-24 w-24 shrink-0 self-stretch" />
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-3 py-2.5">
           <h3 className="truncate text-[15px] font-bold text-ink">
             {property.address}
@@ -109,7 +110,7 @@ export default function CompactPropertyCard({
       }`}
     >
       <div className="relative h-[120px] w-full overflow-hidden">
-        <CardMedia property={property} className="h-full w-full" />
+        <CardMedia media={mainMedia(property.property_photos)} className="h-full w-full" />
         {property.walking_minutes_to_landmark != null && (
           <span className="absolute bottom-2 end-2 rounded-full bg-ink px-2.5 py-1 text-xs font-semibold text-white">
             {tProperty("walkingTimePill", {
