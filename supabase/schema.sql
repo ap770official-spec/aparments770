@@ -197,6 +197,17 @@ create policy "Owners can update their own properties"
   using (owner_id = auth.uid())
   with check (owner_id = auth.uid());
 
+-- Already on the live database since 2026-09-27 (first run from the
+-- unmerged claude/dazzling-my-apartments-redesign branch); documented
+-- here 2026-11-01 when the owner delete button shipped - see
+-- docs/handoff-2026-11-01-owner-delete-sql.md. Amenities, photos,
+-- availability and pending edits go with it via on delete cascade.
+create policy "Owners can delete their own properties"
+  on public.properties
+  for delete
+  to authenticated
+  using (owner_id = auth.uid());
+
 
 -- =========================================================
 -- 4. property_amenities

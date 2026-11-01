@@ -95,6 +95,37 @@ export async function saveAvailability(
   return { ok: true };
 }
 
+/**
+ * Permanently deletes one of the owner's listings. Its amenities,
+ * photos, availability and pending edits go with it (on delete
+ * cascade); the media files themselves stay in Cloudinary, as with the
+ * admin delete.
+ */
+export async function deleteOwnerProperty(
+  propertyId: string,
+): Promise<{ ok: boolean }> {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false };
+
+  const { data, error } = await supabase
+    .from("properties")
+    .delete()
+    .eq("id", propertyId)
+    .eq("owner_id", user.id)
+    .select("id");
+
+  if (error || !data?.length) {
+    console.error("Failed to delete property:", error?.message ?? "no row");
+    return { ok: false };
+  }
+
+  revalidatePath("/[locale]/owner/dashboard", "page");
+  return { ok: true };
+}
+
 export type OwnerProfileField =
   | "firstName"
   | "lastName"
