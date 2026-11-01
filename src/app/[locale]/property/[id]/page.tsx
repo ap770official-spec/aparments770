@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { getPropertyById } from "@/lib/properties";
+import { getPropertyById, getPropertyAvailability } from "@/lib/properties";
 import { getWalkingDirections } from "@/lib/mapbox";
 import { getUpcomingHebrewHolidays } from "@/lib/hebrewHolidays";
 import Map from "@/components/Map";
@@ -76,6 +76,8 @@ export default async function PropertyPage({
   const hasLandmarkLocation =
     landmark?.landmark_lat != null && landmark?.landmark_lng != null;
 
+  const availability = await getPropertyAvailability(property.id);
+
   const walking =
     hasPropertyLocation && hasLandmarkLocation
       ? await getWalkingDirections({
@@ -101,6 +103,9 @@ export default async function PropertyPage({
       initialCheckin={query.checkin}
       initialCheckout={query.checkout}
       initialGuests={query.guests}
+      availabilityMode={property.availability_mode}
+      availabilityExceptions={availability.exceptions}
+      availabilityUntil={availability.until}
     >
       <div className="pb-[calc(84px+env(safe-area-inset-bottom))] sm:pb-0">
         <div className="mx-auto max-w-6xl sm:px-10 sm:pt-5">

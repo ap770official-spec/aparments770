@@ -28,6 +28,8 @@ import {
   type ContactDetails,
 } from "@/components/ContactOptions";
 import type { HolidayMarker } from "@/lib/hebrewHolidays";
+import type { AvailabilityMode } from "@/lib/properties";
+import type { AvailabilityStatus } from "@/lib/availability";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -106,6 +108,13 @@ type BookingState = {
   minNights: number;
   holidays: HolidayMarker[];
   contact: ContactDetails;
+  /** Whether the night starting on this YYYY-MM-DD date can be booked. */
+  isNightAvailable: (isoDate: string) => boolean;
+  /** Last date the calendar offers (end of the loaded availability window). */
+  lastBookableDate: Date;
+  /** Why dates that came in the URL (e.g. from homepage search) were dropped. */
+  droppedDatesReason: "unavailable" | "minNights" | null;
+  clearDroppedDatesReason: () => void;
 };
 
 const BookingContext = createContext<BookingState | null>(null);
@@ -128,6 +137,9 @@ export function BookingProvider({
   initialCheckin,
   initialCheckout,
   initialGuests,
+  availabilityMode,
+  availabilityExceptions,
+  availabilityUntil,
 }: {
   children: ReactNode;
   address: string;
@@ -140,16 +152,59 @@ export function BookingProvider({
   initialCheckin?: string;
   initialCheckout?: string;
   initialGuests?: string;
+  availabilityMode: AvailabilityMode;
+  /** Owner-marked nights (date -> status) from today to availabilityUntil. */
+  availabilityExceptions: Record<string, AvailabilityStatus>;
+  /** YYYY-MM-DD, exclusive end of the loaded window. */
+  availabilityUntil: string;
 }) {
   const t = useTranslations("property");
   const guestCap = maxGuests ?? 20;
+  const effectiveMinNights = Math.max(1, minNights ?? 1);
 
-  const [range, setRange] = useState<DateRange | undefined>(() => {
+  // Same rule as isAvailableForNights in lib/availability (used by search):
+  // open-by-default listings lose only "blocked" nights, closed-by-default
+  // listings offer only "open" ones.
+  const isNightAvailable = (isoDate: string): boolean =>
+    availabilityMode === "default_open_block_dates"
+      ? availabilityExceptions[isoDate] !== "blocked"
+      : availabilityMode === "default_closed_open_dates"
+        ? availabilityExceptions[isoDate] === "open"
+        : false;
+
+  // Dates arriving in the URL are checked against this listing before being
+  // used, so a stale or mismatched search never pre-fills an impossible stay.
+  const [initial] = useState(() => {
     const from = parseISODate(initialCheckin);
     const to = parseISODate(initialCheckout);
-    if (!from) return undefined;
-    return { from, to: to && to > from ? to : undefined };
+    if (!from) {
+      return { range: undefined, dropped: null } as const;
+    }
+    if (!to || to <= from) {
+      return { range: { from, to: undefined }, dropped: null } as const;
+    }
+    const stay = nightsBetween(from, to);
+    for (let i = 0; i < stay; i++) {
+      if (!isNightAvailable(toISODate(addDays(from, i)))) {
+        return { range: undefined, dropped: "unavailable" } as const;
+      }
+    }
+    if (stay < effectiveMinNights) {
+      return { range: undefined, dropped: "minNights" } as const;
+    }
+    return { range: { from, to }, dropped: null } as const;
   });
+  const [range, setRangeState] = useState<DateRange | undefined>(
+    initial.range,
+  );
+  const [droppedDatesReason, setDroppedDatesReason] = useState<
+    "unavailable" | "minNights" | null
+  >(initial.dropped);
+
+  function setRange(next: DateRange | undefined) {
+    setRangeState(next);
+    setDroppedDatesReason(null);
+  }
   const [guests, setGuests] = useState(() => {
     const parsed = Number(initialGuests);
     return Number.isInteger(parsed) && parsed >= 1
@@ -206,8 +261,12 @@ export function BookingProvider({
         total,
         pricePerNight,
         maxGuests: guestCap,
-        minNights: Math.max(1, minNights ?? 1),
+        minNights: effectiveMinNights,
         holidays,
+        isNightAvailable,
+        lastBookableDate: addDays(parseISODate(availabilityUntil)!, -1),
+        droppedDatesReason,
+        clearDroppedDatesReason: () => setDroppedDatesReason(null),
         contact: {
           whatsappLink,
           telLink: buildTelLink(phoneCountryCode, phoneNumber),
@@ -272,7 +331,15 @@ function GuestStepper() {
 function DateFields({ idPrefix }: { idPrefix: string }) {
   const t = useTranslations("property");
   const locale = useLocale();
-  const { range, setRange, minNights, holidays } = useBooking();
+  const {
+    range,
+    setRange,
+    minNights,
+    holidays,
+    isNightAvailable,
+    lastBookableDate,
+    droppedDatesReason,
+  } = useBooking();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const calendarId = `${idPrefix}-calendar`;
 
@@ -290,15 +357,55 @@ function DateFields({ idPrefix }: { idPrefix: string }) {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const disabled: Matcher[] = [{ before: today }];
+  const pickingCheckout = Boolean(range?.from && !range.to);
+
+  // While picking check-out, the stay can run up to the first taken night:
+  // checking out that morning is fine, staying through it is not.
+  let lastCheckout: Date | undefined;
+  if (pickingCheckout && range?.from) {
+    for (
+      let night = addDays(range.from, 1);
+      night <= lastBookableDate;
+      night = addDays(night, 1)
+    ) {
+      if (!isNightAvailable(toISODate(night))) {
+        lastCheckout = night;
+        break;
+      }
+    }
+  }
+  const noValidCheckout =
+    pickingCheckout &&
+    range?.from != null &&
+    lastCheckout != null &&
+    nightsBetween(range.from, lastCheckout) < minNights;
+
+  const disabled: Matcher[] = [
+    { before: today },
+    { after: lastBookableDate },
+    (date: Date) => {
+      if (pickingCheckout && range?.from && date > range.from) {
+        return lastCheckout != null && date > lastCheckout;
+      }
+      // Choosing a check-in (or a day before the current one, which
+      // restarts the range): the night itself must be free.
+      return !isNightAvailable(toISODate(date));
+    },
+  ];
   // While picking check-out, block the nights that would fall under the
   // listing's minimum stay.
-  if (range?.from && !range.to && minNights > 1) {
+  if (pickingCheckout && range?.from && minNights > 1) {
     disabled.push({
       after: range.from,
       before: addDays(range.from, minNights),
     });
   }
+  // The first taken night is still a valid check-out, so it isn't struck
+  // through while the visitor is choosing one.
+  const bookedNights = (date: Date) =>
+    date >= today &&
+    !isNightAvailable(toISODate(date)) &&
+    !(lastCheckout && date.getTime() === lastCheckout.getTime());
 
   function handleSelect(next: DateRange | undefined) {
     if (next?.from && next.to && next.from.getTime() === next.to.getTime()) {
@@ -314,6 +421,16 @@ function DateFields({ idPrefix }: { idPrefix: string }) {
 
   return (
     <div className="flex flex-col">
+      {droppedDatesReason && (
+        <p
+          role="status"
+          className="mb-2 rounded-[10px] border border-[#E8C9A0] bg-[#FBF3E8] px-3.5 py-2.5 text-[13.5px] leading-relaxed text-ink"
+        >
+          {droppedDatesReason === "unavailable"
+            ? t("searchDatesUnavailable")
+            : t("searchDatesTooShort", { count: minNights })}
+        </p>
+      )}
       <div className="overflow-hidden rounded-[10px] border border-line">
         <div className="grid grid-cols-2 border-b border-line">
           {(["checkin", "checkout"] as const).map((field) => {
@@ -354,11 +471,15 @@ function DateFields({ idPrefix }: { idPrefix: string }) {
             resetOnSelect
             disabled={disabled}
             startMonth={today}
+            endMonth={lastBookableDate}
             defaultMonth={range?.from ?? today}
             locale={locale === "he" ? heLocale : enLocale}
             dir={locale === "he" ? "rtl" : "ltr"}
-            modifiers={{ holiday: holidayDates }}
-            modifiersClassNames={{ holiday: "rdp-holiday" }}
+            modifiers={{ holiday: holidayDates, booked: bookedNights }}
+            modifiersClassNames={{
+              holiday: "rdp-holiday",
+              booked: "rdp-booked",
+            }}
             components={{
               DayButton: (props) => (
                 <DefaultDayButton
@@ -368,14 +489,21 @@ function DateFields({ idPrefix }: { idPrefix: string }) {
               ),
             }}
           />
+          <p className="w-full px-2 pt-1 text-xs text-ink-soft">
+            {t.rich("bookedLegend", {
+              s: (chunks) => <s>{chunks}</s>,
+            })}
+          </p>
           <div className="flex w-full items-center justify-between gap-3 px-2 pb-1 pt-2">
             <span className="text-[13px] text-ink-soft" aria-live="polite">
               {!range?.from
                 ? t("selectCheckin")
                 : !range.to
-                  ? minNights > 1
-                    ? t("selectCheckoutMin", { count: minNights })
-                    : t("selectCheckout")
+                  ? noValidCheckout
+                    ? t("notEnoughFreeNights", { count: minNights })
+                    : minNights > 1
+                      ? t("selectCheckoutMin", { count: minNights })
+                      : t("selectCheckout")
                   : null}
             </span>
             {range?.from && (

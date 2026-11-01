@@ -46,6 +46,10 @@ export default async function HomePage({
         regionId: region.id,
         guests,
         maxWalkingMinutes: maxWalking ?? undefined,
+        // The homepage form searches here (not /search), so the chosen
+        // dates must filter out listings that aren't free for the stay.
+        checkin: query.checkin,
+        checkout: query.checkout,
       })
     : [];
 
@@ -102,7 +106,11 @@ export default async function HomePage({
           </div>
 
           {properties.length === 0 ? (
-            <p className="text-[#5C5349]">{tSearch("noResults")}</p>
+            <p className="text-ink-soft">
+              {query.checkin && query.checkout
+                ? tSearch("noResultsForDates")
+                : tSearch("noResults")}
+            </p>
           ) : (
             <SearchResultsView
               properties={properties}
