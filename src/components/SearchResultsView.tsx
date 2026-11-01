@@ -74,7 +74,7 @@ export default function SearchResultsView({
   const unlocatedNote =
     hasLocated && unlocatedCount > 0 ? (
       <p className="text-[14px] text-ink-soft">
-        {t("mapUnlocated", { count: unlocatedCount })}
+        {t("mapUnlocated")}
       </p>
     ) : null;
 
