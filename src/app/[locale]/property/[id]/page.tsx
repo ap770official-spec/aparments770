@@ -77,7 +77,7 @@ export default async function PropertyPage({
         </p>
         <Link
           href="/"
-          className="mt-2 flex min-h-12 items-center justify-center rounded-[10px] bg-brand px-6 text-base font-bold text-brand-foreground transition-[filter] duration-150 hover:brightness-110"
+          className="press mt-2 flex min-h-12 items-center justify-center rounded-[10px] bg-brand px-6 text-base font-bold text-brand-foreground transition-[filter] duration-150 hover:brightness-110"
         >
           {t("notFoundCta")}
         </Link>
@@ -152,7 +152,7 @@ export default async function PropertyPage({
 
           <div className="flex flex-col gap-2 px-4 pt-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6 sm:px-0 sm:pt-8">
             <div className="flex flex-col gap-2">
-              <h1 className="font-serif-brand text-xl font-bold leading-tight text-ink sm:text-[32px]">
+              <h1 className="font-serif-brand text-2xl leading-[1.15] font-bold tracking-[-0.01em] text-ink sm:text-[34px]">
                 {title}
               </h1>
               <div className="flex flex-wrap items-center gap-2 text-[15px] text-ink-soft">
@@ -273,7 +273,7 @@ export default async function PropertyPage({
                       href={`https://waze.com/ul?ll=${property.lat},${property.lng}&navigate=yes`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-ink px-3 text-[15px] font-semibold text-ink transition-colors duration-150 hover:bg-canvas"
+                      className="press flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-ink px-3 text-[15px] font-semibold text-ink transition-colors duration-150 hover:bg-canvas"
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <path d="M3 11l18-8-8 18-2-8-8-2z" />
@@ -284,7 +284,7 @@ export default async function PropertyPage({
                       href={`https://www.google.com/maps/dir/?api=1&destination=${property.lat},${property.lng}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-ink px-3 text-[15px] font-semibold text-ink transition-colors duration-150 hover:bg-canvas"
+                      className="press flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-ink px-3 text-[15px] font-semibold text-ink transition-colors duration-150 hover:bg-canvas"
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11z" />

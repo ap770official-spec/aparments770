@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Assistant, Geist, Geist_Mono, Frank_Ruhl_Libre } from "next/font/google";
 import { notFound } from "next/navigation";
@@ -31,6 +31,17 @@ const frankRuhl = Frank_Ruhl_Libre({
   variable: "--font-frank-ruhl",
   subsets: ["latin", "hebrew"],
 });
+
+// viewport-fit=cover lets the page paint under the notch / home indicator;
+// without it every env(safe-area-inset-*) padding in the app is 0.
+// resizes-content: the Android keyboard shrinks the layout like iOS does.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
+  themeColor: "#ffffff",
+};
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

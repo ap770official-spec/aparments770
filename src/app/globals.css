@@ -35,6 +35,64 @@
   --color-cream: #f6f1e9;
 }
 
+/* ---------- Feeling native on phones ---------- */
+
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+html {
+  /* No grey flash on tap - every control has its own press state below. */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* No double-tap-zoom wait before click; long-press doesn't select a
+   control's label. Content text stays selectable. */
+button,
+a,
+[role="button"],
+summary,
+label:has(> select) {
+  touch-action: manipulation;
+}
+button,
+[role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Press feedback the instant a finger lands (not on release). Unlayered so
+   it reaches buttons regardless of their utility classes; .press opts in
+   link-styled buttons. data-no-press opts out (e.g. map pins). */
+button:not(:disabled):not([data-no-press]),
+.press {
+  transition-property: color, background-color, border-color, opacity,
+    box-shadow, filter, scale, translate, rotate;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-out);
+}
+button:not(:disabled):not([data-no-press]):active,
+.press:active {
+  scale: 0.97;
+}
+
+/* Translucent material for floating bars, solid when transparency is
+   reduced (Apple: content scrolls under the chrome). */
+.material-bar {
+  background-color: rgb(255 255 255 / 0.82);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .material-bar {
+    background-color: #ffffff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

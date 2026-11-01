@@ -6,7 +6,6 @@ import {
   useEffect,
   useId,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -31,6 +30,7 @@ import {
 } from "@/components/ContactOptions";
 import type { HolidayMarker } from "@/lib/hebrewHolidays";
 import { formatDisplayDate, formatShortDate } from "@/lib/displayDate";
+import { useBottomSheet } from "@/lib/useBottomSheet";
 import type { AvailabilityMode } from "@/lib/properties";
 import type { AvailabilityStatus } from "@/lib/availability";
 
@@ -522,11 +522,6 @@ function DateFields({ idPrefix }: { idPrefix: string }) {
   );
 }
 
-/** A modal dialog doesn't stop the page behind it from scrolling. */
-function setPageScrollLocked(locked: boolean) {
-  document.documentElement.style.overflow = locked ? "hidden" : "";
-}
-
 /**
  * Mobile: one compact summary row in the page; the calendar and guests live
  * in a bottom sheet, so a full month grid never sits in the reading flow.
@@ -535,18 +530,15 @@ function MobileDatesPicker() {
   const t = useTranslations("property");
   const locale = useLocale();
   const { range, setRange, guests, nights, total } = useBooking();
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const {
+    dialogRef,
+    open,
+    close,
+    onDialogClose,
+    onDialogClick,
+    dragHandlers,
+  } = useBottomSheet();
   const titleId = useId();
-
-  useEffect(() => () => setPageScrollLocked(false), []);
-
-  function open() {
-    setPageScrollLocked(true);
-    dialogRef.current?.showModal();
-  }
-  function close() {
-    dialogRef.current?.close();
-  }
 
   const datesLabel = range?.from
     ? range.to
@@ -588,14 +580,13 @@ function MobileDatesPicker() {
       <dialog
         ref={dialogRef}
         aria-labelledby={titleId}
-        onClose={() => setPageScrollLocked(false)}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) close();
-        }}
+        onClose={onDialogClose}
+        onClick={onDialogClick}
         className="fixed inset-x-0 top-auto bottom-0 m-0 max-h-[92dvh] w-full max-w-none rounded-t-2xl bg-white p-0 text-ink translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] backdrop:bg-black/40 starting:translate-y-full motion-reduce:transition-opacity motion-reduce:starting:translate-y-0 motion-reduce:starting:opacity-0"
       >
         <div className="flex max-h-[92dvh] flex-col">
-          <div className="flex shrink-0 flex-col gap-2 px-4 pt-3">
+          {/* Grabber + title: drag down to dismiss. */}
+          <div {...dragHandlers} className="flex shrink-0 cursor-grab flex-col gap-2 px-4 pt-3">
             <span className="mx-auto h-1 w-10 rounded-full bg-line" aria-hidden="true" />
             <div className="flex items-center justify-between gap-3">
               <h2 id={titleId} className="text-lg font-bold text-ink">
@@ -741,7 +732,7 @@ export function MobileBookingBar() {
   const { contact, nights, total, pricePerNight } = useBooking();
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-line bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:hidden">
+    <div className="material-bar fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-line/70 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:hidden">
       <div className="flex flex-col leading-tight">
         <span className="text-base font-bold text-ink tabular-nums">
           {formatPrice(nights > 0 ? total : pricePerNight)}
