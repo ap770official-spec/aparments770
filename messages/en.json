@@ -191,7 +191,13 @@
     "editSentClose": "Got it",
     "editPending": "Edit awaiting approval",
     "myDetails": "My details",
-    "greeting": "Hello, {name}"
+    "greeting": "Hello, {name}",
+    "eyebrow": "YOUR ACCOUNT",
+    "statLive": "Live on the site",
+    "statPending": "Awaiting approval",
+    "statNextExpiry": "Next listing ends",
+    "liveBadge": "Live on the site",
+    "publishAfterApproval": "Goes live once our team approves it"
   },
   "propertyForm": {
     "title": "List a new apartment",

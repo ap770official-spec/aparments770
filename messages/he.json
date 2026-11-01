@@ -191,7 +191,13 @@
     "editSentClose": "הבנתי",
     "editPending": "עריכה ממתינה לאישור",
     "myDetails": "הפרטים שלי",
-    "greeting": "שלום, {name}"
+    "greeting": "שלום, {name}",
+    "eyebrow": "האזור האישי",
+    "statLive": "דירות באתר",
+    "statPending": "ממתינות לאישור",
+    "statNextExpiry": "הפרסום הקרוב מסתיים",
+    "liveBadge": "מוצגת באתר",
+    "publishAfterApproval": "תפורסם באתר אחרי אישור הצוות"
   },
   "propertyForm": {
     "title": "פרסום דירה חדשה",

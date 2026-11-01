@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Geist, Geist_Mono, Frank_Ruhl_Libre } from "next/font/google";
+import { Assistant, Geist, Geist_Mono, Frank_Ruhl_Libre } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -18,6 +18,13 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// Body face for the owner area (see font-owner in globals.css);
+// Hebrew-first, unlike the site-wide Arial fallback.
+const assistant = Assistant({
+  variable: "--font-assistant",
+  subsets: ["latin", "hebrew"],
 });
 
 const frankRuhl = Frank_Ruhl_Libre({
@@ -60,7 +67,7 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       dir={dir}
-      className={`${geistSans.variable} ${geistMono.variable} ${frankRuhl.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${frankRuhl.variable} ${assistant.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider>
