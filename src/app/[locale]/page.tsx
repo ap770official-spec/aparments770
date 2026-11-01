@@ -122,6 +122,10 @@ export default async function HomePage({
           <SearchForm
             defaultRegionSlug={defaultRegion?.slug ?? ""}
             holidays={holidays}
+            initialCheckin={query.checkin}
+            initialCheckout={query.checkout}
+            initialGuests={guests}
+            currentQuery={currentQuery.toString()}
           />
 
           <div className="mt-4 sm:mt-6">
