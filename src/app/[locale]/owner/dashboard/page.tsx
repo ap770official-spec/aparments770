@@ -1,7 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Link, redirect } from "@/i18n/navigation";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { ensureOwnerRow } from "@/lib/owners";
+import { Link } from "@/i18n/navigation";
+import { requireOwner } from "@/lib/owner-session";
 import { subscriptionState } from "@/lib/admin-subscription";
 import {
   getOwnerProperties,
@@ -68,19 +67,13 @@ export default async function OwnerDashboardPage({
   setRequestLocale(locale);
   const t = await getTranslations("dashboard");
 
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect({ href: "/owner/login", locale });
-  }
-
-  await ensureOwnerRow(supabase, user!.id);
+  const { supabase, user, profile } = await requireOwner(
+    locale,
+    "/owner/dashboard",
+  );
   const [properties, pendingEditIds] = await Promise.all([
-    getOwnerProperties(supabase, user!.id),
-    getPendingEditPropertyIds(supabase, user!.id),
+    getOwnerProperties(supabase, user.id),
+    getPendingEditPropertyIds(supabase, user.id),
   ]);
 
   const formatDate = new Intl.DateTimeFormat(locale, {
@@ -98,10 +91,40 @@ export default async function OwnerDashboardPage({
             {t("title")}
           </h1>
           <p className="mt-1.5 truncate text-sm text-[#5C5349]">
-            {t("loggedInAs", { email: user!.email ?? "" })}
+            {profile.first_name && (
+              <>
+                <bdi className="font-semibold text-ink">
+                  {t("greeting", { name: profile.first_name })}
+                </bdi>
+                {" · "}
+              </>
+            )}
+            {t("loggedInAs", { email: user.email ?? "" })}
           </p>
         </div>
-        <LogoutButton />
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/owner/welcome"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-[#D8CFC0] px-4 text-sm font-semibold text-ink transition-[background-color,border-color,transform] duration-150 hover:border-ink hover:bg-[#FAF7F2] active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21a8 8 0 0 1 16 0" />
+            </svg>
+            {t("myDetails")}
+          </Link>
+          <LogoutButton />
+        </div>
       </div>
 
       <section className="mt-8" aria-labelledby="my-properties-heading">

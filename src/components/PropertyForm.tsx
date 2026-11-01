@@ -246,12 +246,15 @@ export default function PropertyForm({
   ownerId,
   initialProperty,
   hasPendingEdit = false,
+  defaultPhone,
 }: {
   regions: Region[];
   defaultRegionId: string;
   ownerId: string;
   initialProperty?: PropertyForEdit;
   hasPendingEdit?: boolean;
+  /** The owner's own phone, prefilled for a new listing. */
+  defaultPhone?: { countryCode: string; number: string };
 }) {
   const isEdit = initialProperty !== undefined;
   const router = useRouter();
@@ -321,10 +324,10 @@ export default function PropertyForm({
       .map((p) => ({ kind: "existing", url: p.url, mediaType: p.media_type })),
   );
   const [phoneCountryCode, setPhoneCountryCode] = useState(
-    initialProperty?.phone_country_code ?? "+1",
+    initialProperty?.phone_country_code ?? defaultPhone?.countryCode ?? "+1",
   );
   const [phoneNumber, setPhoneNumber] = useState(
-    initialProperty?.phone_number ?? "",
+    initialProperty?.phone_number ?? defaultPhone?.number ?? "",
   );
 
   const fileInputRef = useRef<HTMLInputElement>(null);

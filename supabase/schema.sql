@@ -45,6 +45,15 @@ create policy "Public can view regions"
 -- Contains sensitive verification data (id_document_url), so RLS
 -- restricts each owner to their own row only. Admin access (later)
 -- goes through the service_role key, which bypasses RLS entirely.
+--
+-- Profile fields (first_name .. profile_completed_at) were added later
+-- (2026-10-31, owner onboarding): new owners fill them in on a one-time
+-- "a few details first" screen after their first login, and existing
+-- owners on their next login. profile_completed_at set = done.
+-- full_name is kept and written as "first last" on save, since admin
+-- screens and the approval PDF/email read it. See
+-- docs/handoff-2026-10-31-owner-profile-sql.md for the statement run
+-- manually against the live database.
 -- =========================================================
 
 create table public.owners (
@@ -56,7 +65,18 @@ create table public.owners (
   is_first_100 boolean not null default false,
   subscription_expires_at timestamptz,
   is_frozen boolean not null default false,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+
+  first_name text,
+  last_name text,
+  phone_country_code text,
+  phone_number text,
+  owner_role text check (owner_role in ('owner', 'manager', 'other')),
+  referral_source text
+    check (referral_source in ('friend', 'whatsapp', 'google', 'social', 'ad', 'other')),
+  referral_other text,
+  terms_accepted_at timestamptz,
+  profile_completed_at timestamptz
 );
 
 alter table public.owners enable row level security;

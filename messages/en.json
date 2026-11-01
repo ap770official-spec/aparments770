@@ -151,8 +151,8 @@
     "subway": "Subway"
   },
   "auth": {
-    "loginTitle": "Property owner login",
-    "loginBody": "Sign in to list and manage your apartments.",
+    "loginTitle": "Owner log in / sign up",
+    "loginBody": "No password needed. On your first visit we'll ask for a few short details, then you can list and manage your apartments.",
     "continueWithGoogle": "Continue with Google",
     "errorGeneric": "Something went wrong signing in. Please try again.",
     "orDivider": "or",
@@ -189,7 +189,9 @@
     "editSentTitle": "Your edit was sent for approval",
     "editSentBody": "Our team will review your changes. Until they are approved, the apartment keeps appearing on the site as it did before the edit.",
     "editSentClose": "Got it",
-    "editPending": "Edit awaiting approval"
+    "editPending": "Edit awaiting approval",
+    "myDetails": "My details",
+    "greeting": "Hello, {name}"
   },
   "propertyForm": {
     "title": "List a new apartment",
@@ -278,5 +280,47 @@
     "title": "Site under construction",
     "body": "This site is still under construction. We apologize for the inconvenience — it isn't fully ready for use yet.",
     "close": "Got it, close"
+  },
+  "ownerProfile": {
+    "title": "A few details before you start",
+    "subtitle": "It takes less than a minute, and we'll only ask once. Your details help us reach you and approve your listings faster.",
+    "editTitle": "My details",
+    "editSubtitle": "You can update your details here at any time.",
+    "requiredHint": "Fields marked * are required.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "phone": "Phone / WhatsApp",
+    "countryCode": "Country code",
+    "countryCommon": "Common",
+    "countryAll": "All countries",
+    "phoneHint": "We'll fill this number in automatically on every new listing you publish.",
+    "ownerRole": "How are you connected to the apartment?",
+    "roles": {
+      "owner": "Property owner",
+      "manager": "Property manager",
+      "other": "Other"
+    },
+    "referralSource": "How did you hear about us?",
+    "optional": "optional",
+    "sources": {
+      "friend": "A friend",
+      "whatsapp": "WhatsApp group",
+      "google": "Google search",
+      "social": "Social media",
+      "ad": "Ad or sign",
+      "other": "Other"
+    },
+    "referralOtherLabel": "Tell us where",
+    "terms": "I have read and agree to the <link>terms of use</link>",
+    "continue": "Save and continue",
+    "save": "Save details",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "errorFirstName": "Please enter your first name",
+    "errorLastName": "Please enter your last name",
+    "errorPhone": "Please enter a valid phone number with the right country code",
+    "errorOwnerRole": "Please choose how you are connected to the apartment",
+    "errorTerms": "Please accept the terms of use to continue",
+    "errorSave": "We couldn't save your details. Please try again in a moment."
   }
 }
