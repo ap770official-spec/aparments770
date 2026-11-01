@@ -209,7 +209,7 @@ export default function PendingEditSection({
             <PendingSubmitButton
               pendingLabel="דוחה…"
               confirmMessage="לדחות את העריכה? הדירה תישאר באתר כפי שהיא."
-              className="min-h-11 cursor-pointer rounded-lg border border-black/15 bg-white px-4 text-sm font-semibold text-ink hover:bg-black/5 disabled:cursor-wait disabled:opacity-60"
+              className="min-h-11 cursor-pointer rounded-lg border border-line bg-white px-4 text-sm font-semibold text-ink hover:bg-canvas disabled:cursor-wait disabled:opacity-60"
             >
               דחה עריכה
             </PendingSubmitButton>
@@ -218,7 +218,7 @@ export default function PendingEditSection({
       </div>
 
       {nothingChanged && (
-        <p className="mt-4 text-sm text-black/70">
+        <p className="mt-4 text-sm text-ink-soft">
           לא נמצאו הבדלים מהגרסה הנוכחית.
         </p>
       )}
@@ -227,7 +227,7 @@ export default function PendingEditSection({
         <div className="mt-4 overflow-x-auto rounded-xl border border-line bg-white">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-black/10 text-black/60">
+              <tr className="border-b border-line text-ink-soft">
                 <th className="p-3 text-start font-medium">שדה</th>
                 <th className="p-3 text-start font-medium">עכשיו באתר</th>
                 <th className="p-3 text-start font-medium">אחרי העריכה</th>
@@ -235,11 +235,11 @@ export default function PendingEditSection({
             </thead>
             <tbody>
               {changedRows.map((row) => (
-                <tr key={row.label} className="border-b border-black/5 align-top">
-                  <td className="p-3 text-black/60">{row.label}</td>
+                <tr key={row.label} className="border-b border-line align-top">
+                  <td className="p-3 text-ink-soft">{row.label}</td>
                   <td
                     dir="auto"
-                    className="p-3 whitespace-pre-wrap text-start text-black/50 line-through decoration-black/30"
+                    className="p-3 whitespace-pre-wrap text-start text-ink-muted line-through decoration-black/30"
                   >
                     {display(row.current)}
                   </td>
@@ -307,7 +307,7 @@ export default function PendingEditSection({
               ))}
             </div>
           ) : (
-            <p className="mt-2 text-sm text-black/60">ללא תמונות.</p>
+            <p className="mt-2 text-sm text-ink-soft">ללא תמונות.</p>
           )}
 
           {removedMedia.length > 0 && (
