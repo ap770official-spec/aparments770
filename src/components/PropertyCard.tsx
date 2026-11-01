@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { mainMedia, type PropertySummary } from "@/lib/properties";
-import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
+import type { PropertySummary } from "@/lib/properties";
+import CardPhotoCarousel from "@/components/CardPhotoCarousel";
 import { stayNights, isIsoDate } from "@/lib/availability";
 import FavoriteButton from "@/components/FavoriteButton";
 
@@ -14,54 +14,6 @@ export function nightsFromQuery(searchQuery: string | undefined): number {
     return 0;
   }
   return stayNights(checkin, checkout).length;
-}
-
-export function CardMedia({
-  property,
-  className,
-}: {
-  property: PropertySummary;
-  className: string;
-}) {
-  const media = mainMedia(property.property_photos);
-  if (!media) return <div className={`${className} bg-placeholder`} />;
-  if (media.media_type === "video") {
-    // A still first frame with a play badge: the card is a link, so a video
-    // with its own controls would swallow the tap meant to open the listing.
-    return (
-      <div className={`relative ${className}`}>
-        <video
-          src={`${optimizedCloudinaryUrl(media.url)}#t=0.1`}
-          className="pointer-events-none h-full w-full object-cover"
-          preload="metadata"
-          muted
-          playsInline
-          tabIndex={-1}
-          aria-hidden="true"
-        />
-        <span
-          aria-hidden="true"
-          className="absolute inset-0 flex items-center justify-center"
-        >
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/55 text-white">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8 5.5v13a1 1 0 0 0 1.5.86l11-6.5a1 1 0 0 0 0-1.72l-11-6.5A1 1 0 0 0 8 5.5z" />
-            </svg>
-          </span>
-        </span>
-      </div>
-    );
-  }
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={optimizedCloudinaryUrl(media.url)}
-      alt=""
-      loading="lazy"
-      decoding="async"
-      className={`${className} object-cover`}
-    />
-  );
 }
 
 export default function PropertyCard({
@@ -88,10 +40,16 @@ export default function PropertyCard({
       onMouseEnter={onMouseEnter}
       className={`group relative flex flex-col overflow-hidden rounded-[14px] border border-line bg-white transition-shadow duration-200 ease-out focus-within:shadow-[0_0_0_2px_var(--ink)] [@media(hover:hover)]:hover:shadow-[0_6px_24px_rgba(26,21,18,0.10)] ${className ?? ""}`}
     >
-      <div className="relative aspect-[3/2] w-full overflow-hidden">
-        <CardMedia property={property} className="h-full w-full" />
+      {/* Above the stretched title link (z-10) so it can be swiped; each
+          photo is itself a link to the listing, so a tap still opens it. */}
+      <div className="relative z-10 aspect-[3/2] w-full overflow-hidden">
+        <CardPhotoCarousel
+          photos={property.property_photos}
+          href={detailHref}
+          label={property.address}
+        />
         {property.walking_minutes_to_landmark != null && (
-          <span className="absolute bottom-3 start-3 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white">
+          <span className="pointer-events-none absolute bottom-3 start-3 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white">
             {tProperty("walkingTimePill", {
               minutes: property.walking_minutes_to_landmark,
               landmark: landmarkLabel ?? "770",
@@ -103,7 +61,7 @@ export default function PropertyCard({
       {/* Sits above the stretched link so the heart doesn't open the listing. */}
       <FavoriteButton
         propertyId={property.id}
-        className="absolute end-2 top-2 z-10 flex h-11 w-11 items-center justify-center rounded-full"
+        className="absolute end-2 top-2 z-20 flex h-11 w-11 items-center justify-center rounded-full"
         iconClassName="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow"
       />
 
