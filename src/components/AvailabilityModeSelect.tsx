@@ -15,9 +15,15 @@ const MODES: AvailabilityMode[] = [
 export default function AvailabilityModeSelect({
   propertyId,
   initialMode,
+  hideLabel = false,
+  selectClassName = "border border-[#D8CFC0] bg-white hover:border-[#A89E90]",
 }: {
   propertyId: string;
   initialMode: AvailabilityMode;
+  /** Keep the label for screen readers only. */
+  hideLabel?: boolean;
+  /** Border/background classes for the select itself. */
+  selectClassName?: string;
 }) {
   const t = useTranslations("dashboard.availabilityMode");
   const router = useRouter();
@@ -38,14 +44,14 @@ export default function AvailabilityModeSelect({
 
   return (
     <label className="flex flex-col gap-1.5 text-xs font-semibold text-[#5C5349]">
-      {t("label")}
+      <span className={hideLabel ? "sr-only" : undefined}>{t("label")}</span>
       <span className="relative">
         <select
           value={mode}
           onChange={handleChange}
           disabled={saving}
           aria-busy={saving}
-          className="min-h-11 w-full appearance-none rounded-lg border border-[#D8CFC0] bg-white ps-3 pe-9 text-sm font-medium text-ink transition-colors duration-150 hover:border-[#A89E90] focus-visible:border-brand focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand/40 disabled:cursor-wait disabled:opacity-60"
+          className={`min-h-11 w-full appearance-none rounded-xl ps-3.5 pe-9 text-sm font-medium text-ink transition-colors duration-150 ${selectClassName} focus-visible:border-brand focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand/40 disabled:cursor-wait disabled:opacity-60`}
         >
           {MODES.map((m) => (
             <option key={m} value={m}>
