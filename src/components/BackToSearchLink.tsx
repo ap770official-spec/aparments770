@@ -23,6 +23,7 @@ export default function BackToSearchLink() {
         strokeLinecap="round"
         strokeLinejoin="round"
         aria-hidden="true"
+        className="rtl:-scale-x-100"
       >
         <path d="M19 12H5M12 19l-7-7 7-7" />
       </svg>
