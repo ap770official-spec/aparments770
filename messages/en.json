@@ -53,7 +53,22 @@
     "filtersShowResults": "Show apartments",
     "sortPriceAsc": "Price: low to high",
     "sortPriceDesc": "Price: high to low",
-    "noResultsForFilters": "No apartments match your filters. Try removing some."
+    "noResultsForFilters": "No apartments match your filters. Try removing some.",
+    "eyebrow": "Crown Heights · Brooklyn",
+    "trustDirect": "Direct contact with the owner",
+    "trustNoFees": "No fees, no signup",
+    "trustWalking": "Walking time to 770 on every listing",
+    "howTitle": "How it works",
+    "howSubtitle": "Three steps and you're on your way to 770.",
+    "howStep1Title": "Pick your dates",
+    "howStep1Body": "Search by dates and guests, and see only apartments that are free.",
+    "howStep2Title": "Compare apartments",
+    "howStep2Body": "Price, rooms, amenities and walking time from 770 — all on one page, and on the map.",
+    "howStep3Title": "Contact directly",
+    "howStep3Body": "Message the owner on WhatsApp or call. You arrange it between you, no middleman.",
+    "ownerTitle": "Have an apartment near 770?",
+    "ownerBody": "List it here and guests will contact you directly, on WhatsApp or by phone.",
+    "ownerCta": "List your apartment"
   },
   "searchForm": {
     "checkin": "Check-in date",
