@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { RefObject } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
@@ -8,6 +8,7 @@ import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 import type { PropertyPhoto } from "@/lib/properties";
 import FavoriteButton from "@/components/FavoriteButton";
 import ShareMenu from "@/components/ShareMenu";
+import { useActiveSlide } from "@/lib/useActiveSlide";
 
 const OVERLAY_BUTTON_CLASS =
   "flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-ink shadow-[0_1px_4px_rgba(26,21,18,0.18)]";
@@ -16,39 +17,6 @@ const SCROLLER_CLASS =
   "flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
 const DESKTOP_THUMB_COUNT = 4;
-
-/**
- * Index of the slide currently filling a horizontal scroll-snap track.
- * Slides mark themselves with data-slide-index. IntersectionObserver keeps
- * this direction-agnostic (RTL scrollLeft is negative in most browsers).
- */
-function useActiveSlide(
-  trackRef: RefObject<HTMLDivElement | null>,
-  slideCount: number,
-): number {
-  const [active, setActive] = useState(0);
-
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActive(Number((entry.target as HTMLElement).dataset.slideIndex));
-          }
-        }
-      },
-      { root: track, threshold: 0.6 },
-    );
-    track
-      .querySelectorAll("[data-slide-index]")
-      .forEach((slide) => observer.observe(slide));
-    return () => observer.disconnect();
-  }, [trackRef, slideCount]);
-
-  return active;
-}
 
 function scrollToSlide(
   track: HTMLDivElement | null,

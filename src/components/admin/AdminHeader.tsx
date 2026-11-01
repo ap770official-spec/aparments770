@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { logoutAdmin } from "@/app/admin/actions";
+import { Logo } from "@/components/brand/Logo";
 
 export default function AdminHeader() {
   return (
@@ -7,12 +8,12 @@ export default function AdminHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link
           href="/admin/properties"
-          className="flex items-baseline gap-2 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          className="flex items-center gap-3 rounded-md text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
-          <span className="font-serif-brand text-lg font-semibold text-brand">
-            Apartments770
+          <Logo />
+          <span className="rounded-full bg-black/5 px-2 py-0.5 text-sm text-black/60">
+            ניהול
           </span>
-          <span className="text-sm text-black/60">ניהול</span>
         </Link>
         <form action={logoutAdmin}>
           <button
