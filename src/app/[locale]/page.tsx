@@ -162,7 +162,7 @@ export default async function HomePage({
         </div>
       </section>
 
-      <section className="flex-1">
+      <section id="results" className="results-region flex-1 scroll-mt-4">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-10 sm:py-10">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3 sm:mb-6">
             <h2 className="font-serif-brand text-xl font-bold text-ink sm:text-[28px]">

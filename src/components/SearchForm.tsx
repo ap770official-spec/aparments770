@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useTransition,
   type FormEvent,
 } from "react";
 import { useLocale, useTranslations } from "next-intl";
@@ -22,6 +23,32 @@ import { formatDisplayDate, formatShortDate } from "@/lib/displayDate";
 import { useBottomSheet } from "@/lib/useBottomSheet";
 
 const MAX_GUESTS = 20;
+
+/** Fast spin reads as fast loading. */
+function Spinner({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className="animate-[spin_0.7s_linear_infinite]"
+    >
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.3" strokeWidth="3" />
+      <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SearchIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" />
+      <path d="M21 21l-4.35-4.35" />
+    </svg>
+  );
+}
 const SEARCH_WINDOW_DAYS = 365;
 
 function toISODate(date: Date): string {
@@ -202,6 +229,11 @@ export default function SearchForm({
     };
   }, [isCalendarOpen]);
 
+  // The search runs on the server; a transition keeps the current page
+  // up (dimmed) with a spinner in the button until the results arrive.
+  const [isSearching, startSearch] = useTransition();
+  const searchedRef = useRef(false);
+
   function search() {
     if (!range?.from || !range?.to) return;
     const params = new URLSearchParams(currentQuery);
@@ -209,8 +241,31 @@ export default function SearchForm({
     params.set("checkin", toISODate(range.from));
     params.set("checkout", toISODate(range.to));
     params.set("guests", String(guests));
-    router.push(`/?${params.toString()}`);
+    // A tiny tick on Android (iOS Safari has no vibration API): the search
+    // is the page's main action and should be felt.
+    navigator.vibrate?.(8);
+    searchedRef.current = true;
+    startSearch(() => {
+      router.push(`/?${params.toString()}`, { scroll: false });
+    });
   }
+
+  useEffect(() => {
+    // Lets CSS dim the old results while the new ones load.
+    document.documentElement.toggleAttribute("data-searching", isSearching);
+    if (isSearching || !searchedRef.current) return;
+    searchedRef.current = false;
+    // Results are in: bring them into view.
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document
+      .getElementById("results")
+      ?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  }, [isSearching]);
+
+  useEffect(
+    () => () => document.documentElement.removeAttribute("data-searching"),
+    [],
+  );
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -280,13 +335,11 @@ export default function SearchForm({
         </button>
         <button
           type="submit"
+          aria-busy={isSearching}
           className="flex h-13 min-h-12 w-full items-center justify-center gap-2 bg-brand text-base font-bold text-brand-foreground"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
-          {t("submit")}
+          {isSearching ? <Spinner /> : <SearchIcon />}
+          <span aria-live="polite">{isSearching ? t("searching") : t("submit")}</span>
         </button>
       </div>
 
@@ -389,14 +442,12 @@ export default function SearchForm({
               <GuestStepper guests={guests} onChange={setGuests} compact />
               <button
                 type="submit"
-                aria-label={t("submit")}
+                aria-label={isSearching ? t("searching") : t("submit")}
+                aria-busy={isSearching}
                 title={t("submit")}
                 className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground transition-[filter] duration-150 hover:brightness-110"
               >
-                <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M21 21l-4.35-4.35" />
-                </svg>
+                {isSearching ? <Spinner size={19} /> : <SearchIcon size={19} />}
               </button>
             </span>
           </div>
