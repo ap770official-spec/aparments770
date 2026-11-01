@@ -146,14 +146,24 @@ export default async function HomePage({
             </p>
           </div>
 
-          <SearchForm
-            defaultRegionSlug={defaultRegion?.slug ?? ""}
-            holidays={holidays}
-            initialCheckin={query.checkin}
-            initialCheckout={query.checkout}
-            initialGuests={guests}
-            currentQuery={currentQuery.toString()}
-          />
+          <div className="relative xl:max-w-[780px]">
+            {/* From xl the building passes behind the search: a soft cream
+                glow around the form clears the lines next to it. */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -inset-x-10 top-2 -bottom-6 hidden rounded-full bg-cream/85 blur-xl xl:block"
+            />
+            <div className="relative">
+              <SearchForm
+                defaultRegionSlug={defaultRegion?.slug ?? ""}
+                holidays={holidays}
+                initialCheckin={query.checkin}
+                initialCheckout={query.checkout}
+                initialGuests={guests}
+                currentQuery={currentQuery.toString()}
+              />
+            </div>
+          </div>
 
           <div className="mt-4 sm:mt-6">
             <SearchFilters

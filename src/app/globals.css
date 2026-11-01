@@ -169,12 +169,12 @@ body {
    edge is on the left in LTR and on the right in RTL. */
 @media (min-width: 80rem) {
   .hero-scene {
-    -webkit-mask-image: linear-gradient(to right, rgb(0 0 0 / 0.2), #000 34%);
-    mask-image: linear-gradient(to right, rgb(0 0 0 / 0.2), #000 34%);
+    -webkit-mask-image: linear-gradient(to right, rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.3) 24%, #000 50%);
+    mask-image: linear-gradient(to right, rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.3) 24%, #000 50%);
   }
   [dir="rtl"] .hero-scene {
-    -webkit-mask-image: linear-gradient(to left, rgb(0 0 0 / 0.2), #000 34%);
-    mask-image: linear-gradient(to left, rgb(0 0 0 / 0.2), #000 34%);
+    -webkit-mask-image: linear-gradient(to left, rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.3) 24%, #000 50%);
+    mask-image: linear-gradient(to left, rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.3) 24%, #000 50%);
   }
 }
 /* 3D: planes of the facade sit at different depths (translateZ). The
