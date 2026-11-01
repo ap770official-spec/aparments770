@@ -9,6 +9,7 @@ import ShareMenu from "@/components/ShareMenu";
 import PropertyGallery from "@/components/PropertyGallery";
 import PropertyAmenities from "@/components/PropertyAmenities";
 import BackToSearchLink from "@/components/BackToSearchLink";
+import PropertyFacts from "@/components/PropertyFacts";
 
 export const dynamic = "force-dynamic";
 
@@ -213,6 +214,8 @@ export default async function PropertyPage({
 
         <div className="mt-5 flex flex-col gap-8 px-4 pb-8 sm:mt-9 sm:grid sm:grid-cols-[2fr_1fr] sm:gap-11 sm:px-0">
           <div className="flex flex-col gap-7">
+            <PropertyFacts property={property} />
+
             {description && (
               <div className="flex flex-col gap-2.5 border-b border-[#E5DED3] pb-6">
                 <h2 className="text-lg font-bold text-ink sm:text-[19px]">
