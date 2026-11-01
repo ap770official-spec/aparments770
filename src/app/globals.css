@@ -78,6 +78,37 @@ button:not(:disabled):not([data-no-press]):active,
   scale: 0.97;
 }
 
+/* Search feedback: old results dim while the new search loads, then the
+   new cards rise in with a short stagger (≤ 8 steps, so it never drags). */
+.results-region {
+  transition: opacity 200ms var(--ease-out);
+}
+:root[data-searching] .results-region {
+  opacity: 0.45;
+  pointer-events: none;
+}
+@keyframes result-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes result-fade {
+  from {
+    opacity: 0;
+  }
+}
+.result-enter {
+  animation: result-in 360ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .result-enter {
+    animation-name: result-fade;
+    animation-duration: 200ms;
+  }
+}
+
 /* Translucent material for floating bars, solid when transparency is
    reduced (Apple: content scrolls under the chrome). */
 .material-bar {

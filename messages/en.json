@@ -78,7 +78,8 @@
     "selectCheckout": "Now select a check-out date",
     "guests": "Number of guests",
     "submit": "Search",
-    "dates": "Dates"
+    "dates": "Dates",
+    "searching": "Searching…"
   },
   "search": {
     "title": "Search results",

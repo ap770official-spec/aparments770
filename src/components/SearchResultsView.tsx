@@ -115,9 +115,12 @@ export default function SearchResultsView({
       </div>
 
       {view === "list" ? (
-        <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {properties.map((property) => (
+        // Keyed by the search so a new search replays the entrance.
+        <ul key={searchQuery} className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {properties.map((property, index) => (
             <PropertyCard
+              className="result-enter"
+              style={{ "--i": Math.min(index, 8) } as React.CSSProperties}
               key={property.id}
               property={property}
               detailHref={`/property/${property.id}?${searchQuery}`}

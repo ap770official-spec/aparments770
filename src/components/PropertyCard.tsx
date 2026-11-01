@@ -44,6 +44,7 @@ export default function PropertyCard({
   searchQuery,
   landmarkLabel,
   className,
+  style,
   onMouseEnter,
 }: {
   property: PropertySummary;
@@ -51,6 +52,7 @@ export default function PropertyCard({
   searchQuery?: string;
   landmarkLabel?: string;
   className?: string;
+  style?: React.CSSProperties;
   onMouseEnter?: () => void;
 }) {
   const t = useTranslations("search");
@@ -59,6 +61,7 @@ export default function PropertyCard({
 
   return (
     <li
+      style={style}
       onMouseEnter={onMouseEnter}
       className={`group relative flex flex-col overflow-hidden rounded-[14px] border border-line bg-white transition-shadow duration-200 ease-out focus-within:shadow-[0_0_0_2px_var(--ink)] [@media(hover:hover)]:hover:shadow-[0_6px_24px_rgba(26,21,18,0.10)] ${className ?? ""}`}
     >
