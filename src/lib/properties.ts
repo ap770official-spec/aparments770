@@ -110,18 +110,32 @@ export async function searchProperties({
   maxWalkingMinutes,
   checkin,
   checkout,
+  maxPrice,
+  minBedrooms,
+  amenityGroups,
+  sort = "distance",
 }: {
   regionId: string;
   guests: number;
   maxWalkingMinutes?: number;
+  maxPrice?: number | null;
+  minBedrooms?: number | null;
+  /** Each inner list is one required amenity, satisfied by any of its keys. */
+  amenityGroups?: string[][];
+  sort?: "distance" | "price_asc" | "price_desc";
   /** With checkout, hides listings not free for every night between. */
   checkin?: string;
   checkout?: string;
 }): Promise<PropertySummary[]> {
   const supabase = createPublicSupabaseClient();
+  const filterByAmenities = (amenityGroups?.length ?? 0) > 0;
   let query = supabase
     .from("properties")
-    .select(SUMMARY_COLUMNS)
+    .select(
+      filterByAmenities
+        ? `${SUMMARY_COLUMNS}, property_amenities(amenity_key)`
+        : SUMMARY_COLUMNS,
+    )
     .eq("region_id", regionId)
     .eq("approval_status", "approved")
     .neq("availability_mode", "fully_locked")
@@ -137,6 +151,12 @@ export async function searchProperties({
     );
   }
 
+  if (maxPrice != null) query = query.lte("price_per_night", maxPrice);
+  if (minBedrooms != null) query = query.gte("bedrooms", minBedrooms);
+
+  if (sort === "price_asc" || sort === "price_desc") {
+    query = query.order("price_per_night", { ascending: sort === "price_asc" });
+  }
   const { data, error } = await query
     .order("walking_minutes_to_landmark", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
@@ -145,7 +165,27 @@ export async function searchProperties({
     throw new Error(`Failed to search properties: ${error.message}`);
   }
 
-  const properties = data ?? [];
+  let properties = (data ?? []) as unknown as (PropertySummary & {
+    property_amenities?: { amenity_key: string }[];
+  })[];
+  if (filterByAmenities) {
+    // A handful of listings per region, so this runs in memory rather than
+    // as one PostgREST inner join per required amenity.
+    properties = properties
+      .filter((p) => {
+        const keys = new Set(
+          (p.property_amenities ?? []).map((a) => a.amenity_key),
+        );
+        return amenityGroups!.every((group) =>
+          group.some((key) => keys.has(key)),
+        );
+      })
+      .map((p) => {
+        const { property_amenities: _unused, ...summary } = p;
+        void _unused;
+        return summary;
+      });
+  }
   const nights =
     checkin && checkout && isIsoDate(checkin) && isIsoDate(checkout)
       ? stayNights(checkin, checkout)
