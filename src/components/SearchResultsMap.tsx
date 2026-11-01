@@ -5,31 +5,14 @@ import { useLocale, useTranslations } from "next-intl";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { PropertySummary } from "@/lib/properties";
+import {
+  HOUSE_ICON,
+  PIN_CLASS,
+  createLandmarkElement,
+  mapUiLocale,
+} from "@/lib/mapPins";
 
 type LocatedProperty = PropertySummary & { lat: number; lng: number };
-
-// House drawn in the pin next to the price: "an apartment is here".
-const HOUSE_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9v11h14V9"/><path d="M10 20v-5h4v5"/></svg>`;
-
-// The 770 building's three gables, so the landmark never reads as a listing.
-const LANDMARK_ICON = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 21h20"/><path d="M3 21V11l3-3 3 3v10"/><path d="M9 21V8l3-4 3 4v13"/><path d="M15 21V11l3-3 3 3v10"/><path d="M11 21v-4h2v4"/></svg>`;
-
-/**
- * Pin markup. The wrapper element is Mapbox's (it owns the
- * `mapboxgl-marker` class and the positioning transform), so all styling
- * and selection state live on the inner button - overwriting the wrapper's
- * className is what used to knock pins off their coordinates.
- */
-const PIN_CLASS = [
-  "relative flex h-9 items-center gap-1.5 rounded-full border px-2.5 text-[14px] font-bold whitespace-nowrap shadow-[0_2px_8px_rgba(0,0,0,0.18)] transition-colors duration-150",
-  "border-line bg-white text-ink",
-  "data-[selected=true]:border-brand data-[selected=true]:bg-brand data-[selected=true]:text-brand-foreground",
-  // Tail pointing at the exact spot.
-  "after:absolute after:start-1/2 after:top-full after:-mt-[5px] after:h-2.5 after:w-2.5 after:-translate-x-1/2 after:rotate-45 after:border-e after:border-b after:border-inherit after:bg-inherit after:content-[''] rtl:after:translate-x-1/2",
-  // Larger invisible hit area for fingers (the visible pin is 36px tall).
-  "before:absolute before:-inset-x-1 before:-inset-y-1.5 before:content-['']",
-  "[@media(hover:hover)]:hover:border-ink",
-].join(" ");
 
 export default function SearchResultsMap({
   properties,
@@ -87,13 +70,7 @@ export default function SearchResultsMap({
       // Page scroll passes over the map; zooming needs ctrl/⌘ + wheel and
       // panning on phones needs two fingers, with a hint when tried.
       cooperativeGestures: true,
-      locale: {
-        "NavigationControl.ZoomIn": t("mapZoomIn"),
-        "NavigationControl.ZoomOut": t("mapZoomOut"),
-        "ScrollZoomBlocker.CtrlMessage": t("mapCtrlScroll"),
-        "ScrollZoomBlocker.CmdMessage": t("mapCmdScroll"),
-        "TouchPanBlocker.Message": t("mapTwoFingers"),
-      },
+      locale: mapUiLocale(t),
     });
     mapRef.current = map;
     // Zoom buttons on the reading-end side, away from the list.
@@ -106,13 +83,7 @@ export default function SearchResultsMap({
 
     // Landmark first so property pins paint above it when they cluster.
     if (landmark) {
-      const el = document.createElement("div");
-      el.style.zIndex = "0";
-      el.innerHTML = `
-        <div class="flex flex-col items-center gap-1" role="img" aria-label="${landmarkLabel ?? "770"}">
-          <div class="flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-white bg-ink text-white shadow-[0_4px_14px_rgba(0,0,0,0.3)]">${LANDMARK_ICON}</div>
-          <span class="rounded-full bg-ink px-2.5 py-0.5 text-xs font-bold text-white">${landmarkLabel ?? "770"}</span>
-        </div>`;
+      const el = createLandmarkElement(landmarkLabel ?? "770");
       new mapboxgl.Marker({ element: el, anchor: "bottom" })
         .setLngLat([landmark.lng, landmark.lat])
         .addTo(map);
@@ -145,7 +116,12 @@ export default function SearchResultsMap({
     applySelection(selectedRef.current);
 
     if (located.length > 1 || landmark) {
-      map.fitBounds(bounds, { padding: 70, maxZoom: 16, duration: 0 });
+      map.fitBounds(bounds, {
+        // Extra top room: the 770 marker stands tall above its point.
+        padding: { top: 100, bottom: 50, left: 60, right: 60 },
+        maxZoom: 16,
+        duration: 0,
+      });
     }
 
     return () => {

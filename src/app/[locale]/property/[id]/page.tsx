@@ -248,15 +248,20 @@ export default async function PropertyPage({
                     </div>
                   )}
                   <Map
-                    className="h-40 w-full rounded-xl sm:h-52"
+                    className="h-60 w-full overflow-hidden rounded-xl sm:h-72"
                     markers={[
-                      { lat: property.lat!, lng: property.lng!, color: "#1A1512" },
+                      {
+                        lat: property.lat!,
+                        lng: property.lng!,
+                        kind: "home",
+                        label: property.address,
+                      },
                       ...(hasLandmarkLocation
                         ? [
                             {
                               lat: landmark.landmark_lat!,
                               lng: landmark.landmark_lng!,
-                              color: "#6F4E37",
+                              kind: "landmark" as const,
                               label: landmarkName,
                             },
                           ]
