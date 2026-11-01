@@ -151,7 +151,12 @@
     "notFoundTitle": "הדירה לא נמצאה",
     "notFoundCta": "חזרה לחיפוש דירות",
     "navigateWaze": "נווט ב-Waze",
-    "navigateGoogleMaps": "Google Maps"
+    "navigateGoogleMaps": "Google Maps",
+    "addDates": "הוספת תאריכים",
+    "chooseDates": "בחירה",
+    "changeDates": "שינוי",
+    "saveDates": "שמירה",
+    "nightsCount": "{count, plural, one {לילה אחד} other {# לילות}}"
   },
   "amenityCategories": {
     "kitchen": "מטבח",

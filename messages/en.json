@@ -151,7 +151,12 @@
     "notFoundTitle": "Apartment not found",
     "notFoundCta": "Back to apartment search",
     "navigateWaze": "Navigate with Waze",
-    "navigateGoogleMaps": "Google Maps"
+    "navigateGoogleMaps": "Google Maps",
+    "addDates": "Add dates",
+    "chooseDates": "Choose",
+    "changeDates": "Change",
+    "saveDates": "Save",
+    "nightsCount": "{count, plural, one {# night} other {# nights}}"
   },
   "amenityCategories": {
     "kitchen": "Kitchen",
