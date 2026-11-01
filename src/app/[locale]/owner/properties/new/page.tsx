@@ -1,6 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
-import { redirect } from "@/i18n/navigation";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { requireOwner } from "@/lib/owner-session";
 import { getActiveRegions, getDefaultRegion } from "@/lib/regions";
 import PropertyForm from "@/components/PropertyForm";
 
@@ -14,14 +13,10 @@ export default async function NewPropertyPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect({ href: "/owner/login", locale });
-  }
+  const { user, profile } = await requireOwner(
+    locale,
+    "/owner/properties/new",
+  );
 
   const [regions, defaultRegion] = await Promise.all([
     getActiveRegions(),
@@ -32,7 +27,15 @@ export default async function NewPropertyPage({
     <PropertyForm
       regions={regions}
       defaultRegionId={defaultRegion?.id ?? ""}
-      ownerId={user!.id}
+      ownerId={user.id}
+      defaultPhone={
+        profile.phone_country_code && profile.phone_number
+          ? {
+              countryCode: profile.phone_country_code,
+              number: profile.phone_number,
+            }
+          : undefined
+      }
     />
   );
 }

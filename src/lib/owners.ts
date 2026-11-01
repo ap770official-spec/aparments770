@@ -29,3 +29,54 @@ export async function ensureOwnerRow(
     throw new Error(`Failed to create owner: ${insertError.message}`);
   }
 }
+
+export type OwnerRole = "owner" | "manager" | "other";
+export type ReferralSource =
+  | "friend"
+  | "whatsapp"
+  | "google"
+  | "social"
+  | "ad"
+  | "other";
+
+export const OWNER_ROLES: OwnerRole[] = ["owner", "manager", "other"];
+export const REFERRAL_SOURCES: ReferralSource[] = [
+  "friend",
+  "whatsapp",
+  "google",
+  "social",
+  "ad",
+  "other",
+];
+
+export type OwnerProfile = {
+  first_name: string | null;
+  last_name: string | null;
+  phone_country_code: string | null;
+  phone_number: string | null;
+  owner_role: OwnerRole | null;
+  referral_source: ReferralSource | null;
+  referral_other: string | null;
+  terms_accepted_at: string | null;
+  profile_completed_at: string | null;
+};
+
+const PROFILE_COLUMNS =
+  "first_name, last_name, phone_country_code, phone_number, owner_role, referral_source, referral_other, terms_accepted_at, profile_completed_at";
+
+export async function getOwnerProfile(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<OwnerProfile | null> {
+  const { data, error } = await supabase
+    .from("owners")
+    .select(PROFILE_COLUMNS)
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load owner profile: ${error.message}`);
+  }
+
+  return data;
+}

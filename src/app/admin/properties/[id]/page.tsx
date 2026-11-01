@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import {
+  type AdminPropertyDetail,
   getAdminPropertyById,
   getPendingPropertyEdit,
 } from "@/lib/properties";
@@ -394,6 +395,7 @@ export default async function AdminPropertyDetailPage({
                   {property.phone_country_code} {property.phone_number}
                 </span>
               </p>
+              <OwnerDetails owner={property.owners} listingPhone={`${property.phone_country_code}${property.phone_number}`} />
               <div className="mt-4 flex flex-col gap-2">
                 <a
                   href={whatsappHref}
@@ -538,5 +540,75 @@ function ChatIcon() {
     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
     </svg>
+  );
+}
+
+/**
+ * What the owner filled in on the one-time details screen. The listing
+ * phone above is per property; the owner's own phone is only shown
+ * here when it differs.
+ */
+function OwnerDetails({
+  owner,
+  listingPhone,
+}: {
+  owner: AdminPropertyDetail["owners"];
+  listingPhone: string;
+}) {
+  if (!owner?.terms_accepted_at) {
+    return (
+      <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 ring-1 ring-inset ring-amber-600/25">
+        בעל הדירה עדיין לא השלים את הפרטים האישיים שלו.
+      </p>
+    );
+  }
+
+  const ownerPhone =
+    owner.phone_country_code && owner.phone_number
+      ? `${owner.phone_country_code}${owner.phone_number}`
+      : null;
+  const source = owner.referral_source
+    ? owner.referral_source === "other" && owner.referral_other
+      ? `${he.ownerProfile.sources.other}: ${owner.referral_other}`
+      : he.ownerProfile.sources[
+          owner.referral_source as keyof typeof he.ownerProfile.sources
+        ]
+    : "—";
+
+  const rows = [
+    ownerPhone && ownerPhone !== listingPhone
+      ? {
+          label: "טלפון אישי",
+          value: (
+            <span dir="ltr" className="inline-block">
+              {owner.phone_country_code} {owner.phone_number}
+            </span>
+          ),
+        }
+      : null,
+    {
+      label: "קשר לדירה",
+      value: owner.owner_role
+        ? he.ownerProfile.roles[
+            owner.owner_role as keyof typeof he.ownerProfile.roles
+          ]
+        : "—",
+    },
+    { label: "איך שמע עלינו", value: <bdi>{source}</bdi> },
+    {
+      label: "אישר תנאי שימוש",
+      value: formatAdminDate(new Date(owner.terms_accepted_at)),
+    },
+  ].filter((row) => row !== null);
+
+  return (
+    <dl className="mt-3 flex flex-col gap-2 border-t border-line pt-3 text-sm">
+      {rows.map((row) => (
+        <div key={row.label} className="flex items-baseline justify-between gap-3">
+          <dt className="text-ink-muted">{row.label}</dt>
+          <dd className="text-end font-semibold break-words text-ink">{row.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
