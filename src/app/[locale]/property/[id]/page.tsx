@@ -94,11 +94,10 @@ export default async function PropertyPage({
       : (property.description_en ?? property.description_he);
 
   const landmark = property.regions;
-  const landmarkName = landmark
-    ? locale === "he"
-      ? landmark.name_he
-      : landmark.name_en
-    : "";
+  // The walking-distance figure is always measured to 770 (the landmark
+  // coordinates stored on the region row) - label it "770", not the
+  // region's own name, matching PropertyCard/CompactPropertyCard/homepage.
+  const landmarkName = "770";
 
   const title = property.address;
 
