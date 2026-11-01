@@ -6,6 +6,12 @@ import SearchForm from "@/components/SearchForm";
 import SearchFilters from "@/components/SearchFilters";
 import SearchResultsView from "@/components/SearchResultsView";
 import FavoritesButton from "@/components/FavoritesButton";
+import HowItWorksSection from "@/components/HowItWorksSection";
+import FaqAccordion from "@/components/FaqAccordion";
+import { CONTACT_PHONE_DISPLAY, CONTACT_EMAIL } from "@/lib/contactInfo";
+
+type FaqItem = { q: string; a: string };
+type FaqGroup = { title: string; items: FaqItem[] };
 
 // Regions come from Supabase and can change (admin adds one) without a
 // redeploy, and the results list now depends on searchParams too -
@@ -29,6 +35,8 @@ export default async function HomePage({
   setRequestLocale(locale);
   const t = await getTranslations("home");
   const tSearch = await getTranslations("search");
+  const nav = await getTranslations("nav");
+  const tFaq = await getTranslations("faq");
   const regions = await getActiveRegions();
   const holidays = getUpcomingHebrewHolidays();
   const query = await searchParams;
@@ -53,6 +61,17 @@ export default async function HomePage({
   if (query.checkin) detailQuery.set("checkin", query.checkin);
   if (query.checkout) detailQuery.set("checkout", query.checkout);
   detailQuery.set("guests", String(guests));
+
+  const rawFaqGroups = tFaq.raw("groups") as FaqGroup[];
+  const faqGroups: FaqGroup[] = rawFaqGroups.map((group) => ({
+    title: group.title,
+    items: group.items.map((item) => ({
+      q: item.q,
+      a: item.a
+        .replace("{phone}", CONTACT_PHONE_DISPLAY)
+        .replace("{email}", CONTACT_EMAIL),
+    })),
+  }));
 
   return (
     <div className="flex flex-col">
@@ -118,6 +137,22 @@ export default async function HomePage({
               }}
             />
           )}
+        </div>
+      </section>
+
+      <HowItWorksSection />
+
+      <section id="faq" className="border-t border-border-soft">
+        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-10 sm:py-14">
+          <h2 className="font-serif-brand text-2xl font-bold text-ink sm:text-3xl">
+            {nav("faq")}
+          </h2>
+          <p className="mt-2 max-w-[560px] text-sm text-text-secondary">
+            {tFaq("intro")}
+          </p>
+          <div className="mt-6">
+            <FaqAccordion groups={faqGroups} />
+          </div>
         </div>
       </section>
     </div>

@@ -261,6 +261,22 @@
     "terms": "Terms of use",
     "copyright": "© Apartments770"
   },
+  "howItWorks": {
+    "steps": [
+      {
+        "title": "Search for an apartment",
+        "body": "Pick your dates and number of guests, and optionally filter by walking distance from 770."
+      },
+      {
+        "title": "Reach out directly on WhatsApp",
+        "body": "A ready-made message with all the details is sent automatically to the apartment owner."
+      },
+      {
+        "title": "Settle the details and enjoy",
+        "body": "Payment, dates, and every other detail are arranged directly with the owner — no fees, no middleman."
+      }
+    ]
+  },
   "faq": {
     "intro": "Answers to the questions we hear most often. Didn't find what you're looking for? You can always reach out to us directly.",
     "groups": [
