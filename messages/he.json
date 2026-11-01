@@ -75,7 +75,14 @@
     "viewDetails": "פרטים נוספים",
     "whatsappCta": "וואטסאפ",
     "noResultsForDates": "אין דירות פנויות בתאריכים האלה. נסו תאריכים אחרים או פחות לילות.",
-    "cardStayTotal": "סה״כ {total} ל-{nights, plural, one {לילה אחד} other {# לילות}}"
+    "cardStayTotal": "סה״כ {total} ל-{nights, plural, one {לילה אחד} other {# לילות}}",
+    "mapZoomIn": "הגדלה",
+    "mapZoomOut": "הקטנה",
+    "mapCtrlScroll": "כדי להגדיל או להקטין את המפה, גללו עם Ctrl לחוץ",
+    "mapCmdScroll": "כדי להגדיל או להקטין את המפה, גללו עם ⌘ לחוץ",
+    "mapTwoFingers": "כדי להזיז את המפה, השתמשו בשתי אצבעות",
+    "mapNoLocations": "לדירות בתוצאות האלה עדיין אין מיקום על המפה. אפשר לראות אותן בתצוגת הרשימה.",
+    "mapUnlocated": "{count, plural, one {דירה אחת לא מופיעה על המפה כי אין לה מיקום – היא מופיעה ברשימה.} other {# דירות לא מופיעות על המפה כי אין להן מיקום – הן מופיעות ברשימה.}}"
   },
   "favorites": {
     "add": "הוסף למועדפים",
@@ -104,8 +111,8 @@
     "notFound": "הדירה לא נמצאה, או שאינה זמינה יותר.",
     "back": "חזרה",
     "backToSearch": "חזרה לתוצאות החיפוש",
-    "roomsGuestsLine": "{rooms} חדרים · עד {guests} אורחים",
-    "roomsOnlyLine": "{rooms} חדרים",
+    "roomsGuestsLine": "{rooms, plural, one {חדר אחד} other {# חדרים}} · {guests, plural, one {אורח אחד} other {עד # אורחים}}",
+    "roomsOnlyLine": "{rooms, plural, one {חדר אחד} other {# חדרים}}",
     "walkingTimePill": "{minutes} דק׳ הליכה מ{landmark}",
     "walkingDistanceTitle": "מרחק הליכה מ{landmark}",
     "walkingTimeApprox": "כ-{minutes} דקות הליכה מ{landmark}",
