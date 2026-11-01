@@ -1,4 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { listingTitle, capacityLine, shortAddress } from "@/lib/listingText";
+import { AddressPinIcon } from "@/components/PropertyCard";
 import { getPropertyById, getPropertyAvailability } from "@/lib/properties";
 import { getWalkingDirections } from "@/lib/mapbox";
 import { getUpcomingHebrewHolidays } from "@/lib/hebrewHolidays";
@@ -99,7 +101,11 @@ export default async function PropertyPage({
   // region's own name, matching PropertyCard/CompactPropertyCard/homepage.
   const landmarkName = "770";
 
-  const title = property.address;
+  // Headline is what you get ("Apartment · 3 bedrooms"); the address sits
+  // under it, without the city/state/country tail every listing shares.
+  const title = listingTitle(t, property);
+  const displayAddress = shortAddress(property.address, 2);
+  const shareText = `${title} · ${shortAddress(property.address)}`;
 
   const hasPropertyLocation = property.lat != null && property.lng != null;
   const hasLandmarkLocation =
@@ -146,7 +152,7 @@ export default async function PropertyPage({
             <PropertyGallery
               photos={photos}
               propertyId={property.id}
-              shareText={title}
+              shareText={shareText}
             />
           </div>
 
@@ -155,16 +161,17 @@ export default async function PropertyPage({
               <h1 className="font-serif-brand text-xl font-bold leading-tight text-ink sm:text-[32px]">
                 {title}
               </h1>
-              <div className="flex flex-wrap items-center gap-2 text-[15px] text-ink-soft">
-                <span>
-                  {property.max_guests !== null
-                    ? t("roomsGuestsLine", {
-                        rooms: property.bedrooms,
-                        guests: property.max_guests,
-                      })
-                    : t("roomsOnlyLine", { rooms: property.bedrooms })}
+              <p className="flex items-start gap-1.5 text-[15px] text-ink-soft">
+                <span className="pt-[3px]">
+                  <AddressPinIcon />
                 </span>
-              </div>
+                <span>
+                  <bdi>{displayAddress}</bdi>
+                </span>
+              </p>
+              <p className="text-[15px] text-ink-soft">
+                {capacityLine(t, property)}
+              </p>
               {walking && landmark && (
                 <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white">
                   <svg
@@ -189,7 +196,7 @@ export default async function PropertyPage({
             <div className="hidden shrink-0 items-center gap-2.5 sm:flex">
               <FavoriteButton propertyId={property.id} showLabel />
               <ShareMenu
-                shareText={title}
+                shareText={shareText}
                 buttonClassName="flex h-11 w-11 items-center justify-center rounded-full border border-ink"
               />
             </div>

@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { listingTitle, capacityLine, shortAddress } from "@/lib/listingText";
 import { Link } from "@/i18n/navigation";
 import { mainMedia, type PropertySummary } from "@/lib/properties";
 import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
@@ -64,6 +65,27 @@ export function CardMedia({
   );
 }
 
+/** Small map pin in front of a listing's address line. */
+export function AddressPinIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="shrink-0"
+    >
+      <path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11z" />
+      <circle cx="12" cy="10" r="2.2" />
+    </svg>
+  );
+}
+
 export default function PropertyCard({
   property,
   detailHref,
@@ -114,16 +136,17 @@ export default function PropertyCard({
             href={detailHref}
             className="outline-none after:absolute after:inset-0 after:content-['']"
           >
-            {property.address}
+            {listingTitle(tProperty, property)}
           </Link>
         </h3>
-        <p className="text-[15px] text-ink-soft">
-          {property.max_guests !== null
-            ? tProperty("roomsGuestsLine", {
-                rooms: property.bedrooms,
-                guests: property.max_guests,
-              })
-            : tProperty("roomsOnlyLine", { rooms: property.bedrooms })}
+        <p className="flex min-w-0 items-center gap-1 text-sm text-ink-soft">
+          <AddressPinIcon />
+          <span dir="auto" className="truncate" title={property.address}>
+            {shortAddress(property.address)}
+          </span>
+        </p>
+        <p className="text-sm text-ink-soft">
+          {capacityLine(tProperty, property)}
         </p>
         <div className="mt-auto flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pt-2">
           <span className="flex items-baseline gap-1">
