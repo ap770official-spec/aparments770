@@ -197,6 +197,15 @@ create policy "Owners can update their own properties"
   using (owner_id = auth.uid())
   with check (owner_id = auth.uid());
 
+-- Added 2026-11-01 (owner deletes a listing from their dashboard) - see
+-- docs/handoff-2026-11-01-owner-delete-sql.md. Amenities, photos,
+-- availability and pending edits go with it via on delete cascade.
+create policy "Owners can delete their own properties"
+  on public.properties
+  for delete
+  to authenticated
+  using (owner_id = auth.uid());
+
 
 -- =========================================================
 -- 4. property_amenities

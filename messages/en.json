@@ -238,6 +238,16 @@
       "paused": "Paused and not shown on the site",
       "open": "Open all year · {count, plural, =0 {no nights taken} one {1 night taken} other {# nights taken}}",
       "closed": "On chosen dates · {count, plural, =0 {no free nights} one {1 free night} other {# free nights}}"
+    },
+    "deleteProperty": {
+      "button": "Delete apartment",
+      "title": "Delete this apartment for good?",
+      "body": "All of its details, photos and availability will be deleted, and it will leave the site right away. It can't be restored afterwards.",
+      "pauseHint": "Just want to hide it for a while? You can <link>pause it in the availability calendar</link>.",
+      "confirm": "Delete for good",
+      "deleting": "Deleting…",
+      "cancel": "Cancel",
+      "error": "Couldn't delete it. Please try again in a moment."
     }
   },
   "propertyForm": {

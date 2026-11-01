@@ -12,6 +12,7 @@ import { optimizedCloudinaryUrl } from "@/lib/cloudinary";
 import LogoutButton from "@/components/LogoutButton";
 import { getAvailabilityDates, groupAvailability } from "@/lib/availability";
 import EditSentDialog from "@/components/EditSentDialog";
+import DeletePropertyButton from "@/components/DeletePropertyButton";
 
 export const dynamic = "force-dynamic";
 
@@ -448,6 +449,10 @@ export default async function OwnerDashboardPage({
                         >
                           {t("edit")}
                         </Link>
+                        <DeletePropertyButton
+                          propertyId={property.id}
+                          address={property.address}
+                        />
                       </div>
                     </div>
                   </li>
