@@ -5,6 +5,7 @@ import { searchProperties } from "@/lib/properties";
 import { isIsoDate } from "@/lib/availability";
 import { formatHebrewDateShort } from "@/lib/hebrewDate";
 import SearchForm from "@/components/SearchForm";
+import HeroVisual from "@/components/home/HeroVisual";
 import SearchFilters from "@/components/SearchFilters";
 import SearchResultsView from "@/components/SearchResultsView";
 import FavoritesButton from "@/components/FavoritesButton";
@@ -124,8 +125,11 @@ export default async function HomePage({
           aria-hidden="true"
           className="pointer-events-none absolute -bottom-48 -start-32 -z-10 h-[420px] w-[420px] rounded-full bg-white/70 blur-3xl"
         />
-        <div className="mx-auto max-w-6xl px-4 pt-10 pb-8 sm:px-10 sm:pt-16 sm:pb-12">
-          <div className="flex flex-col items-start gap-3 sm:gap-4">
+        {/* One grid so the hero card is rendered once: after the search on
+            phones (the search stays above the fold), beside the headline
+            from lg up. */}
+        <div className="mx-auto grid max-w-6xl px-4 pt-10 pb-8 sm:px-10 sm:pt-16 sm:pb-12 lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-x-12">
+          <div className="flex flex-col items-start gap-3 sm:gap-4 lg:col-start-1 lg:row-start-1 lg:self-center">
             <span className="flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1.5 text-[13px] font-semibold text-brand ring-1 ring-line">
               <PinIcon />
               {t("eyebrow")}
@@ -138,27 +142,34 @@ export default async function HomePage({
             </p>
           </div>
 
-          <SearchForm
-            defaultRegionSlug={defaultRegion?.slug ?? ""}
-            holidays={holidays}
-            initialCheckin={query.checkin}
-            initialCheckout={query.checkout}
-            initialGuests={guests}
-            currentQuery={currentQuery.toString()}
+          <HeroVisual
+            alt={t("heroImageAlt")}
+            className="order-last mt-6 sm:max-w-[560px] lg:order-none lg:col-start-2 lg:row-start-1 lg:mt-0 lg:max-w-none"
           />
 
-          <div className="mt-4 sm:mt-6">
-            <SearchFilters
-              region={region?.slug ?? defaultRegion?.slug ?? ""}
-              checkin={query.checkin}
-              checkout={query.checkout}
-              guests={guests}
-              activeMaxWalking={maxWalking}
-              filters={filters}
+          <div className="lg:col-span-2">
+            <SearchForm
+              defaultRegionSlug={defaultRegion?.slug ?? ""}
+              holidays={holidays}
+              initialCheckin={query.checkin}
+              initialCheckout={query.checkout}
+              initialGuests={guests}
+              currentQuery={currentQuery.toString()}
             />
-          </div>
 
-          <HomeTrustStrip />
+            <div className="mt-4 sm:mt-6">
+              <SearchFilters
+                region={region?.slug ?? defaultRegion?.slug ?? ""}
+                checkin={query.checkin}
+                checkout={query.checkout}
+                guests={guests}
+                activeMaxWalking={maxWalking}
+                filters={filters}
+              />
+            </div>
+
+            <HomeTrustStrip />
+          </div>
         </div>
       </section>
 
