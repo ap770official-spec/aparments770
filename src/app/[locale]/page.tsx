@@ -11,6 +11,12 @@ import FavoritesButton from "@/components/FavoritesButton";
 import SortSelect from "@/components/SortSelect";
 import { Link } from "@/i18n/navigation";
 import {
+  HomeTrustStrip,
+  HomeHowItWorks,
+  HomeOwnerCta,
+  PinIcon,
+} from "@/components/home/HomeSections";
+import {
   parseResultFilters,
   applyResultFilters,
   activeFilterCount,
@@ -108,13 +114,26 @@ export default async function HomePage({
 
   return (
     <div className="flex flex-col">
-      <section className="border-b border-[#E5DED3] bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-9 sm:px-10 sm:py-14">
-          <div className="flex flex-col gap-2 sm:gap-2.5">
-            <h1 className="font-serif-brand text-2xl font-bold leading-tight text-ink sm:text-[42px]">
+      <section className="relative isolate overflow-hidden border-b border-line bg-cream">
+        {/* Soft warm light from the top corner - decoration only. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-40 -end-40 -z-10 h-[520px] w-[520px] rounded-full bg-gold-soft/25 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-48 -start-32 -z-10 h-[420px] w-[420px] rounded-full bg-white/70 blur-3xl"
+        />
+        <div className="mx-auto max-w-6xl px-4 pt-10 pb-8 sm:px-10 sm:pt-16 sm:pb-12">
+          <div className="flex flex-col items-start gap-3 sm:gap-4">
+            <span className="flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1.5 text-[13px] font-semibold text-brand ring-1 ring-line">
+              <PinIcon />
+              {t("eyebrow")}
+            </span>
+            <h1 className="font-serif-brand text-[32px] leading-[1.1] font-bold text-balance text-ink sm:text-[56px]">
               {t("title")}
             </h1>
-            <p className="max-w-[560px] text-[13px] text-[#5C5349] sm:text-[17px]">
+            <p className="max-w-[560px] text-[15px] leading-relaxed text-ink-soft sm:text-[18px]">
               {t("about")}
             </p>
           </div>
@@ -138,13 +157,15 @@ export default async function HomePage({
               filters={filters}
             />
           </div>
+
+          <HomeTrustStrip />
         </div>
       </section>
 
       <section className="flex-1">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-10 sm:py-10">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3 sm:mb-6">
-            <h2 className="text-base font-bold text-ink sm:text-xl">
+            <h2 className="font-serif-brand text-xl font-bold text-ink sm:text-[28px]">
               {hasDates
                 ? t("resultsCountForDates", {
                     count: properties.length,
@@ -200,6 +221,9 @@ export default async function HomePage({
           )}
         </div>
       </section>
+
+      <HomeHowItWorks />
+      <HomeOwnerCta />
     </div>
   );
 }

@@ -247,7 +247,7 @@ export default function SearchForm({
   return (
     <form onSubmit={handleSubmit} className="mt-8 sm:max-w-[780px]">
       {/* ---------- Mobile: compact card, picking happens in a sheet ---------- */}
-      <div className="overflow-hidden rounded-2xl border border-ink shadow-[0_2px_14px_rgba(26,21,18,0.05)] sm:hidden">
+      <div className="overflow-hidden rounded-2xl border border-ink bg-white shadow-[0_6px_24px_rgba(26,21,18,0.08)] sm:hidden">
         <button
           type="button"
           onClick={openSheet}
@@ -364,7 +364,7 @@ export default function SearchForm({
 
       {/* ---------- Desktop: pill with a calendar popover ---------- */}
       <div ref={fieldRef} className="relative hidden sm:block">
-        <div className="flex items-stretch divide-x divide-line rounded-full border border-ink shadow-[0_2px_14px_rgba(26,21,18,0.05)] rtl:divide-x-reverse">
+        <div className="flex items-stretch divide-x divide-line rounded-full border border-ink bg-white shadow-[0_8px_30px_rgba(26,21,18,0.08)] rtl:divide-x-reverse">
           {(["checkin", "checkout"] as const).map((field) => {
             const date = field === "checkin" ? range?.from : range?.to;
             return (

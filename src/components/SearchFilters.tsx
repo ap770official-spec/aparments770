@@ -24,7 +24,7 @@ function chipClass(active: boolean): string {
   return `flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold whitespace-nowrap transition-colors duration-150 ${
     active
       ? "border-brand bg-brand text-brand-foreground"
-      : "border-line text-ink [@media(hover:hover)]:hover:border-ink"
+      : "border-line bg-white text-ink [@media(hover:hover)]:hover:border-ink"
   }`;
 }
 
