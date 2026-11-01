@@ -8,6 +8,15 @@ import SearchForm from "@/components/SearchForm";
 import SearchFilters from "@/components/SearchFilters";
 import SearchResultsView from "@/components/SearchResultsView";
 import FavoritesButton from "@/components/FavoritesButton";
+import SortSelect from "@/components/SortSelect";
+import { Link } from "@/i18n/navigation";
+import {
+  parseResultFilters,
+  applyResultFilters,
+  activeFilterCount,
+  amenityKeyGroups,
+  EMPTY_FILTERS,
+} from "@/lib/searchFilters";
 
 // Regions come from Supabase and can change (admin adds one) without a
 // redeploy, and the results list now depends on searchParams too -
@@ -33,6 +42,10 @@ export default async function HomePage({
     checkout?: string;
     guests?: string;
     maxWalking?: string;
+    maxPrice?: string;
+    minRooms?: string;
+    amenities?: string;
+    sort?: string;
   }>;
 }) {
   const { locale } = await params;
@@ -50,6 +63,7 @@ export default async function HomePage({
     : defaultRegion;
   const guests = Number(query.guests) || 1;
   const maxWalking = query.maxWalking ? Number(query.maxWalking) : null;
+  const filters = parseResultFilters(query);
 
   const properties = region
     ? await searchProperties({
@@ -60,8 +74,24 @@ export default async function HomePage({
         // dates must filter out listings that aren't free for the stay.
         checkin: query.checkin,
         checkout: query.checkout,
+        maxPrice: filters.maxPrice,
+        minBedrooms: filters.minRooms,
+        amenityGroups: amenityKeyGroups(filters.amenities),
+        sort: filters.sort,
       })
     : [];
+
+  // The page's own query, for controls that change one param and keep the
+  // rest (sort, "clear filters").
+  const currentQuery = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (typeof value === "string" && value) currentQuery.set(key, value);
+  }
+  const hasFilters = activeFilterCount(filters) > 0;
+  const clearFiltersHref = `/?${applyResultFilters(currentQuery, {
+    ...EMPTY_FILTERS,
+    sort: filters.sort,
+  }).toString()}`;
 
   // "Available" is only a claim we can make once dates were searched.
   const hasDates = Boolean(
@@ -101,6 +131,7 @@ export default async function HomePage({
               checkout={query.checkout}
               guests={guests}
               activeMaxWalking={maxWalking}
+              filters={filters}
             />
           </div>
         </div>
@@ -117,23 +148,34 @@ export default async function HomePage({
                   })
                 : t("resultsCount", { count: properties.length })}
             </h2>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               <FavoritesButton />
-              <div className="hidden items-center gap-2 text-sm text-[#5C5349] sm:flex">
-                <span>{t("sortLabel")}</span>
-                <span className="font-semibold text-ink">
-                  {t("sortByDistance")}
-                </span>
-              </div>
+              <SortSelect
+                value={filters.sort}
+                currentQuery={currentQuery.toString()}
+              />
             </div>
           </div>
 
           {properties.length === 0 ? (
-            <p className="text-ink-soft">
-              {query.checkin && query.checkout
-                ? tSearch("noResultsForDates")
-                : tSearch("noResults")}
-            </p>
+            <div className="flex flex-col items-start gap-3">
+              <p className="text-[15px] text-ink-soft">
+                {hasFilters
+                  ? t("noResultsForFilters")
+                  : query.checkin && query.checkout
+                    ? tSearch("noResultsForDates")
+                    : tSearch("noResults")}
+              </p>
+              {hasFilters && (
+                <Link
+                  href={clearFiltersHref}
+                  scroll={false}
+                  className="flex min-h-11 items-center rounded-[10px] border border-ink px-4 text-[15px] font-semibold text-ink"
+                >
+                  {t("filtersClearAll")}
+                </Link>
+              )}
+            </div>
           ) : (
             <SearchResultsView
               properties={properties}
