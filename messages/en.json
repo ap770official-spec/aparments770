@@ -53,7 +53,8 @@
     "mapView": "Map",
     "perNight": "per night",
     "viewDetails": "View details",
-    "whatsappCta": "WhatsApp"
+    "whatsappCta": "WhatsApp",
+    "noResultsForDates": "No apartments are free on these dates. Try other dates or fewer nights."
   },
   "favorites": {
     "add": "Add to favorites",
@@ -140,7 +141,11 @@
     "copyPhone": "Copy",
     "phoneCopied": "Copied",
     "contactClose": "Close",
-    "copyPhoneLabel": "Copy number"
+    "copyPhoneLabel": "Copy number",
+    "bookedLegend": "<s>12</s> Struck-through dates are taken",
+    "notEnoughFreeNights": "There aren't {count} free nights in a row from this date. Pick another check-in",
+    "searchDatesUnavailable": "This apartment isn't free on the dates from your search. Pick other dates in the calendar.",
+    "searchDatesTooShort": "This apartment has a {count}-night minimum, so your search dates weren't applied. Pick dates in the calendar."
   },
   "amenityCategories": {
     "kitchen": "Kitchen",

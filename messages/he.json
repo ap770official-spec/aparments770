@@ -53,7 +53,8 @@
     "mapView": "מפה",
     "perNight": "ללילה",
     "viewDetails": "פרטים נוספים",
-    "whatsappCta": "וואטסאפ"
+    "whatsappCta": "וואטסאפ",
+    "noResultsForDates": "אין דירות פנויות בתאריכים האלה. נסו תאריכים אחרים או פחות לילות."
   },
   "favorites": {
     "add": "הוסף למועדפים",
@@ -140,7 +141,11 @@
     "copyPhone": "העתקה",
     "phoneCopied": "הועתק",
     "contactClose": "סגירה",
-    "copyPhoneLabel": "העתקת המספר"
+    "copyPhoneLabel": "העתקת המספר",
+    "bookedLegend": "<s>12</s> תאריך עם קו חוצה – תפוס",
+    "notEnoughFreeNights": "אין {count} לילות פנויים ברצף מהתאריך הזה. בחרו תאריך כניסה אחר",
+    "searchDatesUnavailable": "הדירה לא פנויה בתאריכים שבחרת בחיפוש. בחרו תאריכים אחרים בלוח.",
+    "searchDatesTooShort": "בדירה הזו מינימום {count} לילות, לכן התאריכים מהחיפוש לא נבחרו. בחרו תאריכים בלוח."
   },
   "amenityCategories": {
     "kitchen": "מטבח",

@@ -6,6 +6,8 @@ import {
   isAvailableForNights,
   isIsoDate,
   stayNights,
+  addDays,
+  type AvailabilityStatus,
 } from "@/lib/availability";
 
 export type PropertyPhoto = {
@@ -241,6 +243,30 @@ export async function getPropertyById(
   }
 
   return data as unknown as PropertyDetail | null;
+}
+
+/** How far ahead the guest-facing calendar offers (and loads) dates. */
+const BOOKING_WINDOW_DAYS = 365;
+
+/**
+ * Owner-marked nights for one listing over the guest booking window,
+ * as a plain object so it can be passed to the client calendar.
+ */
+export async function getPropertyAvailability(propertyId: string): Promise<{
+  exceptions: Record<string, AvailabilityStatus>;
+  until: string;
+}> {
+  const today = new Date().toISOString().slice(0, 10);
+  const until = addDays(today, BOOKING_WINDOW_DAYS);
+  const rows = await getAvailabilityDates(
+    createPublicSupabaseClient(),
+    [propertyId],
+    today,
+    until,
+  );
+  const exceptions: Record<string, AvailabilityStatus> = {};
+  for (const row of rows) exceptions[row.date] = row.status;
+  return { exceptions, until };
 }
 
 export type AdminPropertyDetail = PropertyDetail & {
