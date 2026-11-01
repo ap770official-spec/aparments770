@@ -14,6 +14,7 @@ import { Link } from "@/i18n/navigation";
 import {
   HomeTrustStrip,
   HomeHowItWorks,
+  HomeFaq,
   HomeOwnerCta,
   PinIcon,
 } from "@/components/home/HomeSections";
@@ -244,6 +245,7 @@ export default async function HomePage({
       </section>
 
       <HomeHowItWorks />
+      <HomeFaq />
       <HomeOwnerCta />
     </div>
   );

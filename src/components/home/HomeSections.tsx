@@ -1,5 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import FaqAccordion from "@/components/FaqAccordion";
+import { CONTACT_PHONE_DISPLAY, CONTACT_EMAIL } from "@/lib/contactInfo";
+
+type FaqItem = { q: string; a: string };
+type FaqGroup = { title: string; items: FaqItem[] };
 
 const iconProps = {
   width: 18,
@@ -77,7 +82,11 @@ export async function HomeHowItWorks() {
   const t = await getTranslations("home");
   const steps = [1, 2, 3] as const;
   return (
-    <section aria-labelledby="how-title" className="border-t border-line bg-cream">
+    <section
+      id="how-it-works"
+      aria-labelledby="how-title"
+      className="scroll-mt-4 border-t border-line bg-cream"
+    >
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-10 sm:py-20">
         <div className="flex flex-col gap-2">
           <h2
@@ -111,6 +120,47 @@ export async function HomeHowItWorks() {
             </li>
           ))}
         </ol>
+      </div>
+    </section>
+  );
+}
+
+export async function HomeFaq() {
+  const t = await getTranslations("nav");
+  const tFaq = await getTranslations("faq");
+
+  const rawGroups = tFaq.raw("groups") as FaqGroup[];
+  const groups: FaqGroup[] = rawGroups.map((group) => ({
+    title: group.title,
+    items: group.items.map((item) => ({
+      q: item.q,
+      a: item.a
+        .replace("{phone}", CONTACT_PHONE_DISPLAY)
+        .replace("{email}", CONTACT_EMAIL),
+    })),
+  }));
+
+  return (
+    <section
+      id="faq"
+      aria-labelledby="faq-title"
+      className="scroll-mt-4 border-t border-line bg-cream"
+    >
+      <div className="mx-auto max-w-3xl px-4 py-14 sm:px-10 sm:py-20">
+        <div className="flex flex-col gap-2">
+          <h2
+            id="faq-title"
+            className="font-serif-brand text-2xl font-bold text-balance text-ink sm:text-[34px]"
+          >
+            {t("faq")}
+          </h2>
+          <p className="text-[15px] text-ink-soft sm:text-[17px]">
+            {tFaq("intro")}
+          </p>
+        </div>
+        <div className="mt-8 sm:mt-10">
+          <FaqAccordion groups={groups} />
+        </div>
       </div>
     </section>
   );

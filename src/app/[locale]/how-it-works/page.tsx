@@ -1,5 +1,4 @@
-import { getTranslations, setRequestLocale } from "next-intl/server";
-import ComingSoonPage from "@/components/ComingSoonPage";
+import { redirect } from "next/navigation";
 
 export default async function HowItWorksPage({
   params,
@@ -7,7 +6,5 @@ export default async function HowItWorksPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  setRequestLocale(locale);
-  const t = await getTranslations("nav");
-  return <ComingSoonPage title={t("howItWorks")} />;
+  redirect(`/${locale}#how-it-works`);
 }
