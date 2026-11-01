@@ -19,6 +19,7 @@ import "react-day-picker/style.css";
 import { useRouter } from "@/i18n/navigation";
 import type { HolidayMarker } from "@/lib/hebrewHolidays";
 import { formatDisplayDate, formatShortDate } from "@/lib/displayDate";
+import { useBottomSheet } from "@/lib/useBottomSheet";
 
 const MAX_GUESTS = 20;
 const SEARCH_WINDOW_DAYS = 365;
@@ -38,11 +39,6 @@ function parseISODate(value: string | undefined): Date | undefined {
 
 function nightsBetween(from: Date, to: Date): number {
   return Math.round((to.getTime() - from.getTime()) / 86_400_000);
-}
-
-/** A modal dialog doesn't stop the page behind it from scrolling. */
-function setPageScrollLocked(locked: boolean) {
-  document.documentElement.style.overflow = locked ? "hidden" : "";
 }
 
 function GuestStepper({
@@ -178,7 +174,14 @@ export default function SearchForm({
   );
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const fieldRef = useRef<HTMLDivElement>(null);
-  const sheetRef = useRef<HTMLDialogElement>(null);
+  const {
+    dialogRef: sheetRef,
+    open: openSheet,
+    close: closeSheet,
+    onDialogClose,
+    onDialogClick,
+    dragHandlers,
+  } = useBottomSheet();
   const sheetTitleId = useId();
   const hasRange = Boolean(range?.from && range?.to);
 
@@ -199,8 +202,6 @@ export default function SearchForm({
     };
   }, [isCalendarOpen]);
 
-  useEffect(() => () => setPageScrollLocked(false), []);
-
   function search() {
     if (!range?.from || !range?.to) return;
     const params = new URLSearchParams(currentQuery);
@@ -209,11 +210,6 @@ export default function SearchForm({
     params.set("checkout", toISODate(range.to));
     params.set("guests", String(guests));
     router.push(`/?${params.toString()}`);
-  }
-
-  function openSheet() {
-    setPageScrollLocked(true);
-    sheetRef.current?.showModal();
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -297,14 +293,13 @@ export default function SearchForm({
       <dialog
         ref={sheetRef}
         aria-labelledby={sheetTitleId}
-        onClose={() => setPageScrollLocked(false)}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) event.currentTarget.close();
-        }}
+        onClose={onDialogClose}
+        onClick={onDialogClick}
         className="fixed inset-x-0 top-auto bottom-0 m-0 max-h-[92dvh] w-full max-w-none rounded-t-2xl bg-white p-0 text-ink translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] backdrop:bg-black/40 starting:translate-y-full motion-reduce:transition-opacity motion-reduce:starting:translate-y-0 motion-reduce:starting:opacity-0 sm:hidden"
       >
         <div className="flex max-h-[92dvh] flex-col">
-          <div className="flex shrink-0 flex-col gap-2 px-4 pt-3">
+          {/* Grabber + title: drag down to dismiss. */}
+          <div {...dragHandlers} className="flex shrink-0 cursor-grab flex-col gap-2 px-4 pt-3">
             <span className="mx-auto h-1 w-10 rounded-full bg-line" aria-hidden="true" />
             <div className="flex items-center justify-between gap-3">
               <h2 id={sheetTitleId} className="text-lg font-bold">
@@ -312,7 +307,7 @@ export default function SearchForm({
               </h2>
               <button
                 type="button"
-                onClick={() => sheetRef.current?.close()}
+                onClick={closeSheet}
                 aria-label={tProperty("contactClose")}
                 className="-me-2 flex h-11 w-11 items-center justify-center rounded-full hover:bg-canvas"
               >
@@ -351,7 +346,7 @@ export default function SearchForm({
               type="button"
               disabled={!hasRange}
               onClick={() => {
-                sheetRef.current?.close();
+                closeSheet();
                 search();
               }}
               className="flex min-h-12 items-center justify-center gap-2 rounded-[10px] bg-brand px-7 text-base font-bold text-brand-foreground disabled:bg-line disabled:text-ink-soft"

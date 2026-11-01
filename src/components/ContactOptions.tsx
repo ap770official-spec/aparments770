@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useId, useState } from "react";
+import { useBottomSheet } from "@/lib/useBottomSheet";
 import { useTranslations } from "next-intl";
 
 export type ContactDetails = {
@@ -47,7 +48,7 @@ function ContactChoices({ details }: { details: ContactDetails }) {
         href={details.whatsappLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex min-h-12 items-center justify-center gap-2 rounded-[10px] bg-accent-whatsapp px-4 py-3 text-base font-bold text-white transition-[filter] duration-150 hover:brightness-110"
+        className="press flex min-h-12 items-center justify-center gap-2 rounded-[10px] bg-accent-whatsapp px-4 py-3 text-base font-bold text-white transition-[filter] duration-150 hover:brightness-110"
       >
         <WhatsAppIcon size={18} />
         {t("contactWhatsApp")}
@@ -77,7 +78,7 @@ function ContactChoices({ details }: { details: ContactDetails }) {
         <div className="grid grid-cols-2 gap-2">
           <a
             href={details.telLink}
-            className="flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-ink px-3 text-[15px] font-bold text-white transition-[filter] duration-150 hover:brightness-125"
+            className="press flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-ink px-3 text-[15px] font-bold text-white transition-[filter] duration-150 hover:brightness-125"
           >
             <PhoneIcon size={16} />
             {t("contactCall")}
@@ -153,14 +154,21 @@ export function ContactSheetButton({
   className?: string;
 }) {
   const t = useTranslations("property");
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const {
+    dialogRef,
+    open,
+    close,
+    onDialogClose,
+    onDialogClick,
+    dragHandlers,
+  } = useBottomSheet();
   const titleId = useId();
 
   return (
     <>
       <button
         type="button"
-        onClick={() => dialogRef.current?.showModal()}
+        onClick={open}
         aria-haspopup="dialog"
         className={className ?? CTA_CLASS}
       >
@@ -169,14 +177,13 @@ export function ContactSheetButton({
       <dialog
         ref={dialogRef}
         aria-labelledby={titleId}
-        // A click on the dialog element itself (not its content) is a click
-        // on the backdrop.
-        onClick={(event) => {
-          if (event.target === event.currentTarget) event.currentTarget.close();
-        }}
+        onClose={onDialogClose}
+        onClick={onDialogClick}
         className="fixed inset-x-0 top-auto bottom-0 m-0 max-h-[85dvh] w-full max-w-none rounded-t-2xl bg-white p-0 text-ink translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] backdrop:bg-black/40 starting:translate-y-full motion-reduce:transition-opacity motion-reduce:starting:translate-y-0 motion-reduce:starting:opacity-0"
       >
         <div className="flex flex-col gap-4 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          {/* Grabber + title: drag down to dismiss. */}
+          <div {...dragHandlers} className="-mx-4 -mt-3 flex cursor-grab flex-col gap-4 px-4 pt-3">
           <span className="mx-auto h-1 w-10 rounded-full bg-line" aria-hidden="true" />
           <div className="flex items-center justify-between gap-3">
             <h2 id={titleId} className="text-lg font-bold text-ink">
@@ -184,7 +191,7 @@ export function ContactSheetButton({
             </h2>
             <button
               type="button"
-              onClick={() => dialogRef.current?.close()}
+              onClick={close}
               aria-label={t("contactClose")}
               className="-me-2 flex h-11 w-11 items-center justify-center rounded-full text-ink hover:bg-canvas"
             >
@@ -192,6 +199,7 @@ export function ContactSheetButton({
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
             </button>
+          </div>
           </div>
           <ContactChoices details={details} />
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { useBottomSheet } from "@/lib/useBottomSheet";
 import {
   AMENITY_FILTERS,
   PRICE_OPTIONS,
@@ -207,10 +208,6 @@ function FilterPopover({
 
 /* ---------- Mobile: everything in one bottom sheet ---------- */
 
-function setPageScrollLocked(locked: boolean) {
-  document.documentElement.style.overflow = locked ? "hidden" : "";
-}
-
 function FiltersSheet({
   filters,
   onApply,
@@ -219,20 +216,21 @@ function FiltersSheet({
   onApply: (filters: ResultFilters) => void;
 }) {
   const t = useTranslations("home");
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const {
+    dialogRef,
+    open: openSheet,
+    close,
+    onDialogClose,
+    onDialogClick,
+    dragHandlers,
+  } = useBottomSheet();
   const titleId = useId();
   const [draft, setDraft] = useState(filters);
   const count = activeFilterCount(filters);
 
-  useEffect(() => () => setPageScrollLocked(false), []);
-
   function open() {
     setDraft(filters);
-    setPageScrollLocked(true);
-    dialogRef.current?.showModal();
-  }
-  function close() {
-    dialogRef.current?.close();
+    openSheet();
   }
 
   return (
@@ -260,14 +258,13 @@ function FiltersSheet({
       <dialog
         ref={dialogRef}
         aria-labelledby={titleId}
-        onClose={() => setPageScrollLocked(false)}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) close();
-        }}
+        onClose={onDialogClose}
+        onClick={onDialogClick}
         className="fixed inset-x-0 top-auto bottom-0 m-0 max-h-[88dvh] w-full max-w-none rounded-t-2xl bg-white p-0 text-ink translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] backdrop:bg-black/40 starting:translate-y-full motion-reduce:transition-opacity motion-reduce:starting:translate-y-0 motion-reduce:starting:opacity-0"
       >
         <div className="flex max-h-[88dvh] flex-col">
-          <div className="flex shrink-0 flex-col gap-2 px-4 pt-3">
+          {/* Grabber + title: drag down to dismiss. */}
+          <div {...dragHandlers} className="flex shrink-0 cursor-grab flex-col gap-2 px-4 pt-3">
             <span className="mx-auto h-1 w-10 rounded-full bg-line" aria-hidden="true" />
             <div className="flex items-center justify-between gap-3">
               <h2 id={titleId} className="text-lg font-bold">
