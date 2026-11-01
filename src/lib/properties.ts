@@ -1,5 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
+import {
+  getAvailabilityDates,
+  groupAvailability,
+  isAvailableForNights,
+  isIsoDate,
+  stayNights,
+} from "@/lib/availability";
 
 export type PropertyPhoto = {
   url: string;
@@ -92,14 +99,22 @@ export function mainMedia(photos: PropertyPhoto[]): PropertyPhoto | null {
   return [...photos].sort((a, b) => a.sort_order - b.sort_order)[0];
 }
 
+/** Longest stay we check night by night; longer ones skip the date filter. */
+const MAX_FILTERED_NIGHTS = 90;
+
 export async function searchProperties({
   regionId,
   guests,
   maxWalkingMinutes,
+  checkin,
+  checkout,
 }: {
   regionId: string;
   guests: number;
   maxWalkingMinutes?: number;
+  /** With checkout, hides listings not free for every night between. */
+  checkin?: string;
+  checkout?: string;
 }): Promise<PropertySummary[]> {
   const supabase = createPublicSupabaseClient();
   let query = supabase
@@ -107,6 +122,7 @@ export async function searchProperties({
     .select(SUMMARY_COLUMNS)
     .eq("region_id", regionId)
     .eq("approval_status", "approved")
+    .neq("availability_mode", "fully_locked")
     .or(notExpiredFilter())
     .or(`max_guests.is.null,max_guests.gte.${guests}`);
 
@@ -127,7 +143,30 @@ export async function searchProperties({
     throw new Error(`Failed to search properties: ${error.message}`);
   }
 
-  return data ?? [];
+  const properties = data ?? [];
+  const nights =
+    checkin && checkout && isIsoDate(checkin) && isIsoDate(checkout)
+      ? stayNights(checkin, checkout)
+      : [];
+  if (nights.length === 0 || nights.length > MAX_FILTERED_NIGHTS) {
+    return properties;
+  }
+
+  const exceptions = groupAvailability(
+    await getAvailabilityDates(
+      supabase,
+      properties.map((p) => p.id),
+      checkin!,
+      checkout!,
+    ),
+  );
+  return properties.filter((p) =>
+    isAvailableForNights(
+      p.availability_mode,
+      exceptions.get(p.id) ?? new Map(),
+      nights,
+    ),
+  );
 }
 
 /**
@@ -147,6 +186,7 @@ export async function getPropertiesByIds(
     .select(SUMMARY_COLUMNS)
     .in("id", ids)
     .eq("approval_status", "approved")
+    .neq("availability_mode", "fully_locked")
     .or(notExpiredFilter());
 
   if (error) {
@@ -190,6 +230,9 @@ export async function getPropertyById(
     )
     .eq("id", id)
     .eq("approval_status", "approved")
+    // A paused listing ("fully_locked") is off the site until the owner
+    // brings it back.
+    .neq("availability_mode", "fully_locked")
     .or(notExpiredFilter())
     .maybeSingle();
 

@@ -145,12 +145,12 @@ src/
     PropertyForm.tsx                טופס פרסום/עריכה (תומך בשכפול, initialProperty)
     LocationPicker.tsx              בחירת מיקום על מפה בטופס
     Map.tsx                        תצוגת מפה (Mapbox GL JS) בדף הדירה
-    AvailabilityModeSelect.tsx      בורר מצב תפוסה בדשבורד
+    AvailabilityCalendar.tsx        יומן הזמינות של בעל הדירה (מצב + סימון לילות)
     GoogleLoginButton, EmailOtpForm, LogoutButton
   app/[locale]/
     page.tsx, search/page.tsx, property/[id]/page.tsx
     owner/login, owner/dashboard, owner/properties/new (תומך ב-?duplicate=<id>)
-    owner/actions.ts                Server Action: עדכון availability_mode
+    owner/actions.ts                Server Actions: שמירת יומן הזמינות ופרטי בעל הדירה
     about, articles, contact, recommendations   "בקרוב" (placeholder)
     faq, how-it-works, terms       עמודי תוכן קבועים (מקושרים מה-Footer)
     list-property/page.tsx         מנתב: מחובר→טופס, לא מחובר→login

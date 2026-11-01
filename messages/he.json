@@ -205,12 +205,6 @@
       "approved": "מאושר",
       "rejected": "נדחה"
     },
-    "availabilityMode": {
-      "label": "מצב תפוסה",
-      "fully_locked": "נעילה מלאה",
-      "default_open_block_dates": "פתוח (סוגר תאריכים ידנית)",
-      "default_closed_open_dates": "סגור (פותח תאריכים ידנית)"
-    },
     "expiredBadge": "פג תוקף",
     "visibleUntil": "מוצגת באתר עד {date}",
     "visibleUntilSoon": "מוצגת באתר עד {date} · {days, plural, one {נשאר יום אחד} other {נשארו # ימים}}",
@@ -226,7 +220,14 @@
     "statPending": "ממתינות לאישור",
     "statNextExpiry": "הפרסום הקרוב מסתיים",
     "liveBadge": "מוצגת באתר",
-    "publishAfterApproval": "תפורסם באתר אחרי אישור הצוות"
+    "publishAfterApproval": "תפורסם באתר אחרי אישור הצוות",
+    "availabilityCalendar": "יומן זמינות",
+    "pausedBadge": "מושהית",
+    "availabilitySummary": {
+      "paused": "מושהית ולא מופיעה באתר",
+      "open": "פתוחה כל השנה · {count, plural, =0 {אין לילות תפוסים} one {לילה תפוס אחד} other {# לילות תפוסים}}",
+      "closed": "לפי תאריכים · {count, plural, =0 {אין לילות פנויים} one {לילה פנוי אחד} other {# לילות פנויים}}"
+    }
   },
   "propertyForm": {
     "title": "פרסום דירה חדשה",
@@ -357,5 +358,47 @@
     "errorOwnerRole": "צריך לבחור מה הקשר שלך לדירה",
     "errorTerms": "כדי להמשיך צריך לאשר את תנאי השימוש",
     "errorSave": "השמירה נכשלה. נסו שוב בעוד רגע."
+  },
+  "availability": {
+    "back": "חזרה לאזור האישי",
+    "title": "יומן זמינות",
+    "modeQuestion": "איך הדירה שלכם מושכרת?",
+    "modes": {
+      "default_open_block_dates": {
+        "title": "פתוחה כל השנה",
+        "description": "מסמנים רק את הלילות שכבר תפוסים"
+      },
+      "default_closed_open_dates": {
+        "title": "פתוחה רק בתאריכים שבוחרים",
+        "description": "מסמנים את הלילות שבהם הדירה פנויה"
+      },
+      "fully_locked": {
+        "title": "מושהית",
+        "description": "הדירה לא מופיעה באתר עד שתחזירו אותה"
+      }
+    },
+    "pausedTitle": "הדירה מושהית",
+    "pausedBody": "אחרי השמירה הדירה לא תופיע בחיפוש ובאתר. כדי להחזיר אותה, בחרו כאן אחת משתי האפשרויות האחרות ושמרו.",
+    "calendarHeading": "לוח שנה",
+    "hintOpen": "לחצו על לילה, או על שני לילות כדי לבחור טווח, וסמנו אותם כתפוסים. כל תאריך מייצג לילה אחד.",
+    "hintClosed": "לחצו על לילה, או על שני לילות כדי לבחור טווח, וסמנו אותם כפנויים. כל תאריך מייצג לילה אחד.",
+    "legendAvailable": "פנוי",
+    "legendUnavailable": "תפוס",
+    "legendHoliday": "חג",
+    "legendUnsaved": "שינוי שלא נשמר",
+    "prevMonth": "החודש הקודם",
+    "nextMonth": "החודש הבא",
+    "selectionRegion": "הבחירה שלכם",
+    "nights": "{count, plural, one {לילה אחד} other {# לילות}}",
+    "rangeHint": "אפשר ללחוץ על תאריך נוסף כדי לבחור טווח",
+    "markUnavailable": "סימון כתפוס",
+    "markAvailable": "סימון כפנוי",
+    "cancelSelection": "ביטול הבחירה",
+    "unsaved": "{count, plural, one {שינוי אחד שלא נשמר} other {# שינויים שלא נשמרו}}",
+    "discard": "ביטול",
+    "save": "שמירה",
+    "saving": "שומר…",
+    "saved": "השינויים נשמרו ✓",
+    "saveError": "השמירה נכשלה. נסו שוב."
   }
 }
