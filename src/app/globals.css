@@ -133,11 +133,10 @@ body {
   }
 }
 
-/* ---------- Homepage hero (src/components/home/HeroVisual.tsx) ----------
+/* ---------- Homepage hero (src/components/home/HeroScene.tsx) ----------
    Plays once on load: the building draws in, its walls fill, windows light
-   up one by one, "770" rises, then the photo crossfades in and settles.
-   Each element sets its own --hero-delay. Held until HeroPlayOnView marks
-   the card [data-play] (it's below the search form on phones). */
+   up one by one, then the lamp rises. Each element sets its own
+   --hero-delay. */
 :root {
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
@@ -161,16 +160,18 @@ body {
   transform: translateY(24px);
   animation: hero-rise 0.7s var(--ease-out) var(--hero-delay, 0s) forwards;
 }
-.hero-photo {
-  opacity: 0;
-  animation: hero-fade 1.2s var(--ease-in-out) 3.6s forwards;
+.hero-skyline {
+  -webkit-mask-image: radial-gradient(ellipse 50% 100% at 50% 100%, #000 45%, transparent 100%);
+  mask-image: radial-gradient(ellipse 50% 100% at 50% 100%, #000 45%, transparent 100%);
 }
-.hero-photo img {
-  transform: scale(1.08);
-  animation: hero-settle 9s var(--ease-out) 3.6s forwards;
-}
-.hero-card:not([data-play]) :is(.hero-draw, .hero-fade, .hero-light, .hero-rise, .hero-photo, .hero-photo img) {
-  animation-play-state: paused;
+/* Below xl the building is a faint silhouette behind the headline. */
+@media (max-width: 79.999rem) {
+  .hero-scene .hero-fill {
+    display: none;
+  }
+  .hero-scene .hero-gold {
+    display: none;
+  }
 }
 @keyframes hero-draw {
   from {
@@ -192,18 +193,16 @@ body {
     transform: none;
   }
 }
-@keyframes hero-settle {
-  to {
-    transform: none;
-  }
-}
-/* Reduced motion: no drawing or zoom - just the photo, gently faded in. */
+/* Reduced motion: the finished scene, no drawing (HeroDepth also stays
+   still). */
 @media (prefers-reduced-motion: reduce) {
-  .hero-photo {
-    animation: hero-fade 0.3s ease 0s forwards;
-  }
-  .hero-photo img {
-    transform: none;
+  .hero-draw,
+  .hero-fade,
+  .hero-light,
+  .hero-rise {
     animation: none;
+    opacity: 1;
+    stroke-dashoffset: 0;
+    transform: none;
   }
 }
