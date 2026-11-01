@@ -61,7 +61,8 @@
     "selectCheckin": "בחרו תאריך כניסה",
     "selectCheckout": "עכשיו בחרו תאריך יציאה",
     "guests": "מספר אורחים",
-    "submit": "חפש"
+    "submit": "חפש",
+    "dates": "תאריכים"
   },
   "search": {
     "title": "תוצאות חיפוש",
