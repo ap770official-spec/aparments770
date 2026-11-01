@@ -20,6 +20,7 @@ import { approveProperty, deleteProperty, rejectProperty } from "../../actions";
 import AdminHeader from "@/components/admin/AdminHeader";
 import PendingSubmitButton from "@/components/admin/PendingSubmitButton";
 import ListingExpiryEditor from "@/components/admin/ListingExpiryEditor";
+import AdminDateField from "@/components/admin/AdminDatePicker";
 import PendingEditSection from "./PendingEditSection";
 import he from "../../../../../messages/he.json";
 
@@ -58,8 +59,9 @@ const badgeBase =
   "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset";
 
 function defaultExpiryDate(): string {
+  // Same day next year - matches the calendar's "שנה" quick pick.
   const d = new Date();
-  d.setDate(d.getDate() + 365);
+  d.setFullYear(d.getFullYear() + 1);
   return d.toISOString().slice(0, 10);
 }
 
@@ -167,7 +169,7 @@ export default async function AdminPropertyDetailPage({
                 <span
                   className={`${badgeBase} ${
                     STATUS_BADGE_CLASSES[property.approval_status] ??
-                    "bg-black/5 text-ink-soft ring-black/10"
+                    "bg-line/60 text-ink-soft ring-line"
                   }`}
                 >
                   {STATUS_LABELS[property.approval_status] ?? property.approval_status}
@@ -343,18 +345,16 @@ export default async function AdminPropertyDetailPage({
                     action={approveProperty.bind(null, property.id)}
                     className="flex flex-col gap-2"
                   >
-                    <label htmlFor="expiresAt" className="text-sm font-semibold text-ink">
-                      אישור והצגה באתר עד
-                    </label>
+                    <p className="text-sm font-semibold text-ink">אישור והצגה באתר עד</p>
                     <div className="flex gap-2">
-                      <input
-                        id="expiresAt"
-                        type="date"
-                        name="expiresAt"
-                        defaultValue={defaultExpiryDate()}
-                        required
-                        className="min-h-11 min-w-0 flex-1 rounded-lg border border-line bg-white px-3 text-sm"
-                      />
+                      <div className="min-w-0 flex-1">
+                        <AdminDateField
+                          name="expiresAt"
+                          defaultValue={defaultExpiryDate()}
+                          label="אישור והצגה באתר עד"
+                          fullWidth
+                        />
+                      </div>
                       <PendingSubmitButton
                         pendingLabel="מאשר…"
                         className="min-h-11 cursor-pointer rounded-lg bg-brand px-5 text-sm font-semibold text-brand-foreground hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
@@ -371,7 +371,7 @@ export default async function AdminPropertyDetailPage({
                   <form action={rejectProperty.bind(null, property.id)}>
                     <PendingSubmitButton
                       pendingLabel="דוחה…"
-                      className="min-h-11 w-full cursor-pointer rounded-lg border border-line bg-white px-4 text-sm font-semibold text-ink hover:bg-black/[0.03] disabled:cursor-wait disabled:opacity-60"
+                      className="min-h-11 w-full cursor-pointer rounded-lg border border-line bg-white px-4 text-sm font-semibold text-ink hover:bg-canvas disabled:cursor-wait disabled:opacity-60"
                     >
                       {property.approval_status === "approved"
                         ? "הסר מהאתר (דחה)"

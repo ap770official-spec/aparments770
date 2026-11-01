@@ -32,10 +32,10 @@
     "filterPrice": "מחיר",
     "filterRooms": "חדרים",
     "filterAmenities": "שירותים בדירה",
-    "resultsCount": "{count, plural, =0 {אין דירות} one {דירה אחת} other {# דירות}}",
+    "resultsCount": "דירות קרובות ל-770",
     "sortLabel": "מיון לפי:",
     "sortByDistance": "מרחק מ-770",
-    "resultsCountForDates": "{count, plural, =0 {אין דירות פנויות} one {דירה אחת פנויה} other {# דירות פנויות}} ב-{dates}",
+    "resultsCountForDates": "דירות פנויות ב-{dates}",
     "priceTitle": "מחיר ללילה",
     "roomsTitle": "חדרי שינה",
     "amenitiesTitle": "שירותים בדירה",
@@ -68,7 +68,8 @@
     "howStep3Body": "שולחים הודעת וואטסאפ או מתקשרים לבעל הדירה. סוגרים ביניכם, בלי תיווך.",
     "ownerTitle": "יש לכם דירה ליד 770?",
     "ownerBody": "פרסמו אותה כאן ואורחים יפנו אליכם ישירות, בוואטסאפ או בטלפון.",
-    "ownerCta": "פרסום דירה"
+    "ownerCta": "פרסום דירה",
+    "resultsHeadingEmpty": "תוצאות החיפוש"
   },
   "searchForm": {
     "checkin": "תאריך כניסה",
@@ -97,7 +98,7 @@
     "mapCmdScroll": "כדי להגדיל או להקטין את המפה, גללו עם ⌘ לחוץ",
     "mapTwoFingers": "כדי להזיז את המפה, השתמשו בשתי אצבעות",
     "mapNoLocations": "לדירות בתוצאות האלה עדיין אין מיקום על המפה. אפשר לראות אותן בתצוגת הרשימה.",
-    "mapUnlocated": "{count, plural, one {דירה אחת לא מופיעה על המפה כי אין לה מיקום – היא מופיעה ברשימה.} other {# דירות לא מופיעות על המפה כי אין להן מיקום – הן מופיעות ברשימה.}}"
+    "mapUnlocated": "חלק מהדירות לא מופיעות על המפה כי אין להן מיקום – הן מופיעות ברשימה."
   },
   "favorites": {
     "add": "הוסף למועדפים",
@@ -126,8 +127,6 @@
     "notFound": "הדירה לא נמצאה, או שאינה זמינה יותר.",
     "back": "חזרה",
     "backToSearch": "חזרה לתוצאות החיפוש",
-    "roomsGuestsLine": "{rooms, plural, one {חדר אחד} other {# חדרים}} · {guests, plural, one {אורח אחד} other {עד # אורחים}}",
-    "roomsOnlyLine": "{rooms, plural, one {חדר אחד} other {# חדרים}}",
     "walkingTimePill": "{minutes} דק׳ הליכה מ-{landmark}",
     "walkingDistanceTitle": "מרחק הליכה מ-{landmark}",
     "walkingTimeApprox": "כ-{minutes} דקות הליכה מ-{landmark}",
@@ -199,7 +198,10 @@
     "chooseDates": "בחירה",
     "changeDates": "שינוי",
     "saveDates": "שמירה",
-    "nightsCount": "{count, plural, one {לילה אחד} other {# לילות}}"
+    "nightsCount": "{count, plural, one {לילה אחד} other {# לילות}}",
+    "listingTitle": "{type} · {rooms, plural, =0 {סטודיו} one {חדר שינה אחד} other {# חדרי שינה}}",
+    "capacityLine": "{guests, plural, one {אורח אחד} other {עד # אורחים}} · {beds, plural, one {מיטה אחת} other {# מיטות}}",
+    "bedsOnlyLine": "{beds, plural, one {מיטה אחת} other {# מיטות}}"
   },
   "amenityCategories": {
     "kitchen": "מטבח",

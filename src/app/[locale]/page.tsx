@@ -184,12 +184,15 @@ export default async function HomePage({
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-10 sm:py-10">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3 sm:mb-6">
             <h2 className="font-serif-brand text-xl font-bold text-ink sm:text-[28px]">
-              {hasDates
-                ? t("resultsCountForDates", {
-                    count: properties.length,
-                    dates: `${formatStayDate(query.checkin!, locale)} – ${formatStayDate(query.checkout!, locale)}`,
-                  })
-                : t("resultsCount", { count: properties.length })}
+              {/* Never a number: with only a handful of listings, a count
+                  reads as "empty site" rather than "curated". */}
+              {properties.length === 0
+                ? t("resultsHeadingEmpty")
+                : hasDates
+                  ? t("resultsCountForDates", {
+                      dates: `${formatStayDate(query.checkin!, locale)} – ${formatStayDate(query.checkout!, locale)}`,
+                    })
+                  : t("resultsCount")}
             </h2>
             <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               <FavoritesButton />

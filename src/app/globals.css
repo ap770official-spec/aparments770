@@ -232,3 +232,118 @@ body {
     transform: none;
   }
 }
+
+/* ---- Admin calendar (src/components/admin/AdminDatePicker.tsx) ---- */
+
+.admin-calendar.rdp-root {
+  --rdp-day-width: 2.6rem;
+  --rdp-day-height: 2.6rem;
+  --rdp-day_button-width: 2.4rem;
+  --rdp-day_button-height: 2.4rem;
+  --rdp-day_button-border-radius: 0.65rem;
+  --rdp-selected-border: 0;
+  --rdp-nav-height: 2.5rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.admin-calendar .rdp-months,
+.admin-calendar .rdp-month,
+.admin-calendar .rdp-month_grid {
+  width: 100%;
+  max-width: none;
+}
+
+.admin-calendar .rdp-day {
+  text-align: center;
+}
+
+.admin-calendar .rdp-day_button {
+  margin-inline: auto;
+  transition: background-color 120ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .admin-calendar .rdp-day_button:hover:not([disabled]) {
+    background-color: color-mix(in srgb, var(--brand) 10%, transparent);
+  }
+}
+
+.admin-calendar .rdp-selected .rdp-day_button {
+  background-color: var(--brand);
+  color: var(--brand-foreground);
+  font-weight: 700;
+}
+
+.admin-calendar .rdp-today:not(.rdp-selected) .rdp-day_button {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--brand) 45%, transparent);
+  font-weight: 700;
+}
+
+.admin-calendar .rdp-dropdowns {
+  gap: 0.35rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.admin-calendar .rdp-dropdown_root {
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--line);
+}
+
+.admin-calendar .rdp-chevron {
+  fill: var(--ink-soft);
+}
+
+/* Popover (sm+) scales in from its trigger; on phones it's a bottom
+   sheet that slides up. Enter only - closing is instant, which keeps a
+   frequently used control feeling quick. */
+.admin-popover {
+  transform-origin: top left;
+  transition:
+    opacity 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 220ms cubic-bezier(0.32, 0.72, 0, 1);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+@media (min-width: 40rem) {
+  .admin-popover {
+    @starting-style {
+      opacity: 0;
+      transform: scale(0.96) translateY(-4px);
+    }
+  }
+}
+
+.admin-sheet-backdrop {
+  transition: opacity 200ms ease;
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-popover {
+    transition: opacity 150ms ease;
+
+    @starting-style {
+      opacity: 0;
+      transform: none;
+    }
+  }
+}
+
+/* Press feedback for every admin control - small, fast, and only on the
+   press itself, so it confirms the click without slowing anything. */
+.admin-ui :is(button, a[class*="rounded"]):not(:disabled):active {
+  transform: scale(0.97);
+}
+.admin-ui :is(button, a[class*="rounded"]) {
+  -webkit-tap-highlight-color: transparent;
+}

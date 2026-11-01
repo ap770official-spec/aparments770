@@ -29,7 +29,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       dir="rtl"
       className={`${geistSans.variable} ${geistMono.variable} ${frankRuhl.variable} h-full antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="admin-ui min-h-full bg-canvas">{children}</body>
     </html>
   );
 }
