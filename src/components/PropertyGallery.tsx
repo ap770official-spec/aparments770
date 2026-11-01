@@ -76,25 +76,45 @@ function Media({
   className,
   eager = false,
   fit = "cover",
+  playable = false,
 }: {
   photo: PropertyPhoto | undefined;
   alt: string;
   className: string;
   eager?: boolean;
   fit?: "cover" | "contain";
+  /**
+   * Only the lightbox shows native video controls. Elsewhere our overlay
+   * buttons sit on top of the video's corners and hide controls such as
+   * fullscreen (top corner on iOS), so videos there are a still preview
+   * with a play badge that opens the lightbox.
+   */
+  playable?: boolean;
 }) {
   const fitClass = fit === "cover" ? "object-cover" : "object-contain";
   if (!photo) return <div className={`${className} bg-placeholder`} />;
   return photo.media_type === "video" ? (
-    <video
-      src={optimizedCloudinaryUrl(photo.url)}
-      className={`${className} ${fitClass} bg-black`}
-      aria-label={alt}
-      preload="metadata"
-      playsInline
-      muted
-      controls
-    />
+    playable ? (
+      <video
+        src={optimizedCloudinaryUrl(photo.url)}
+        className={`${className} ${fitClass} bg-black`}
+        aria-label={alt}
+        preload="metadata"
+        playsInline
+        controls
+      />
+    ) : (
+      <video
+        // #t= makes iOS paint the first frame instead of a blank box
+        src={`${optimizedCloudinaryUrl(photo.url)}#t=0.1`}
+        className={`${className} ${fitClass} pointer-events-none bg-black`}
+        aria-label={alt}
+        preload="metadata"
+        playsInline
+        muted
+        tabIndex={-1}
+      />
+    )
   ) : (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -105,6 +125,21 @@ function Media({
       decoding="async"
       draggable={false}
     />
+  );
+}
+
+function PlayBadge() {
+  return (
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 flex items-center justify-center"
+    >
+      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/55 text-white">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8 5.5v13a1 1 0 0 0 1.5.86l11-6.5a1 1 0 0 0 0-1.72l-11-6.5A1 1 0 0 0 8 5.5z" />
+        </svg>
+      </span>
+    </span>
   );
 }
 
@@ -246,6 +281,7 @@ function Lightbox({
                   photo={photo}
                   alt={photoAlt(index)}
                   fit="contain"
+                  playable
                   className="max-h-full max-w-full"
                 />
               </div>
@@ -309,6 +345,14 @@ export default function PropertyGallery({
     dialog.showModal();
     // The track only has a size once the dialog is displayed.
     scrollToSlide(lightboxTrackRef.current, index, "instant");
+    // Opening a video means the visitor wants to watch it; this runs inside
+    // the tap, so browsers allow playback with sound.
+    lightboxTrackRef.current
+      ?.querySelector<HTMLVideoElement>(`[data-slide-index="${index}"] video`)
+      ?.play()
+      .catch(() => {
+        // Autoplay refused - the native controls are right there.
+      });
   }
 
   function handleLightboxClosed(lastIndex: number) {
@@ -355,26 +399,19 @@ export default function PropertyGallery({
                 data-slide-index={index}
                 className="w-full shrink-0 snap-center snap-always"
               >
-                {photo.media_type === "video" ? (
+                <button
+                  type="button"
+                  onClick={() => openLightbox(index)}
+                  className="relative block w-full [-webkit-tap-highlight-color:transparent]"
+                >
                   <Media
                     photo={photo}
                     alt={photoAlt(index)}
+                    eager={index === 0}
                     className="aspect-[4/3] w-full"
                   />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => openLightbox(index)}
-                    className="block w-full [-webkit-tap-highlight-color:transparent]"
-                  >
-                    <Media
-                      photo={photo}
-                      alt={photoAlt(index)}
-                      eager={index === 0}
-                      className="aspect-[4/3] w-full"
-                    />
-                  </button>
-                )}
+                  {photo.media_type === "video" && <PlayBadge />}
+                </button>
               </div>
             ))}
           </div>
@@ -436,7 +473,7 @@ export default function PropertyGallery({
           <button
             type="button"
             onClick={() => openLightbox(0)}
-            className="group row-span-2 h-full w-full cursor-zoom-in overflow-hidden"
+            className="group relative row-span-2 h-full w-full cursor-zoom-in overflow-hidden"
           >
             <Media
               photo={photos[0]}
@@ -444,6 +481,7 @@ export default function PropertyGallery({
               eager
               className="h-full w-full transition-[filter] duration-200 ease-out group-hover:brightness-90"
             />
+            {photos[0].media_type === "video" && <PlayBadge />}
           </button>
         ) : (
           <div className="row-span-2 h-full w-full bg-placeholder" />
@@ -453,7 +491,7 @@ export default function PropertyGallery({
             key={photos[index].url}
             type="button"
             onClick={() => openLightbox(index)}
-            className={`group h-full w-full cursor-zoom-in overflow-hidden ${
+            className={`group relative h-full w-full cursor-zoom-in overflow-hidden ${
               thumbSpansRows(position) ? "row-span-2" : ""
             }`}
           >
@@ -462,6 +500,7 @@ export default function PropertyGallery({
               alt={photoAlt(index)}
               className="pointer-events-none h-full w-full transition-[filter] duration-200 ease-out group-hover:brightness-90"
             />
+            {photos[index].media_type === "video" && <PlayBadge />}
           </button>
         ))}
 
