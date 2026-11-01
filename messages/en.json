@@ -32,10 +32,10 @@
     "filterPrice": "Price",
     "filterRooms": "Rooms",
     "filterAmenities": "Amenities",
-    "resultsCount": "{count, plural, =0 {No apartments} one {# apartment} other {# apartments}}",
+    "resultsCount": "Apartments near 770",
     "sortLabel": "Sort by:",
     "sortByDistance": "Distance from 770",
-    "resultsCountForDates": "{count, plural, =0 {No apartments free} one {# apartment free} other {# apartments free}} on {dates}",
+    "resultsCountForDates": "Apartments free on {dates}",
     "priceTitle": "Price per night",
     "roomsTitle": "Bedrooms",
     "amenitiesTitle": "Amenities",
@@ -68,7 +68,8 @@
     "howStep3Body": "Message the owner on WhatsApp or call. You arrange it between you, no middleman.",
     "ownerTitle": "Have an apartment near 770?",
     "ownerBody": "List it here and guests will contact you directly, on WhatsApp or by phone.",
-    "ownerCta": "List your apartment"
+    "ownerCta": "List your apartment",
+    "resultsHeadingEmpty": "Search results"
   },
   "searchForm": {
     "checkin": "Check-in date",
@@ -97,7 +98,7 @@
     "mapCmdScroll": "Use ⌘ + scroll to zoom the map",
     "mapTwoFingers": "Use two fingers to move the map",
     "mapNoLocations": "The apartments in these results don't have a map location yet. You can see them in the list view.",
-    "mapUnlocated": "{count, plural, one {# apartment isn't on the map because it has no location – it's in the list.} other {# apartments aren't on the map because they have no location – they're in the list.}}"
+    "mapUnlocated": "Some apartments aren't on the map because they have no location – they're in the list."
   },
   "favorites": {
     "add": "Add to favorites",
