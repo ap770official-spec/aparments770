@@ -151,8 +151,10 @@ src/
     page.tsx, search/page.tsx, property/[id]/page.tsx
     owner/login, owner/dashboard, owner/properties/new (תומך ב-?duplicate=<id>)
     owner/actions.ts                Server Actions: שמירת יומן הזמינות ופרטי בעל הדירה
-    about, articles, contact, recommendations   "בקרוב" (placeholder)
-    faq, how-it-works, terms       עמודי תוכן קבועים (מקושרים מה-Footer)
+    about, articles, recommendations   "בקרוב" (placeholder)
+    contact, faq, terms             עמודי תוכן קבועים, עם תוכן אמיתי (`contact`/`faq`
+                                     מקושרים גם מה-Footer; `contact` גם מתפריט "אזור אישי")
+    how-it-works                    מפנה (`redirect`) ל-`/#how-it-works` בדף הבית
     list-property/page.tsx         מנתב: מחובר→טופס, לא מחובר→login
   app/api/favorites/route.ts       GET לפי ?ids=... — דירות מאושרות בלבד, לפאנל המועדפים
   app/auth/callback/route.ts       יעד ה-OAuth של Google (לא תחת [locale] בכוונה)
@@ -194,6 +196,15 @@ src/
   נעלמת אם מנקים נתוני אתר). כפתור "הדירות שאהבתי" ליד טופס החיפוש בעמוד הבית מציג
   מונה ופותח פאנל שמביא מהשרת (`/api/favorites`) מידע עדכני על הדירות המסומנות (כדי
   שלא יוצג מידע ישן אם דירה השתנתה/הוסרה מאז שסומנה)
+- ✅ **שאלות נפוצות + צור קשר (1/11)**: פרטי קשר אמיתיים (טלפון/וואטסאפ, מייל)
+  ב-`lib/contactInfo.ts` — מקור יחיד. עמוד `/contact` חדש (3 כרטיסים: וואטסאפ עם CTA,
+  טלפון, מייל). עמוד `/faq` עם 13 שאלות ב-3 קבוצות (`FaqAccordion`, אקורדיון עם
+  `aria-expanded`/`aria-controls`). ה-FAQ מופיע גם **בתחתית דף הבית** כסעיף `HomeFaq`
+  (ב-`components/home/HomeSections.tsx`, `id="faq"`), מיד מתחת לסעיף "איך זה עובד"
+  הקיים (שקיבל `id="how-it-works"`) ולפני ה-CTA לבעלי דירות; קישורי הניווט ב-Header
+  מצביעים ל-`/#how-it-works`/`/#faq` (גלילה לדף הבית), ו-`/how-it-works` הישן מפנה
+  (`redirect`) לאותה עוגן. "צור קשר" נוסף גם לתפריט "אזור אישי" (ה-☰) וגם קיים כבר
+  ב-Footer
 
 ### פאנל ניהול (`/admin`, מוגן ב-`ADMIN_PASSWORD`)
 - ✅ `/admin/properties` — **דשבורד מנהל (27/10)**: 4 כרטיסי סיכום (סה״כ / ממתינות

@@ -66,8 +66,8 @@ export default function Header() {
   }
 
   const navItems = [
-    { href: "/how-it-works", label: nav("howItWorks") },
-    { href: "/faq", label: nav("faq") },
+    { href: "/#how-it-works", label: nav("howItWorks") },
+    { href: "/#faq", label: nav("faq") },
   ] as const;
 
   return (
@@ -144,6 +144,14 @@ export default function Header() {
                     className="block px-4 py-2 hover:bg-black/5"
                   >
                     {dashboard("myProperties")}
+                  </Link>
+                  <Link
+                    href="/contact"
+                    role="menuitem"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-4 py-2 hover:bg-black/5"
+                  >
+                    {nav("contact")}
                   </Link>
                   <button
                     type="button"

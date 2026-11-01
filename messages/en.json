@@ -17,6 +17,85 @@
     "howItWorks": "How it works",
     "faq": "FAQ"
   },
+  "faq": {
+    "intro": "Answers to the questions we hear most often. Didn't find what you're looking for? You can always reach out to us directly.",
+    "groups": [
+      {
+        "title": "For guests",
+        "items": [
+          {
+            "q": "How do I book an apartment?",
+            "a": "Search by dates and number of guests, then contact the owner directly on WhatsApp — a ready-made message with your details is sent automatically. The booking itself is arranged directly with them."
+          },
+          {
+            "q": "How does payment work?",
+            "a": "Payment is always handled directly between you and the apartment owner (bank transfer, cash, etc.) — the site doesn't process payments or charge a booking fee."
+          },
+          {
+            "q": "Can I cancel or change my dates?",
+            "a": "Yes, but it's coordinated directly with the apartment owner on WhatsApp — the site doesn't manage cancellations or date changes."
+          },
+          {
+            "q": "How far is the apartment from 770?",
+            "a": "Every apartment page shows a map with the real walking distance (an actual street route, not a straight line) to 770."
+          },
+          {
+            "q": "Are there apartments outside Crown Heights?",
+            "a": "Not currently — the site is focused only on apartments in the Crown Heights area."
+          },
+          {
+            "q": "How do I save an apartment to check later?",
+            "a": "Tap the heart icon on the apartment card or on its own page. No account needed — the list is saved in your browser."
+          },
+          {
+            "q": "What if there's an issue during my stay?",
+            "a": "You can reach us directly — by phone/WhatsApp at {phone} or by email at {email}."
+          }
+        ]
+      },
+      {
+        "title": "For apartment owners",
+        "items": [
+          {
+            "q": "How do I list my apartment?",
+            "a": "Sign up with Google or email, then fill out a form with all the details — rooms, amenities, photos, and an exact location on the map."
+          },
+          {
+            "q": "How long does approval take?",
+            "a": "Your request is reviewed manually by our team. There's no guaranteed timeframe, but we'll update you as soon as there's a decision."
+          },
+          {
+            "q": "How do I edit or delete a listing I already published?",
+            "a": "On the \"My apartments\" page: editing opens a form pre-filled with the existing details; deleting has its own button with a two-step confirmation to prevent deleting by mistake."
+          },
+          {
+            "q": "How do I temporarily close a listing without deleting it?",
+            "a": "The \"My apartments\" page has an availability-mode selector for each listing — you can close it temporarily without deleting any data."
+          }
+        ]
+      },
+      {
+        "title": "General",
+        "items": [
+          {
+            "q": "How do I contact support?",
+            "a": "Phone/WhatsApp: {phone}\nEmail: {email}"
+          },
+          {
+            "q": "Is there an app?",
+            "a": "No separate app — the site is mobile-friendly and works directly in your browser."
+          }
+        ]
+      }
+    ]
+  },
+  "contactPage": {
+    "intro": "Have a question, an issue, or just want to talk to us? We're here.",
+    "phoneLabel": "Phone",
+    "whatsappLabel": "WhatsApp",
+    "emailLabel": "Email",
+    "whatsappCta": "Send a message"
+  },
   "comingSoon": {
     "title": "Coming soon",
     "body": "This page is still under construction."
