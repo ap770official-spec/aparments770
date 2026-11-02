@@ -8,6 +8,7 @@ import { routing } from "@/i18n/routing";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import UnderConstructionNotice from "@/components/UnderConstructionNotice";
+import SitePreviewBanner from "@/components/SitePreviewBanner";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -83,6 +84,7 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider>
           <UnderConstructionNotice />
+          <SitePreviewBanner />
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
