@@ -148,7 +148,10 @@
     "ownerTitle": "יש לכם דירה ליד 770?",
     "ownerBody": "פרסמו אותה כאן ואורחים יפנו אליכם ישירות, בוואטסאפ או בטלפון.",
     "ownerCta": "פרסום דירה",
-    "resultsHeadingEmpty": "תוצאות החיפוש"
+    "resultsHeadingEmpty": "תוצאות החיפוש",
+    "distanceTitle": "מרחק הליכה מ-770",
+    "filterDistance": "מרחק מ-770",
+    "filterDistanceUpTo": "עד {minutes} דק׳ מ-770"
   },
   "searchForm": {
     "checkin": "תאריך כניסה",

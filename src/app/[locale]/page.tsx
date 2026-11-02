@@ -114,6 +114,19 @@ export default async function HomePage({
   if (query.checkout) detailQuery.set("checkout", query.checkout);
   detailQuery.set("guests", String(guests));
 
+  // Filters live with the results, not in the hero: the first screen is
+  // just the search.
+  const filterBar = (
+    <SearchFilters
+      region={region?.slug ?? defaultRegion?.slug ?? ""}
+      checkin={query.checkin}
+      checkout={query.checkout}
+      guests={guests}
+      activeMaxWalking={maxWalking}
+      filters={filters}
+    />
+  );
+
   return (
     <div className="flex flex-col">
       <section className="relative isolate overflow-hidden bg-cream">
@@ -166,17 +179,6 @@ export default async function HomePage({
             </div>
           </div>
 
-          <div className="mt-4 sm:mt-6">
-            <SearchFilters
-              region={region?.slug ?? defaultRegion?.slug ?? ""}
-              checkin={query.checkin}
-              checkout={query.checkout}
-              guests={guests}
-              activeMaxWalking={maxWalking}
-              filters={filters}
-            />
-          </div>
-
           <HomeTrustStrip />
         </div>
       </section>
@@ -206,6 +208,7 @@ export default async function HomePage({
 
           {properties.length === 0 ? (
             <div className="flex flex-col items-start gap-3">
+              <div className="mb-3 flex flex-wrap items-center gap-2.5">{filterBar}</div>
               <p className="text-[15px] text-ink-soft">
                 {hasFilters
                   ? t("noResultsForFilters")
@@ -225,6 +228,7 @@ export default async function HomePage({
             </div>
           ) : (
             <SearchResultsView
+              toolbar={filterBar}
               properties={properties}
               searchQuery={detailQuery.toString()}
               landmark={

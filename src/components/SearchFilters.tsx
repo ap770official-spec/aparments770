@@ -50,6 +50,32 @@ function Chevron({ open }: { open: boolean }) {
 
 /* ---------- Choice groups, shared by the desktop popovers and the sheet ---------- */
 
+function DistanceChoices({
+  value,
+  onChange,
+}: {
+  value: number | null;
+  onChange: (value: number | null) => void;
+}) {
+  const t = useTranslations("home");
+  return (
+    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("distanceTitle")}>
+      {DISTANCE_OPTIONS.map((option) => (
+        <button
+          key={option.key}
+          type="button"
+          role="radio"
+          aria-checked={value === option.minutes}
+          onClick={() => onChange(option.minutes)}
+          className={chipClass(value === option.minutes)}
+        >
+          {t(option.key === "all" ? "distanceAll" : `distanceUpTo${option.key}`)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function PriceChoices({
   value,
   onChange,
@@ -210,10 +236,12 @@ function FilterPopover({
 
 function FiltersSheet({
   filters,
+  maxWalking,
   onApply,
 }: {
   filters: ResultFilters;
-  onApply: (filters: ResultFilters) => void;
+  maxWalking: number | null;
+  onApply: (filters: ResultFilters, maxWalking: number | null) => void;
 }) {
   const t = useTranslations("home");
   const {
@@ -226,10 +254,12 @@ function FiltersSheet({
   } = useBottomSheet();
   const titleId = useId();
   const [draft, setDraft] = useState(filters);
-  const count = activeFilterCount(filters);
+  const [walkingDraft, setWalkingDraft] = useState(maxWalking);
+  const count = activeFilterCount(filters) + (maxWalking != null ? 1 : 0);
 
   function open() {
     setDraft(filters);
+    setWalkingDraft(maxWalking);
     openSheet();
   }
 
@@ -285,6 +315,10 @@ function FiltersSheet({
 
           <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 pt-2 pb-4">
             <section className="flex flex-col gap-3">
+              <h3 className="text-[15px] font-bold">{t("distanceTitle")}</h3>
+              <DistanceChoices value={walkingDraft} onChange={setWalkingDraft} />
+            </section>
+            <section className="flex flex-col gap-3">
               <h3 className="text-[15px] font-bold">{t("priceTitle")}</h3>
               <PriceChoices
                 value={draft.maxPrice}
@@ -310,7 +344,10 @@ function FiltersSheet({
           <div className="flex shrink-0 items-center justify-between gap-3 border-t border-line px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <button
               type="button"
-              onClick={() => setDraft({ ...EMPTY_FILTERS, sort: draft.sort })}
+              onClick={() => {
+                setDraft({ ...EMPTY_FILTERS, sort: draft.sort });
+                setWalkingDraft(null);
+              }}
               className="py-2 text-[15px] font-semibold underline underline-offset-4"
             >
               {t("filtersClearAll")}
@@ -318,7 +355,7 @@ function FiltersSheet({
             <button
               type="button"
               onClick={() => {
-                onApply(draft);
+                onApply(draft, walkingDraft);
                 close();
               }}
               className="flex min-h-12 items-center justify-center rounded-[10px] bg-brand px-6 text-base font-bold text-brand-foreground"
@@ -367,43 +404,44 @@ export default function SearchFilters({
   const setFilters = (patch: Partial<ResultFilters>) =>
     navigate({ filters: { ...filters, ...patch } });
 
-  const count = activeFilterCount(filters);
+  const count = activeFilterCount(filters) + (activeMaxWalking != null ? 1 : 0);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-        <span className="w-full shrink-0 text-sm font-semibold text-ink-soft sm:w-auto">
-          {t("distanceLabel")}
-        </span>
-        {DISTANCE_OPTIONS.map((option) => {
-          const active =
-            option.minutes == null
-              ? activeMaxWalking == null
-              : activeMaxWalking === option.minutes;
-          return (
-            <button
-              key={option.key}
-              type="button"
-              onClick={() => navigate({ maxWalking: option.minutes })}
-              aria-pressed={active}
-              className={chipClass(active)}
-            >
-              {t(option.key === "all" ? "distanceAll" : `distanceUpTo${option.key}`)}
-            </button>
-          );
-        })}
-      </div>
-
+    <>
       {/* Mobile: a single "Filters" button opening the sheet */}
       <div className="sm:hidden">
         <FiltersSheet
           filters={filters}
-          onApply={(next) => navigate({ filters: next })}
+          maxWalking={activeMaxWalking}
+          onApply={(next, maxWalking) => navigate({ filters: next, maxWalking })}
         />
       </div>
 
       {/* Desktop: one popover per filter */}
       <div className="hidden flex-wrap items-center gap-2.5 sm:flex">
+        <FilterPopover
+          active={activeMaxWalking != null}
+          label={
+            activeMaxWalking != null
+              ? t("filterDistanceUpTo", { minutes: activeMaxWalking })
+              : t("filterDistance")
+          }
+        >
+          {(close) => (
+            <>
+              <h3 className="text-[15px] font-bold text-ink">{t("distanceTitle")}</h3>
+              <DistanceChoices
+                value={activeMaxWalking}
+                onChange={(minutes) => {
+                  close();
+                  navigate({ maxWalking: minutes });
+                }}
+              />
+            </>
+          )}
+        </FilterPopover>
+
+
         <FilterPopover
           active={filters.maxPrice != null}
           label={
@@ -491,7 +529,10 @@ export default function SearchFilters({
             type="button"
             onClick={() => {
               setAmenityDraft([]);
-              navigate({ filters: { ...EMPTY_FILTERS, sort: filters.sort } });
+              navigate({
+                filters: { ...EMPTY_FILTERS, sort: filters.sort },
+                maxWalking: null,
+              });
             }}
             className="min-h-10 px-2 text-sm font-semibold text-ink underline underline-offset-4"
           >
@@ -499,6 +540,6 @@ export default function SearchFilters({
           </button>
         )}
       </div>
-    </div>
+    </>
   );
 }
