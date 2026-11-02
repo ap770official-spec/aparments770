@@ -148,7 +148,10 @@
     "ownerTitle": "Have an apartment near 770?",
     "ownerBody": "List it here and guests will contact you directly, on WhatsApp or by phone.",
     "ownerCta": "List your apartment",
-    "resultsHeadingEmpty": "Search results"
+    "resultsHeadingEmpty": "Search results",
+    "distanceTitle": "Walking distance from 770",
+    "filterDistance": "Distance from 770",
+    "filterDistanceUpTo": "Up to {minutes} min from 770"
   },
   "searchForm": {
     "checkin": "Check-in date",

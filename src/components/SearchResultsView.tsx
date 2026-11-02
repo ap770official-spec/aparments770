@@ -37,7 +37,10 @@ export default function SearchResultsView({
   landmark,
   landmarkLabel,
   labels,
+  toolbar,
 }: {
+  /** Filters, shown on the same row as the list/map switch. */
+  toolbar?: React.ReactNode;
   properties: PropertySummary[];
   searchQuery: string;
   landmark?: { lat: number; lng: number } | null;
@@ -80,38 +83,42 @@ export default function SearchResultsView({
 
   return (
     <div>
-      <div className="mt-6 flex gap-1.5">
-        <button
-          type="button"
-          onClick={() => setView("list")}
-          aria-pressed={view === "list"}
-          className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-[13px] font-semibold ${
-            view === "list"
-              ? "border-brand bg-brand text-brand-foreground"
-              : "border-[#E5DED3] text-[#1A1512]"
-          }`}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          {labels.listView}
-        </button>
-        <button
-          type="button"
-          onClick={() => setView("map")}
-          aria-pressed={view === "map"}
-          className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-[13px] font-semibold ${
-            view === "map"
-              ? "border-brand bg-brand text-brand-foreground"
-              : "border-[#E5DED3] text-[#1A1512]"
-          }`}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11z" />
-            <circle cx="12" cy="10" r="2.5" />
-          </svg>
-          {labels.mapView}
-        </button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">{toolbar}</div>
+        {/* Segmented list/map switch. */}
+        <div className="flex rounded-full bg-canvas p-1 ring-1 ring-line">
+          <button
+            type="button"
+            onClick={() => setView("list")}
+            aria-pressed={view === "list"}
+            className={`flex min-h-10 items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors duration-150 ${
+              view === "list"
+                ? "bg-white text-ink shadow-[0_1px_3px_rgba(26,21,18,0.15)]"
+                : "text-ink-soft [@media(hover:hover)]:hover:text-ink"
+            }`}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            {labels.listView}
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("map")}
+            aria-pressed={view === "map"}
+            className={`flex min-h-10 items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors duration-150 ${
+              view === "map"
+                ? "bg-white text-ink shadow-[0_1px_3px_rgba(26,21,18,0.15)]"
+                : "text-ink-soft [@media(hover:hover)]:hover:text-ink"
+            }`}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11z" />
+              <circle cx="12" cy="10" r="2.5" />
+            </svg>
+            {labels.mapView}
+          </button>
+        </div>
       </div>
 
       {view === "list" ? (
