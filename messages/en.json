@@ -478,9 +478,13 @@
     "copyright": "© Apartments770"
   },
   "underConstructionNotice": {
-    "title": "Site under construction",
-    "body": "This site is still under construction. We apologize for the inconvenience — it isn't fully ready for use yet.",
-    "close": "Got it, close"
+    "title": "Before you continue",
+    "body": "This site is still in development, and the apartments shown here are for demonstration only — they can't actually be rented through it yet. Thanks for stopping by — we're working to launch soon.",
+    "close": "Got it, continue browsing"
+  },
+  "sitePreviewBanner": {
+    "text": "Site in preview 🚧 The listings shown are for demonstration only and aren't available for rent yet",
+    "close": "Dismiss"
   },
   "ownerProfile": {
     "title": "A few details before you start",
